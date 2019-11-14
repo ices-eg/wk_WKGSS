@@ -37,6 +37,7 @@ lowcase <- function(df) {
 
 # Data path
 datapath <- "//community.ices.dk/ExpertGroups/benchmarks/2020/wkdeep/2014 Meeting docs/06. Data"
+# datapath  <- "//community.ices.dk@SSL/DavWWWRoot/ExpertGroups/benchmarks/2020/wkdeep/2014 Meeting docs/06. Data"
 # datapath <- "D:/WGWIDE/2019/06. Data/_catch_by_rectangle"
 # datapath <- "D:/temp"
 
@@ -51,14 +52,11 @@ icesrectangles.df <-
   distinct(rect, lat, lon=long)
 
 # list the available files
-files.list <- list.files(path=file.path(datapath, "combined"), pattern="arg.xlsx", full.names=TRUE )
+fn <- file.path(datapath, "combined","CatchByRectangle all.xlsx")
 
 # read the files and start with an empty data frame
-catch_by_species_year_country_raw <- data.frame()
-for (f in files.list) {
-
-  t <- 
-    read_excel(f, col_names=TRUE, col_types="text") %>% 
+catch_by_species_year_country_raw <- 
+    read_excel(fn, col_names=TRUE, col_types="text") %>% 
     lowcase() %>% 
     mutate_at(c("year","pnum"), list(as.integer) )  %>% 
     # mutate_at(c("lat","lon","catch"), list(as.numeric) )  %>%
@@ -67,18 +65,15 @@ for (f in files.list) {
     dplyr::select(-one_of("lat","lon")) %>% 
     
     # add lat lon for rectangle
-    left_join(dplyr::select(icesrectangles.df,
-                            rect, lat, lon), 
+    left_join(dplyr::select(icesrectangles.df, rect, lat, lon), 
               by="rect") 
-    
-  # add to dataset
-  catch_by_species_year_country_raw <- bind_rows(catch_by_species_year_country_raw, t)
-}
-
 
 # catch by year
 catch_by_species_year <- 
-  catch_by_species_year_country_raw %>% 
+  catch_by_species_year_country_raw %>%
+  
+  mutate(species = "ARU") %>% 
+  
   group_by(species, year, rect, lat, lon) %>% 
   summarize(catch = sum(catch, na.rm=TRUE)) %>% 
   
@@ -159,46 +154,46 @@ plot_catch_by_year <- function(myspecies="MAC", myyears=NA, plot_catch=TRUE, plo
     
     {if (!all(is.na(myyears))) bind_rows(., data.frame(year = myyears)) else (.) }
 
-xlim <- range(catch2$lon, na.rm=TRUE)
-ylim <- range(catch2$lat, na.rm=TRUE)
+  xlim <- range(catch2$lon, na.rm=TRUE)
+  ylim <- range(catch2$lat, na.rm=TRUE)
 
-tc <-
+  tc <-
+    catch2 %>% 
+    group_by(species, year) %>% 
+    summarize(catch = sum(catch, na.rm=TRUE)) %>% 
+    mutate(catch  = as.integer(catch/1000) ) %>% 
+    
+    group_by(species) %>% 
+    mutate(catch2 = ylim[1] + (catch / max(catch, na.rm=TRUE) * (ylim[2] - ylim[1])) )
+  
   catch2 %>% 
-  group_by(species, year) %>% 
-  summarize(catch = sum(catch, na.rm=TRUE)) %>% 
-  mutate(catch  = as.integer(catch/1000) ) %>% 
+    filter(!is.na(catch_interval)) %>% 
+    ggplot(aes(lon, lat)) + 
+    theme_bw() +
+    theme(panel.border     = element_rect(colour="black" , size=0.2),
+          panel.grid.major = element_blank(),
+          strip.background = element_rect(colour="black", size =0.2),
+          plot.margin      = unit(c(0,0,0,0),"cm"),
+          plot.title       = element_text(hjust=0, vjust=0, size=10),
+          axis.text        = element_text(size=6),
+          legend.key.width = unit(0.4, "cm"), 
+          legend.position  = "bottom",
+          axis.title       = element_blank()) +
+    
+    coord_quickmap(xlim=xlim, ylim=ylim) +
   
-  group_by(species) %>% 
-  mutate(catch2 = ylim[1] + (catch / max(catch, na.rm=TRUE) * (ylim[2] - ylim[1])) )
-
-catch2 %>% 
-  filter(!is.na(catch_interval)) %>% 
-  ggplot(aes(lon, lat)) + 
-  theme_bw() +
-  theme(panel.border     = element_rect(colour="black" , size=0.2),
-        panel.grid.major = element_blank(),
-        strip.background = element_rect(colour="black", size =0.2),
-        plot.margin      = unit(c(0,0,0,0),"cm"),
-        plot.title       = element_text(hjust=0, vjust=0, size=10),
-        axis.text        = element_text(size=6),
-        legend.key.width = unit(0.4, "cm"), 
-        legend.position  = "bottom",
-        axis.title       = element_blank()) +
+    geom_polygon(data=fao.df, aes(long, lat, group=group), fill = NA, size=0.2,
+                 color="gray80", alpha=0.3) +
   
-  coord_quickmap(xlim=xlim, ylim=ylim) +
-
-  geom_polygon(data=fao.df, aes(long, lat, group=group), fill = NA, size=0.2,
-               color="gray80", alpha=0.3) +
-
-  geom_tile(aes(fill = catch_interval, height=0.5, width=1), colour=NA, alpha=1.0) +
-  scale_fill_viridis(option = "plasma", direction = -1, discrete=TRUE) +
-
-  geom_polygon(data=world.df, aes(long, lat, group=group), fill = "cornsilk", 
-               size=0.1, color="black") +
+    geom_tile(aes(fill = catch_interval, height=0.5, width=1), colour=NA, alpha=1.0) +
+    scale_fill_viridis(option = "plasma", direction = -1, discrete=TRUE) +
   
-  labs(x = NULL, y = NULL, size = "tons", title=unique(catch2$species)) +
-  guides(fill = guide_legend(nrow = 1, title="catch (tonnes)")) +
-  facet_wrap( ~ year, ncol=ncol)
+    geom_polygon(data=world.df, aes(long, lat, group=group), fill = "cornsilk", 
+                 size=0.1, color="black") +
+    
+    labs(x = NULL, y = NULL, size = "tons", title=unique(catch2$species)) +
+    guides(fill = guide_legend(nrow = 1, title="catch (tonnes)")) +
+    facet_wrap( ~ year, ncol=ncol)
 
 } # end of plot_catch_by_year
 
@@ -226,7 +221,7 @@ table_catch_by_year_country(myspecies="ARU")
 
 ```{r, echo=FALSE, fig.asp=1.4, fig.align="center", message=FALSE, warning=FALSE}
 
-plot_catch_by_year(myspecies="ARU", myyears = 2010:2018, ncol=3)
+plot_catch_by_year(myspecies=c("ARU"), myyears = 2010:2019, ncol=4)
 
 ```
 
