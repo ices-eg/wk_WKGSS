@@ -72,7 +72,7 @@ catch_by_species_year_country_raw <-
 catch_by_species_year <- 
   catch_by_species_year_country_raw %>%
   
-  mutate(species = "ARU") %>% 
+  # mutate(species = "ARU") %>% 
   
   group_by(species, year, rect, lat, lon) %>% 
   summarize(catch = sum(catch, na.rm=TRUE)) %>% 
