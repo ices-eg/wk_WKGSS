@@ -1,7 +1,7 @@
 
 #catch by area
 
-install.packages('mapplots')
+#install.packages('mapplots')
 library(mar)
 library(icesSAG)
 library(fs)
@@ -202,10 +202,14 @@ biol_data <-
   mutate(person = 'Pamela J. Woods',
          source = 'IAGS',
          country = 'Iceland',
-         division = '27.5a',
-         )
+         division = '27.5.a'
+         ) %>% 
+  rename(haul_id = synis_id, depth = togdypi_hift) %>% 
+  #convert dags to day month year
+  select(person, source, country, division, haul_id, day, month, year, lat lon, depth)
   
 
+#Add code here
 
 #length distributions
   
