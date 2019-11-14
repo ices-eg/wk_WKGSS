@@ -23,7 +23,7 @@ rm(list=ls())
 # library(devtools)
 library(tidyverse)    # tidying packages
 library(readxl)       # read excel
-library(scales)
+library(scales)       # 
 library(RColorBrewer)
 library(viridis)
 library(pander)
@@ -37,7 +37,7 @@ lowcase <- function(df) {
 # Data path
 # datapath <- "D:/temp"
 datapath <- "//community.ices.dk/ExpertGroups/benchmarks/2020/wkdeep/2014 Meeting docs/06. Data/combined"
-datapath  <- "//community.ices.dk@SSL/DavWWWRoot/ExpertGroups/benchmarks/2020/wkdeep/2014 Meeting docs/06. Data/combined"
+# datapath  <- "//community.ices.dk@SSL/DavWWWRoot/ExpertGroups/benchmarks/2020/wkdeep/2014 Meeting docs/06. Data/combined"
 
 # list the available files
 files.list <- list.files(path=datapath, pattern="CatchAreaCountry", full.names=TRUE )
@@ -70,6 +70,10 @@ Martin Pastoors, `r format(Sys.time(), '%d/%m/%Y')`
 # table_catch_by_year_species()
 
 ```
+
+Here will be a picture with catch information
+
+
 
 ```{r, echo=FALSE, fig.asp=0.8, fig.align="center", message=FALSE, warning=FALSE}
 
