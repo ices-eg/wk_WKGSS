@@ -217,33 +217,16 @@ Martin Pastoors, `r format(Sys.time(), '%d/%m/%Y')`
 
 **Results**
 
-
-```{r, echo=FALSE, fig.asp=1.4, fig.align="center", message=FALSE, warning=FALSE}
-
-table_catch_by_year_species()
-
-```
-
-
-**Discussion**
-
-
-##### page break
-
-**Greater Silver smelt**
-
 ```{r, echo=FALSE, fig.asp=1.4, fig.align="center", message=FALSE, warning=FALSE}
 
 table_catch_by_year_country(myspecies="ARU")
 
 ```
 
-_Table 1: Catch of mackerel (tonnes) included in the rectangle data by year and country_
 
 ```{r, echo=FALSE, fig.asp=1.4, fig.align="center", message=FALSE, warning=FALSE}
 
-plot_catch_by_year(myspecies="ARU", myyears = 1994:2018, ncol=5)
-# plot_catch_by_year(myspecies="MAC", myyears = 1998:2018, ncol=5)
+plot_catch_by_year(myspecies="ARU", myyears = 2010:2018, ncol=3)
 
 ```
 
