@@ -9,7 +9,9 @@ library(fs)
 tyr <- lubridate::year(Sys.Date())
 species_number <- 19
 mar <- connect_mar()
-
+global_regions <- 101:108 #for haddock
+ldist_bins <- NULL
+ldist_bins[[19]] <- c(seq(10, 58,by=1),60)
 
 
 landings <- 
@@ -40,7 +42,7 @@ landings <-
               summarise(c=sum(magn_oslaegt,na.rm = TRUE)/1e3)%>% 
               collect(n=Inf) %>% 
               rename(year=ar) %>% 
-              mutate(area = '5.a')) %>% 
+              mutate(area = '5.a') ) %>% 
   filter(year < tyr,c>0) %>% 
   group_by(year,area, gear,country) %>% 
   summarise(c=sum(c)) %>% 
@@ -178,39 +180,159 @@ biol_data <-
   lesa_kvarnir(mar) %>% 
   filter(tegund==19) %>% 
   left_join(lesa_stodvar(mar)) %>% 
-  filter(synaflokkur==35) %>%
+  filter(synaflokkur %in% c(1,2,4,8, 35)) %>%
+  mutate(GRIDCELL = 10*reitur + smareitur) %>%
+  left_join(tbl(mar,'reitmapping_original'), by = "GRIDCELL") %>%
+  rename(region = DIVISION) %>%
+  mutate(region = ifelse(is.na(region) & !(synaflokkur %in% c(30,35)), 101, region)) %>% 
+  filter(!(synaflokkur %in% c(1,2,4,8) & !(region %in% local(global_regions))),
+         !is.na(region)) %>% 
   rename(haul_id = synis_id, length_cm = lengd, age = aldur, weight_g = oslaegt, maturity_stage = kynthroski,) %>% 
   mutate(gender = ifelse(kyn==1, 'M',
                          ifelse(kyn==2, 'F', NA)),
          maturity = ifelse(maturity_stage==1, 'immature',
                            ifelse(maturity_stage %in% c(2:4), 'mature',NA)),
-         source = 'IAGS',
+         source = ifelse(synaflokkur==35, 'IAGS', 'commercial'),
          person = 'Pamela J. Woods'
          )  %>% 
   select(person, source, haul_id, age, length_cm, weight_g, gender, maturity_stage, maturity) %>% 
   filter(!(is.na(age) & is.na(length_cm) & is.na(weight_g) & is.na(gender) & is.na(maturity_stage))) %>% 
+  collect(n=Inf) %>% 
   write_csv('data_to_share/BiolData_ARU.27.5a14.csv')
 
   
 #stations
 
-biol_data <-
+stations_data <-
   lesa_kvarnir(mar) %>% 
   filter(tegund==19) %>% 
-  left_join(lesa_stodvar(mar)) %>% 
-  filter(synaflokkur==35) %>%
+  select(synis_id) %>% 
+  full_join(lesa_lengdir(mar) %>%
+            filter(tegund==19) %>% 
+            select(synis_id)) %>% 
+  distinct() %>% 
+  left_join(lesa_stodvar(mar)) %>%
+  filter(synaflokkur %in% c(1,2,4,8, 35)) %>%
+  mutate(GRIDCELL = 10*reitur + smareitur) %>%
+  left_join(tbl(mar,'reitmapping_original'), by = "GRIDCELL") %>%
+  rename(region = DIVISION) %>%
+  mutate(region = ifelse(is.na(region) & !(synaflokkur %in% c(30,35)), 101, region)) %>% 
+  filter(!(synaflokkur %in% c(1,2,4,8) & !(region %in% local(global_regions))),
+         !is.na(region)) %>% 
   mutate(person = 'Pamela J. Woods',
-         source = 'IAGS',
+         source = ifelse(synaflokkur==35, 'IAGS', 'commercial'),
          country = 'Iceland',
          division = '27.5.a'
          ) %>% 
   rename(haul_id = synis_id, depth = togdypi_hift) %>% 
-  #convert dags to day month year
-  select(person, source, country, division, haul_id, day, month, year, lat lon, depth)
+  mutate(day = day(dags), month = month(dags), year = year(dags)) %>%
+  select(person, source, country, division, haul_id,day,month,year, lat = lat.x, lon = lon.x, depth) %>% 
+  collect(n = Inf) %>% 
+  write_csv('data_to_share/StationsData_ARU.27.5a14.csv')
+
+#links for trying to connect to ICES network  
+  # https://community.ices.dk/ExpertGroups/benchmarks/2020/wkdeep/_layouts/15/PickerTreeView.aspx?title=CbqPickerSelectFolderTitle&text=CbqPickerSelectFolderText&filter=websListsFolders&root=SPList:6d86768d-bc32-44d4-a68d-a3218109e204?SPWeb:6c7dbae6-f94a-462f-8bc2-b852d8ef1b84:&selectionUrl=/ExpertGroups/benchmarks/2020/wkdeep/2014%20Meeting%20docs/06.%20Data/combined/&featureId=&errorString=&iconUrl=/_layouts/15/images/smt_icon.gif?rev=40&scopeToWeb=true&requireCT=&sourceId=/06. Data/combined/
+  # https://community.ices.dk/ExpertGroups/benchmarks/2020/wkdeep/_layouts/15/start.aspx#/SitePages/HomePage.aspx?RootFolder=%2FExpertGroups%2Fbenchmarks%2F2020%2Fwkdeep%2F2014%20Meeting%20docs%2F06%2E%20Data%2Fcombined&FolderCTID=0x01200086119F7A284DDE4D825348277F2A1A7A&View=%7B6C506B9A%2D6D58%2D468E%2D9DB4%2DBBF47E5FC264%7D
+  # http://community.ices.dk/ExpertGroups/benchmarks/2020/wkdeep/2014%20Meeting%20docs/06.%20Data/combined
+  # 
+  # list.files('http://community.ices.dk/ExpertGroups/benchmarks/2020/wkdeep/2014%20Meeting%20docs/06.%20Data/combined')
   
-
-#Add code here
-
 #length distributions
+
+  
+ldist1<-
+  lesa_lengdir(mar) %>%
+  filter(tegund==19) %>%
+  left_join(lesa_stodvar(mar)) %>% 
+  filter(synaflokkur %in% c(1,2,4,8, 35)) %>%
+  mutate(GRIDCELL = 10*reitur + smareitur) %>%
+  left_join(tbl(mar,'reitmapping_original'), by = "GRIDCELL") %>%
+  rename(region = DIVISION) %>%
+  mutate(region = ifelse(is.na(region) & !(synaflokkur %in% c(30,35)), 101, region)) %>% 
+  filter(!(synaflokkur %in% c(1,2,4,8) & !(region %in% local(global_regions))),
+         !is.na(region)) %>% 
+  mutate(source = ifelse(synaflokkur==35,'IAGS','commercial'),
+         country = 'Iceland',
+         division = '27.5.a')
+
+ldist.surv <-
+  ldist1 %>%
+  filter(synaflokkur==35) %>% 
+  skala_med_toldum() %>% 
+  bind_
+  rename(month = man) %>% 
+  mutate(quarter = ifelse(month %in% c(1,2,3), 1, 
+                          ifelse(month %in% c(4,5,6), 2, 
+                                 ifelse(month %in% c(7,8,9), 3, 4))),
+         n_1000s = fjoldi/1000) %>%
+  select(source, country, division, year = ar, quarter, length_cm = lengd, n_1000s) %>% 
+  collect(n=Inf)
+  
+  #catch data....
+  catch <- 
+    afli_stofn(mar) %>% 
+    inner_join(afli_afli(mar)) %>% 
+    filter(tegund == Species, ar == tyr) %>% 
+    mutate(GRIDCELL = 10*reitur + smareitur) %>% 
+    inner_join(tbl(mar,'husky_gearlist'),
+               by =c('veidarf'='veidarfaeri')) %>% 
+    rename(vf = geartext) %>% 
+    inner_join(tbl(mar,'reitmapping')) %>% 
+    rename(region = DIVISION) %>% 
+    filter(region %in% global_regions) #%>% 
+  
+  if(dim(catch %>% collect(n=Inf))[1]==0){
+    print('WARNING: No catch data - using landings instead')
+    catch <- 
+      landings_caa %>% 
+      mutate(afli = landings_caa, man = 1, GRIDCELL = 1811, region = 101) #arbitrarily chosen so that the rest of the code works... 
+  }
+  
+  #.... by gear and compared with landings_caa
+  sc <- 
+    catch %>% 
+    group_by(vf) %>% 
+    summarise(catch = sum(afli)) %>% 
+    left_join(landings_caa)
+  
+  #.... corrected by the discrepancy between landings_caa and catch specific to gear types...
+  commcatch <- 
+    catch %>% 
+    left_join(sc) %>% 
+    mutate(landings_caa = ifelse(is.na(landings_caa), catch, landings_caa),
+           catch = afli*landings_caa/catch) %>% #discrepancy correction
+    mutate(synaflokkur_group = 's1') %>% # 'commercial' synaflokkur - helps with later groupings - 
+    #group_by(vf, man) %>% 
+    filter(!is.na(catch)) %>% 
+    #mutate(catch = afli) %>% 
+    collect(n=Inf) #%>% 
+  
+  #catch for the ind grouping - used as a weight when combining catch data
+  afli_ind <- 
+    commcatch %>% 
+    rename(month = man) %>% 
+    left_join(month_group) %>% 
+    left_join(GRIDCELL_group) %>% 
+    left_join(region_group) %>% 
+    left_join(vf_group) %>% 
+    ungroup() %>% 
+    unite(index,c(month_group,synaflokkur_group,region_group,GRIDCELL_group,vf_group),sep = '',remove = FALSE) %>% 
+    filter(!is.na(month_group), !is.na(GRIDCELL_group), !is.na(region_group), vf_group != 'NA' | !is.na(vf_group), !is.na(synaflokkur_group)) %>% 
+    filter(index == ind) %>% 
+    summarise(catch = sum(catch,na.rm=TRUE)) %>% 
+    mutate(catch = catch/1000) %>% 
+    .$catch
   
   
+  
+distributions <- MakeLdist(Species,
+                           lengd=ldist_bins[[19]],
+                           Stodvar=ldist1 %>% 
+                             filter(synaflokkur!=35) %>% 
+                             select(-c(tegund, lengd, fjoldi, kyn, kynthroski)),
+                           lengdir=ldist1 %>% 
+                             filter(synaflokkur!=35) %>% 
+                             select(c(tegund, lengd, fjoldi, kyn, kynthroski)),
+                           lengd.thyngd.data=cond_ind,
+                           talid=F,afli=afli_ind)
+    
