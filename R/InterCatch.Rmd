@@ -1,0 +1,125 @@
+---
+output: 
+  word_document:
+    reference_docx: ../report_template_v1.5.dotx
+---
+
+```{r setup, echo=FALSE, fig.asp=1.0, fig.align="center", message=FALSE, warning=FALSE}
+
+# =================================================================================================
+# InterCatch.r
+#
+# 15/11/2019 first coding; read all intercatch files
+# =================================================================================================
+
+require("knitr")
+knitr::opts_chunk$set(echo = FALSE,	message = FALSE,	warning = FALSE,	comment = "",	crop = TRUE )
+knitr::opts_chunk$set(fig.width=10) 
+
+rm(list=ls())
+
+# library(devtools)
+library(tidyverse)    # tidying packages
+library(scales)       # 
+library(RColorBrewer)
+library(viridis)
+library(pander)
+library(ggridges)     # new instead of ggjoy 
+library(ggrepel)      # labelling
+
+# lowcase function
+lowcase <- function(df) {
+  names(df) <- tolower(names(df)) %>% gsub("\\?|\\s+|\\.+|_+|\\(|\\)","",.) 
+  df
+}
+
+# Read functions
+source("ReadIntercatch.r")
+source("theme_publication.r")
+
+# Data path
+# datapath <- "D:/temp"
+# datapath <- "//community.ices.dk/ExpertGroups/benchmarks/2020/wkdeep/2014 Meeting docs/06. Data/combined"
+datapath <- "D:/TEMP/2014 Meeting docs/06. Data/aru.27.5b6a"
+# datapath  <- "//community.ices.dk@SSL/DavWWWRoot/ExpertGroups/benchmarks/2020/wkdeep/2014 Meeting docs/06. Data/combined"
+
+# list the available files
+files.list <- list.files(path=file.path(datapath, "InterCatch input"), pattern="DataCall", full.names=TRUE )
+
+# read the files
+HI <- SI <- SD <- NULL
+for(file in files.list) {
+  ic <- ReadIntercatch(file)
+  HI <- rbind(HI,ic[[1]])
+  SI <- rbind(SI,ic[[2]])
+  SD <- rbind(SD,ic[[3]])
+}
+
+
+```
+
+**Greater Silver smelt (ARU) Intercatch data**
+
+Martin Pastoors, `r format(Sys.time(), '%d/%m/%Y')`
+
+
+```{r, echo=FALSE, fig.asp=1.4, fig.align="center", message=FALSE, warning=FALSE}
+
+# SI tables
+SI %>% 
+  group_by(Country, Year, FishingArea, CatchCategory) %>% 
+  summarize(CATON = as.integer(sum(CATON, na.rm=TRUE))) %>% 
+  dcast(Country + Year ~ FishingArea, sum, margins=c("Year", "FishinArea")) %>% 
+  pandoc.table(.,
+           style = "simple",
+           split.tables=120, 
+           justify = "right",
+           missing=".")
+
+```
+
+
+
+
+
+```{r, echo=FALSE, fig.asp=0.8, fig.align="center", message=FALSE, warning=FALSE}
+
+# SD length overview
+t <-
+  SD %>% 
+  filter(CANUMtype == "lngt") %>% 
+  group_by(Country, Year, FishingArea, MeanLength) %>% 
+  summarize(NumberCaught = sum(NumberCaught, na.rm=TRUE)) %>% 
+  group_by(Country, Year, FishingArea) %>% 
+  mutate(prop = NumberCaught / sum(NumberCaught, na.rm=TRUE)) %>% 
+  ungroup()
+
+t %>%   
+  ggplot(aes(x=MeanLength, y=Year)) +
+  theme_publication() +
+  # geom_bar(stat="identity") +
+  ggridges::geom_ridgeline(aes(height=prop), stat="identity", scale=4, alpha=0.8, fill=NA)  +
+  ggrepel::geom_text_repel(data= subset(t, MeanLength == max(MeanLength)), aes(label=Year))
+  
+```
+
+
+```{r, echo=FALSE, fig.asp=0.8, fig.align="center", message=FALSE, warning=FALSE}
+
+# SD age overview
+SD %>% 
+  filter(CANUMtype == "age") %>% 
+  group_by(Country, Year, FishingArea, AgeLength) %>% 
+  summarize(NumberCaught = sum(NumberCaught, na.rm=TRUE)) %>% 
+  
+  ggplot(aes(x=AgeLength, y=NumberCaught)) +
+  theme_publication() +
+  geom_bar(stat="identity") +
+  facet_wrap(~Year)
+
+```
+
+```{r, echo=FALSE, fig.asp=0.8, fig.align="center", message=FALSE, warning=FALSE}
+
+
+```
