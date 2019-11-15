@@ -58,19 +58,31 @@ landings <-
          country = ifelse(grepl('UK',country)|country=='GB','UK',country)) %>% 
   select(year,species,country,area,gear,landings) %>% 
   #this is a hack that will improve next year when landings tables are requested
-  bind_rows(data_frame(year = 2014:2018, species = 19, country = 'Greenland', area = '14', gear = 'BMT', landings = c(4,12,16,666,425))) %>%  
+  bind_rows(readxl::read_xlsx('../../data/Catches_ARGandARS_Greenland_logbooks (to PW, Iceland) (1).xlsx') %>% 
+              select(NATION_KODE,YEAR, Amount) %>% 
+              setNames(.,c('country', 'year', 'catch')) %>% 
+              mutate(area = '27.14.b', 
+                     country = ifelse(country %in% c('EU', 'DEU'), 'Germany',
+                                      ifelse(country=='ISL', 'Iceland',
+                                             ifelse(country=='NOR', 'Norway',
+                                                    ifelse(country=='GRL', 'Greenland',
+                                                           country))))
+                           ) %>% 
+              group_by(country,year) %>% 
+              summarise(landings = sum(catch)) %>% 
+              mutate(species = 19, gear = 'BMT')) %>%  
   rename(Year = year, Country = country) %>% 
   mutate(Species = 'ARU',
          Stock = 'ARU',
          Subarea = ifelse(area=='14', '27.14', '27.5'), 
-         Division = ifelse(area=='14', '27.14', '27.5a'),
+         Division = ifelse(area=='14', '27.14.b', '27.5a'),
          CatchCategory = 'landings') %>%
   group_by(Species, Stock, Year, Country, CatchCategory, Subarea, Division) %>% 
   summarise(Caton = sum(landings)) %>% 
   write_csv('data_to_share/CatchAreaCountry ARU.27.5a14.csv')
 
 
-  #ices_rectangle	quarter	year	species	catch_kg
+#ices_rectangle	quarter	year	species	catch_kg
 
 gearlist<-NULL
 imp_gears<-gearlist[[19]]<-c('BMT','LLN', 'GIL')
@@ -78,109 +90,144 @@ imp_gears<-gearlist[[19]]<-c('BMT','LLN', 'GIL')
 ## position of samples from the catches
 
 #spatial data combined with Greenland
+
+#approximation for 2018 data with missing lat / lon
 greenland_prop <-
   readxl::read_xlsx('../../data/Catches_ARGandARS_Greenland_logbooks (to PW, Iceland) (1).xlsx') %>% 
-  select(YEAR, MD, Lat, Long, Amount) %>% 
-  setNames(.,c('year', 'month', 'lat', 'lon','catch')) %>% 
-  mutate(towtime = 0, section = '14') %>%
+  select(NATION_KODE,YEAR, MD, Lat, Long, Amount) %>% 
+  setNames(.,c('country', 'year', 'month', 'lat', 'lon','catch')) %>% 
+  mutate(section = '27.14.b', 
+         country = ifelse(country %in% c('EU', 'DEU'), 'Germany',
+                          ifelse(country=='ISL', 'Iceland',
+                                 ifelse(country=='NOR', 'Norway',
+                                        ifelse(country=='GRL', 'Greenland',
+                                               country))))
+         ) %>%
   filter(year %in% c(2017)) %>% 
   mutate(rect =  mapplots::ices.rect2(lon, lat)) %>% 
   left_join(
     readxl::read_xlsx('../../data/Catches_ARGandARS_Greenland_logbooks (to PW, Iceland) (1).xlsx') %>% 
-      select(YEAR, MD, Lat, Long, Amount) %>% 
-      setNames(.,c('year', 'month', 'lat', 'lon','catch')) %>% 
-      mutate(towtime = 0, section = '14') %>%
+      select(NATION_KODE,YEAR, MD, Lat, Long, Amount) %>% 
+      setNames(.,c('country', 'year', 'month', 'lat', 'lon','catch')) %>% 
+      mutate(section = '27.14.b', 
+             country = ifelse(country %in% c('EU', 'DEU'), 'Germany',
+                              ifelse(country=='ISL', 'Iceland',
+                                     ifelse(country=='NOR', 'Norway',
+                                            ifelse(country=='GRL', 'Greenland',
+                                                   country))))
+      ) %>%
       filter(year %in% c(2017)) %>% 
-      group_by(year) %>% 
+      group_by(year, country) %>% 
       summarise(tot = sum(catch))
   ) %>% 
-  group_by(year,rect) %>% 
+  group_by(year,country,rect) %>% 
   summarise(prop = sum(catch / tot)) %>% 
   ungroup %>% 
   mutate(year = 2018) %>% 
-  full_join(readxl::read_xlsx('../../data/Catches_ARGandARS_Greenland_logbooks (to PW, Iceland) (1).xlsx') %>% 
-              select(YEAR, MD, Lat, Long, Amount) %>% 
-              setNames(.,c('year', 'month', 'lat', 'lon','catch')) %>% 
-              filter(is.na(lat)) %>% 
-              mutate(quarter = ifelse(month %in% c(1,2,3), 1, 
-                                      ifelse(month %in% c(4,5,6), 2, 
-                                             ifelse(month %in% c(7,8,9), 3, 4)))) %>% 
-              group_by(year, quarter) %>% 
-              summarise(tot_catch = sum(catch))) %>% 
+  full_join(
+    readxl::read_xlsx('../../data/Catches_ARGandARS_Greenland_logbooks (to PW, Iceland) (1).xlsx') %>% 
+      select(NATION_KODE,YEAR, MD, Lat, Long, Amount) %>% 
+      setNames(.,c('country', 'year', 'month', 'lat', 'lon','catch')) %>% 
+      mutate(section = '27.14.b', 
+             country = ifelse(country %in% c('EU', 'DEU'), 'Germany',
+                              ifelse(country=='ISL', 'Iceland',
+                                     ifelse(country=='NOR', 'Norway',
+                                            ifelse(country=='GRL', 'Greenland',
+                                                   country))))
+      ) %>%
+      
+      filter(is.na(lat)) %>% 
+      mutate(quarter = ifelse(month %in% c(1,2,3), 1, 
+                              ifelse(month %in% c(4,5,6), 2, 
+                                     ifelse(month %in% c(7,8,9), 3, 
+                                            ifelse(month %in% c(10,11,12), 4, NA))))) %>% 
+      group_by(country, year, quarter) %>% 
+      summarise(tot_catch = sum(catch))
+    )%>% 
   mutate(catch_kg = tot_catch*prop)
 
 
 catch_dist <-
   tbl(mar,paste0('GSS','_catch')) %>% 
   filter(year > 1987) %>% 
-  select(towtime, year, month, lat, lon, catch) %>% 
+  select(year, month, lat, lon, catch) %>%
+  mutate(country ='Iceland') %>% 
   collect(n=Inf) %>% 
-  mutate(section = '5a') %>% 
-  bind_rows(readxl::read_xlsx('../../data/Catches_ARGandARS_Greenland_logbooks (to PW, Iceland) (1).xlsx') %>% 
-              select(YEAR, MD, Lat, Long, Amount) %>% 
-              setNames(.,c('year', 'month', 'lat', 'lon','catch')) %>% 
-              mutate(towtime = 0, section = '14')) %>% 
+  mutate(section = '27.5.a') %>% 
+  bind_rows(
+    readxl::read_xlsx('../../data/Catches_ARGandARS_Greenland_logbooks (to PW, Iceland) (1).xlsx') %>% 
+      select(NATION_KODE,YEAR, MD, Lat, Long, Amount) %>% 
+      setNames(.,c('country', 'year', 'month', 'lat', 'lon','catch')) %>% 
+      mutate(section = '27.14.b', 
+             country = ifelse(country %in% c('EU', 'DEU'), 'Germany',
+                              ifelse(country=='ISL', 'Iceland',
+                                     ifelse(country=='NOR', 'Norway',
+                                            ifelse(country=='GRL', 'Greenland',
+                                                   country))))) 
+    ) %>% 
   mutate(quarter = ifelse(month %in% c(1,2,3), 1, 
                           ifelse(month %in% c(4,5,6), 2, 
-                                 ifelse(month %in% c(7,8,9), 3, 4)))) %>% 
+                                 ifelse(month %in% c(7,8,9), 3, 
+                                        ifelse(month %in% c(10,11,12), 4, NA))))) %>% 
   mutate(rect =  mapplots::ices.rect2(lon, lat)) %>% 
-  group_by(year,quarter,rect) %>% 
+  group_by(country, year,quarter,rect,section) %>% 
   summarise(catch_kg=sum(catch)) %>% 
   left_join(tbl(mar,paste0('GSS','_catch')) %>% 
-              #filter(year > 2016, gear %in% imp_gears) %>% 
-              select(towtime, year, month, lat, lon, catch) %>% 
-              collect(n=Inf) %>% 
-              mutate(section = '5a') %>% 
-              bind_rows(readxl::read_xlsx('../../data/Catches_ARGandARS_Greenland_logbooks (to PW, Iceland) (1).xlsx') %>% 
-                          select(YEAR, MD, Lat, Long, Amount) %>% 
-                          setNames(.,c('year', 'month', 'lat', 'lon','catch')) %>% 
-                          mutate(towtime = 0, section = '14')) %>% 
-              mutate(quarter = ifelse(month %in% c(1,2,3), 1, 
-                                      ifelse(month %in% c(4,5,6), 2, 
-                                             ifelse(month %in% c(7,8,9), 3, 4)))) %>% 
-              group_by(year,quarter) %>% 
-              summarise(tot_catch_ton = sum(catch)/1000)
-  ) %>% 
+                  #filter(year > 2016, gear %in% imp_gears) %>% 
+                  select(year, month, lat, lon, catch) %>% 
+                  mutate(country = 'Iceland') %>% 
+                  collect(n=Inf) %>% 
+                  mutate(section = '27.5.a') %>% 
+                  mutate(quarter = ifelse(month %in% c(1,2,3), 1, 
+                                          ifelse(month %in% c(4,5,6), 2, 
+                                                 ifelse(month %in% c(7,8,9), 3, 
+                                                        ifelse(month %in% c(10,11,12), 4, NA))))) %>% 
+                  group_by(country,section, year,quarter) %>% 
+                  summarise(tot_catch_ton = sum(catch)/1000)
+      ) %>% 
   left_join(fiskifelag_oslaegt(mar) %>% 
-                          filter(fteg == species_number) %>% 
-                          group_by(ar,man) %>% 
-                          summarise(c=sum(magn_oslaegt,na.rm = TRUE)/1e3) %>% 
-                          collect(n=Inf) %>% 
-                          rename(year=ar, month = man) %>%   
+              filter(fteg == species_number) %>% 
+              mutate(country = 'Iceland',section = '27.5.a') %>% 
+              group_by(country, section, ar,man) %>% 
+              summarise(c=sum(magn_oslaegt,na.rm = TRUE)/1e3) %>% 
+              collect(n=Inf) %>% 
+              rename(year=ar, month = man) %>%   
               bind_rows(lods_oslaegt(mar) %>% 
                           filter(fteg == species_number,veidisvaedi == 'I',ar>1993) %>% 
                           left_join(lesa_skipaskra(mar)) %>% 
-                          mutate(country = ifelse(nvl(flokkur,0) != -4,'Iceland',einkst)) %>% 
+                          mutate(country = ifelse(nvl(flokkur,0) != -4,'Iceland',einkst), section = '27.5.a') %>% 
                           filter(country == 'Iceland') %>% 
-                          group_by(ar,man) %>% 
+                          group_by(country,section,ar,man) %>% 
                           summarise(c=sum(magn_oslaegt,na.rm = TRUE)/1e3)%>% 
                           collect(n=Inf) %>% 
                           rename(year=ar, month = man)) %>%
               mutate(quarter = ifelse(month %in% c(1,2,3), 1, 
                                       ifelse(month %in% c(4,5,6), 2, 
-                                             ifelse(month %in% c(7,8,9), 3, 4)))) %>% 
+                                             ifelse(month %in% c(7,8,9), 3, 
+                                                    ifelse(month %in% c(10,11,12), 4, NA))))) %>% 
               filter(year < tyr,c>0) %>% 
-              group_by(year,quarter) %>% 
+              group_by(country, section,year,quarter) %>% 
               summarise(landings_ton=sum(c))
-            ) %>% 
-  mutate(raising_factor = landings_ton/tot_catch_ton,
-         raised_catch = catch_kg*ifelse(is.na(raising_factor), 1, raising_factor)) %>% 
-  filter(!grepl('NA', rect)) %>% 
-  bind_rows(greenland_prop %>% 
-              select(year, quarter, rect, raised_catch = catch_kg)) %>% 
-  group_by(year, quarter, rect) %>% 
-  summarise(catch_kg = sum(raised_catch)) %>% 
-  rename(ices_rectangle = rect) %>%
-  mutate(species = 'ARU') %>% 
-  write_csv('data_to_share/CatchByRect ARU.27.5a14.csv')
-  #dbWriteTable(mar,paste0('GSS','temp_spat_catch_byQ'),.,overwrite =TRUE)
+      ) %>% 
+      mutate(raising_factor = landings_ton/tot_catch_ton,
+             raised_catch = catch_kg*ifelse(is.na(raising_factor), 1, raising_factor)) %>% 
+      filter(!grepl('NA', rect)) %>% 
+      bind_rows(greenland_prop %>%
+                  mutate(section = '27.14.b') %>% 
+                  select(country, section, year, quarter, rect, raised_catch = catch_kg)) %>% 
+      group_by(country, section, year, quarter, rect) %>% 
+      summarise(catch_kg = sum(raised_catch)) %>% 
+      rename(ices_rectangle = rect) %>%
+      mutate(species = 'ARU') %>% 
+      write_csv('data_to_share/CatchByRect ARU.27.5a14.csv')
+    #dbWriteTable(mar,paste0('GSS','temp_spat_catch_byQ'),.,overwrite =TRUE)
 
 #biological data
 biol_data <-
   lesa_kvarnir(mar) %>% 
   filter(tegund==19) %>% 
   left_join(lesa_stodvar(mar)) %>% 
-  filter(synaflokkur %in% c(1,2,4,8, 35)) %>%
+  filter(synaflokkur %in% c(1,2,4,8,30,35)) %>%
   mutate(GRIDCELL = 10*reitur + smareitur) %>%
   left_join(tbl(mar,'reitmapping_original'), by = "GRIDCELL") %>%
   rename(region = DIVISION) %>%
@@ -192,6 +239,7 @@ biol_data <-
                          ifelse(kyn==2, 'F', NA)),
          maturity = ifelse(maturity_stage==1, 'immature',
                            ifelse(maturity_stage %in% c(2:4), 'mature',NA)),
+         spawning = ifelse(maturity_stage==3, 'yes', 'no'),
          source = ifelse(synaflokkur==35, 'IAGS', 'commercial'),
          person = 'Pamela J. Woods'
          )  %>% 
