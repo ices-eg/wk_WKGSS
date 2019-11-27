@@ -293,7 +293,12 @@ ldist1<-
   filter(tegund==19) %>%
   left_join(lesa_stodvar(mar)) %>% 
   filter(synaflokkur %in% c(1,2,4,8, 35)) %>%
-  mutate(GRIDCELL = 10*reitur + smareitur) %>%
+  left_join(tbl(mar,'husky_gearlist')) %>% 
+  rename(vf = geartext,month = man) %>%  
+  mutate(GRIDCELL = 10*reitur + smareitur,
+         quarter = ifelse(month %in% c(1,2,3), 1, 
+                          ifelse(month %in% c(4,5,6), 2, 
+                                 ifelse(month %in% c(7,8,9), 3, 4)))) %>%
   left_join(tbl(mar,'reitmapping_original'), by = "GRIDCELL") %>%
   rename(region = DIVISION) %>%
   mutate(region = ifelse(is.na(region) & !(synaflokkur %in% c(30,35)), 101, region)) %>% 
@@ -307,39 +312,54 @@ ldist.surv <-
   ldist1 %>%
   filter(synaflokkur==35) %>% 
   skala_med_toldum() %>% 
-  bind_
-  rename(month = man) %>% 
-  mutate(quarter = ifelse(month %in% c(1,2,3), 1, 
-                          ifelse(month %in% c(4,5,6), 2, 
-                                 ifelse(month %in% c(7,8,9), 3, 4))),
-         n_1000s = fjoldi/1000) %>%
+  mutate(n_1000s = fjoldi/1000) %>%
   select(source, country, division, year = ar, quarter, length_cm = lengd, n_1000s) %>% 
   collect(n=Inf)
   
+landings_caa <- 
+  lods_oslaegt(mar) %>% 
+  filter(ar > 1993) %>% 
+  full_join(fiskifelag_oslaegt(mar) %>%  
+              filter(ar < 1994) %>% 
+              mutate(veidisvaedi='I')) %>%  
+  inner_join(tbl(mar,'husky_gearlist')) %>% 
+  rename(vf = geartext) %>% 
+  filter(#veidarfaeri == 1,
+    fteg == 19,
+    #ar == tyr,
+    veidisvaedi == 'I') %>% 
+  rename(month = man) %>% 
+  mutate(quarter = ifelse(month %in% c(1,2,3), 1, 
+                          ifelse(month %in% c(4,5,6), 2, 
+                                 ifelse(month %in% c(7,8,9), 3, 4)))) %>%
+  rename(year = ar) %>% 
+  group_by(year, vf) %>% 
+  summarise(landings_caa = sum(magn_oslaegt)) 
+
+
   #catch data....
   catch <- 
     afli_stofn(mar) %>% 
     inner_join(afli_afli(mar)) %>% 
-    filter(tegund == Species, ar == tyr) %>% 
+    filter(tegund == 19) %>% #, 
+           #ar == tyr) %>% 
+    rename(month = man) %>% 
+    mutate(quarter = ifelse(month %in% c(1,2,3), 1, 
+                            ifelse(month %in% c(4,5,6), 2, 
+                                   ifelse(month %in% c(7,8,9), 3, 4)))) %>%
     mutate(GRIDCELL = 10*reitur + smareitur) %>% 
     inner_join(tbl(mar,'husky_gearlist'),
                by =c('veidarf'='veidarfaeri')) %>% 
     rename(vf = geartext) %>% 
     inner_join(tbl(mar,'reitmapping')) %>% 
     rename(region = DIVISION) %>% 
-    filter(region %in% global_regions) #%>% 
-  
-  if(dim(catch %>% collect(n=Inf))[1]==0){
-    print('WARNING: No catch data - using landings instead')
-    catch <- 
-      landings_caa %>% 
-      mutate(afli = landings_caa, man = 1, GRIDCELL = 1811, region = 101) #arbitrarily chosen so that the rest of the code works... 
-  }
+    filter(region %in% local(global_regions)) %>% 
+    rename(year = ar) 
   
   #.... by gear and compared with landings_caa
   sc <- 
     catch %>% 
-    group_by(vf) %>% 
+    group_by(year, vf) %>% 
     summarise(catch = sum(afli)) %>% 
     left_join(landings_caa)
   
@@ -349,7 +369,6 @@ ldist.surv <-
     left_join(sc) %>% 
     mutate(landings_caa = ifelse(is.na(landings_caa), catch, landings_caa),
            catch = afli*landings_caa/catch) %>% #discrepancy correction
-    mutate(synaflokkur_group = 's1') %>% # 'commercial' synaflokkur - helps with later groupings - 
     #group_by(vf, man) %>% 
     filter(!is.na(catch)) %>% 
     #mutate(catch = afli) %>% 
@@ -358,29 +377,52 @@ ldist.surv <-
   #catch for the ind grouping - used as a weight when combining catch data
   afli_ind <- 
     commcatch %>% 
-    rename(month = man) %>% 
-    left_join(month_group) %>% 
-    left_join(GRIDCELL_group) %>% 
-    left_join(region_group) %>% 
-    left_join(vf_group) %>% 
-    ungroup() %>% 
-    unite(index,c(month_group,synaflokkur_group,region_group,GRIDCELL_group,vf_group),sep = '',remove = FALSE) %>% 
-    filter(!is.na(month_group), !is.na(GRIDCELL_group), !is.na(region_group), vf_group != 'NA' | !is.na(vf_group), !is.na(synaflokkur_group)) %>% 
-    filter(index == ind) %>% 
+    unite(index, c(year, quarter, vf), sep = '_', remove = FALSE) %>% 
+    group_by(index, year, quarter, vf) %>% 
     summarise(catch = sum(catch,na.rm=TRUE)) %>% 
-    mutate(catch = catch/1000) %>% 
-    .$catch
+    mutate(catch = catch/1000) 
   
+  ldist.comm <-
+    afli_ind %>%
+    split(., .$index) %>% 
+    purrr::map(function(x){
+      
+      distributions <- husky::MakeLdist(Species,
+                                 lengd=ldist_bins[[19]],
+                                 Stodvar=ldist1 %>% 
+                                   filter(synaflokkur!=35) %>% 
+                                   select(-c(tegund, lengd, fjoldi, kyn, kynthroski)) %>% 
+                                   rename(synis.id = synis_id, year = ar) %>% 
+                                   collect(n = Inf) %>% 
+                                   inner_join(x %>% ungroup %>% select(year, quarter, vf))%>% 
+                                   select(-c(year, vf, quarter)),
+                                 lengdir=ldist1 %>% 
+                                   filter(synaflokkur!=35) %>% 
+                                   select(c(synis_id, ar, tegund, lengd, fjoldi, kyn, kynthroski, vf))%>% 
+                                   rename(synis.id = synis_id, year = ar)%>%
+                                   collect(n=Inf) %>% 
+                                   inner_join(x %>% ungroup %>% select(year, quarter, vf)) %>% 
+                                   select(-c(year, vf, quarter)),
+                                 lengd.thyngd.data=data_frame(condition = 0.01, power = 3) %>% unlist,
+                                 talid=F,afli=x$catch)
+      
+      x <- 
+        tibble(year = x$year, 
+               quarter = x$quarter, 
+               vf = x$vf, 
+               catch = x$catch, 
+               fjoldi = distributions$LDIST.ALLS, 
+               length_cm = ldist_bins[[19]][-1])
+      
+      return(x)
+      
+    }) %>% 
+    bind_rows() %>% 
+    group_by(year, quarter, length_cm) %>% 
+    summarise(n_1000s = sum(fjoldi)/1000) %>% 
+    mutate(source = 'commercial', country = 'Iceland', division = '27.5.a')
   
-  
-distributions <- MakeLdist(Species,
-                           lengd=ldist_bins[[19]],
-                           Stodvar=ldist1 %>% 
-                             filter(synaflokkur!=35) %>% 
-                             select(-c(tegund, lengd, fjoldi, kyn, kynthroski)),
-                           lengdir=ldist1 %>% 
-                             filter(synaflokkur!=35) %>% 
-                             select(c(tegund, lengd, fjoldi, kyn, kynthroski)),
-                           lengd.thyngd.data=cond_ind,
-                           talid=F,afli=afli_ind)
-    
+  ldist <-
+    ldist.surv %>% 
+    bind_rows(ldist.comm) %>% 
+    write_csv('data_to_share/LengthDistData_ARU.27.5a14.csv')
