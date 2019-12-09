@@ -67,7 +67,7 @@ landings <-
                                              ifelse(country=='NOR', 'Norway',
                                                     ifelse(country=='GRL', 'Greenland',
                                                            country))))
-                           ) %>% 
+              ) %>% 
               group_by(country,year) %>% 
               summarise(landings = sum(catch)) %>% 
               mutate(species = 19, gear = 'BMT')) %>%  
@@ -86,7 +86,7 @@ landings <-
 
 gearlist<-NULL
 imp_gears<-gearlist[[19]]<-c('BMT','LLN', 'GIL')
-    
+
 ## position of samples from the catches
 
 #spatial data combined with Greenland
@@ -102,7 +102,7 @@ greenland_prop <-
                                  ifelse(country=='NOR', 'Norway',
                                         ifelse(country=='GRL', 'Greenland',
                                                country))))
-         ) %>%
+  ) %>%
   filter(year %in% c(2017)) %>% 
   mutate(rect =  mapplots::ices.rect2(lon, lat)) %>% 
   left_join(
@@ -143,7 +143,7 @@ greenland_prop <-
                                             ifelse(month %in% c(10,11,12), 4, NA))))) %>% 
       group_by(country, year, quarter) %>% 
       summarise(tot_catch = sum(catch))
-    )%>% 
+  )%>% 
   mutate(catch_kg = tot_catch*prop)
 
 
@@ -164,7 +164,7 @@ catch_dist <-
                                      ifelse(country=='NOR', 'Norway',
                                             ifelse(country=='GRL', 'Greenland',
                                                    country))))) 
-    ) %>% 
+  ) %>% 
   mutate(quarter = ifelse(month %in% c(1,2,3), 1, 
                           ifelse(month %in% c(4,5,6), 2, 
                                  ifelse(month %in% c(7,8,9), 3, 
@@ -173,18 +173,18 @@ catch_dist <-
   group_by(country, year,quarter,rect,section) %>% 
   summarise(catch_kg=sum(catch)) %>% 
   left_join(tbl(mar,paste0('GSS','_catch')) %>% 
-                  #filter(year > 2016, gear %in% imp_gears) %>% 
-                  dplyr::select(year, month, lat, lon, catch) %>% 
-                  mutate(country = 'Iceland') %>% 
-                  collect(n=Inf) %>% 
-                  mutate(section = '27.5.a') %>% 
-                  mutate(quarter = ifelse(month %in% c(1,2,3), 1, 
-                                          ifelse(month %in% c(4,5,6), 2, 
-                                                 ifelse(month %in% c(7,8,9), 3, 
-                                                        ifelse(month %in% c(10,11,12), 4, NA))))) %>% 
-                  group_by(country,section, year,quarter) %>% 
-                  summarise(tot_catch_ton = sum(catch)/1000)
-      ) %>% 
+              #filter(year > 2016, gear %in% imp_gears) %>% 
+              dplyr::select(year, month, lat, lon, catch) %>% 
+              mutate(country = 'Iceland') %>% 
+              collect(n=Inf) %>% 
+              mutate(section = '27.5.a') %>% 
+              mutate(quarter = ifelse(month %in% c(1,2,3), 1, 
+                                      ifelse(month %in% c(4,5,6), 2, 
+                                             ifelse(month %in% c(7,8,9), 3, 
+                                                    ifelse(month %in% c(10,11,12), 4, NA))))) %>% 
+              group_by(country,section, year,quarter) %>% 
+              summarise(tot_catch_ton = sum(catch)/1000)
+  ) %>% 
   left_join(fiskifelag_oslaegt(mar) %>% 
               filter(fteg == species_number) %>% 
               mutate(country = 'Iceland',section = '27.5.a') %>% 
@@ -208,19 +208,19 @@ catch_dist <-
               filter(year < tyr,c>0) %>% 
               group_by(country, section,year,quarter) %>% 
               summarise(landings_ton=sum(c))
-      ) %>% 
-      mutate(raising_factor = landings_ton/tot_catch_ton,
-             raised_catch = catch_kg*ifelse(is.na(raising_factor), 1, raising_factor)) %>% 
-      filter(!grepl('NA', rect)) %>% 
-      bind_rows(greenland_prop %>%
-                  mutate(section = '27.14.b') %>% 
-                  dplyr::select(country, section, year, quarter, rect, raised_catch = catch_kg)) %>% 
-      group_by(country, section, year, quarter, rect) %>% 
-      summarise(catch_kg = sum(raised_catch)) %>% 
-      rename(ices_rectangle = rect) %>%
-      mutate(species = 'ARU') %>% 
-      write_csv('data_to_share/CatchByRect ARU.27.5a14.csv')
-    #dbWriteTable(mar,paste0('GSS','temp_spat_catch_byQ'),.,overwrite =TRUE)
+  ) %>% 
+  mutate(raising_factor = landings_ton/tot_catch_ton,
+         raised_catch = catch_kg*ifelse(is.na(raising_factor), 1, raising_factor)) %>% 
+  filter(!grepl('NA', rect)) %>% 
+  bind_rows(greenland_prop %>%
+              mutate(section = '27.14.b') %>% 
+              dplyr::select(country, section, year, quarter, rect, raised_catch = catch_kg)) %>% 
+  group_by(country, section, year, quarter, rect) %>% 
+  summarise(catch_kg = sum(raised_catch)) %>% 
+  rename(ices_rectangle = rect) %>%
+  mutate(species = 'ARU') %>% 
+  write_csv('data_to_share/CatchByRect ARU.27.5a14.csv')
+#dbWriteTable(mar,paste0('GSS','temp_spat_catch_byQ'),.,overwrite =TRUE)
 
 #biological data
 biol_data <-
@@ -244,13 +244,13 @@ biol_data <-
                          ifelse(synaflokkur==30,'IFGS',
                                 'commercial')),
          person = 'Pamela J. Woods'
-         )  %>% 
+  )  %>% 
   dplyr::select(person, source, haul_id, age, length_cm, weight_g, gender, maturity_stage, maturity,spawning) %>% 
   filter(!(is.na(age) & is.na(length_cm) & is.na(weight_g) & is.na(gender) & is.na(maturity_stage))) %>% 
   collect(n=Inf) %>% 
   write_csv('data_to_share/BiolData_ARU.27.5a14.csv')
 
-  
+
 #stations
 
 stations_data <-
@@ -258,8 +258,8 @@ stations_data <-
   filter(tegund==19) %>% 
   dplyr::select(synis_id) %>% 
   full_join(lesa_lengdir(mar) %>%
-            filter(tegund==19) %>% 
-            dplyr::select(synis_id)) %>% 
+              filter(tegund==19) %>% 
+              dplyr::select(synis_id)) %>% 
   distinct() %>% 
   left_join(lesa_stodvar(mar)) %>%
   filter(synaflokkur %in% c(1,2,4,8, 30,35)) %>%
@@ -275,7 +275,7 @@ stations_data <-
                                 'commercial')),
          country = 'Iceland',
          division = '27.5.a'
-         ) %>% 
+  ) %>% 
   rename(haul_id = synis_id, depth = togdypi_hift) %>% 
   mutate(day = day(dags), month = month(dags), year = year(dags)) %>%
   dplyr::select(person, source, country, division, haul_id,day,month,year, lat = lat.x, lon = lon.x, depth) %>% 
@@ -283,15 +283,15 @@ stations_data <-
   write_csv('data_to_share/StationsData_ARU.27.5a14.csv')
 
 #links for trying to connect to ICES network  
-  # https://community.ices.dk/ExpertGroups/benchmarks/2020/wkdeep/_layouts/15/PickerTreeView.aspx?title=CbqPickerdplyr::selectFolderTitle&text=CbqPickerdplyr::selectFolderText&filter=websListsFolders&root=SPList:6d86768d-bc32-44d4-a68d-a3218109e204?SPWeb:6c7dbae6-f94a-462f-8bc2-b852d8ef1b84:&dplyr::selectionUrl=/ExpertGroups/benchmarks/2020/wkdeep/2014%20Meeting%20docs/06.%20Data/combined/&featureId=&errorString=&iconUrl=/_layouts/15/images/smt_icon.gif?rev=40&scopeToWeb=true&requireCT=&sourceId=/06. Data/combined/
-  # https://community.ices.dk/ExpertGroups/benchmarks/2020/wkdeep/_layouts/15/start.aspx#/SitePages/HomePage.aspx?RootFolder=%2FExpertGroups%2Fbenchmarks%2F2020%2Fwkdeep%2F2014%20Meeting%20docs%2F06%2E%20Data%2Fcombined&FolderCTID=0x01200086119F7A284DDE4D825348277F2A1A7A&View=%7B6C506B9A%2D6D58%2D468E%2D9DB4%2DBBF47E5FC264%7D
-  # http://community.ices.dk/ExpertGroups/benchmarks/2020/wkdeep/2014%20Meeting%20docs/06.%20Data/combined
-  # 
-  # list.files('http://community.ices.dk/ExpertGroups/benchmarks/2020/wkdeep/2014%20Meeting%20docs/06.%20Data/combined')
-  
+# https://community.ices.dk/ExpertGroups/benchmarks/2020/wkdeep/_layouts/15/PickerTreeView.aspx?title=CbqPickerdplyr::selectFolderTitle&text=CbqPickerdplyr::selectFolderText&filter=websListsFolders&root=SPList:6d86768d-bc32-44d4-a68d-a3218109e204?SPWeb:6c7dbae6-f94a-462f-8bc2-b852d8ef1b84:&dplyr::selectionUrl=/ExpertGroups/benchmarks/2020/wkdeep/2014%20Meeting%20docs/06.%20Data/combined/&featureId=&errorString=&iconUrl=/_layouts/15/images/smt_icon.gif?rev=40&scopeToWeb=true&requireCT=&sourceId=/06. Data/combined/
+# https://community.ices.dk/ExpertGroups/benchmarks/2020/wkdeep/_layouts/15/start.aspx#/SitePages/HomePage.aspx?RootFolder=%2FExpertGroups%2Fbenchmarks%2F2020%2Fwkdeep%2F2014%20Meeting%20docs%2F06%2E%20Data%2Fcombined&FolderCTID=0x01200086119F7A284DDE4D825348277F2A1A7A&View=%7B6C506B9A%2D6D58%2D468E%2D9DB4%2DBBF47E5FC264%7D
+# http://community.ices.dk/ExpertGroups/benchmarks/2020/wkdeep/2014%20Meeting%20docs/06.%20Data/combined
+# 
+# list.files('http://community.ices.dk/ExpertGroups/benchmarks/2020/wkdeep/2014%20Meeting%20docs/06.%20Data/combined')
+
 #length distributions
 
-  
+
 ldist1<-
   lesa_lengdir(mar) %>%
   filter(tegund==19) %>%
@@ -311,8 +311,8 @@ ldist1<-
   mutate(         source = ifelse(synaflokkur==35, 'IAGS', 
                                   ifelse(synaflokkur==30,'IFGS',
                                          'commercial')),
-         country = 'Iceland',
-         division = '27.5.a')
+                  country = 'Iceland',
+                  division = '27.5.a')
 
 ldist.surv <-
   ldist1 %>%
@@ -321,7 +321,7 @@ ldist.surv <-
   mutate(n_1000s = fjoldi/1000) %>%
   dplyr::select(source, country, division, year = ar, quarter, length_cm = lengd, n_1000s) %>% 
   collect(n=Inf)
-  
+
 landings_caa <- 
   lods_oslaegt(mar) %>% 
   filter(ar > 1993) %>% 
@@ -343,108 +343,107 @@ landings_caa <-
   summarise(landings_caa = sum(magn_oslaegt)) 
 
 
-  #catch data....
-  catch <- 
-    afli_stofn(mar) %>% 
-    inner_join(afli_afli(mar)) %>% 
-    filter(tegund == 19) %>% #, 
-           #ar == tyr) %>% 
-    rename(month = man) %>% 
-    mutate(quarter = ifelse(month %in% c(1,2,3), 1, 
-                            ifelse(month %in% c(4,5,6), 2, 
-                                   ifelse(month %in% c(7,8,9), 3, 4)))) %>%
-    mutate(GRIDCELL = 10*reitur + smareitur) %>% 
-    inner_join(tbl(mar,'husky_gearlist'),
-               by =c('veidarf'='veidarfaeri')) %>% 
-    rename(vf = geartext) %>% 
-    inner_join(tbl(mar,'reitmapping')) %>% 
-    rename(region = DIVISION) %>% 
-    filter(region %in% local(global_regions)) %>% 
-    rename(year = ar) 
-  
-  #.... by gear and compared with landings_caa
-  sc <- 
-    catch %>% 
-    group_by(year, vf) %>% 
-    summarise(catch = sum(afli)) %>% 
-    left_join(landings_caa)
-  
-  #.... corrected by the discrepancy between landings_caa and catch specific to gear types...
-  commcatch <- 
-    catch %>% 
-    left_join(sc) %>% 
-    mutate(landings_caa = ifelse(is.na(landings_caa), catch, landings_caa),
-           catch = afli*landings_caa/catch) %>% #discrepancy correction
-    #group_by(vf, man) %>% 
-    filter(!is.na(catch)) %>% 
-    #mutate(catch = afli) %>% 
-    collect(n=Inf) #%>% 
-  
-  #catch for the ind grouping - used as a weight when combining catch data
-  afli_ind <- 
-    commcatch %>% 
-    unite(index, c(year, quarter, vf), sep = '_', remove = FALSE) %>% 
-    group_by(index, year, quarter, vf) %>% 
-    summarise(catch = sum(catch,na.rm=TRUE)) %>% 
-    mutate(catch = catch/1000) 
-  
-  ldist.comm <-
-    afli_ind %>%
-    split(., .$index) %>% 
-    purrr::map(function(x){
-      
-      distributions <- husky::MakeLdist(Species,
-                                 lengd=ldist_bins[[19]],
-                                 Stodvar=ldist1 %>% 
-                                   filter(!(synaflokkur %in% c(30,35))) %>% 
-                                   dplyr::select(-c(tegund, lengd, fjoldi, kyn, kynthroski)) %>% 
-                                   rename(synis.id = synis_id, year = ar) %>% 
-                                   collect(n = Inf) %>% 
-                                   inner_join(x %>% ungroup %>% dplyr::select(year, quarter, vf))%>% 
-                                   dplyr::select(-c(year, vf, quarter)),
-                                 lengdir=ldist1 %>% 
-                                   filter(!(synaflokkur %in% c(30,35))) %>% 
-                                   dplyr::select(c(synis_id, ar, tegund, lengd, fjoldi, kyn, kynthroski, vf))%>% 
-                                   rename(synis.id = synis_id, year = ar)%>%
-                                   collect(n=Inf) %>% 
-                                   inner_join(x %>% ungroup %>% dplyr::select(year, quarter, vf)) %>% 
-                                   dplyr::select(-c(year, vf, quarter)),
-                                 lengd.thyngd.data=data_frame(condition = 0.01, power = 3) %>% unlist,
-                                 talid=F,afli=x$catch)
-      
-      x <- 
-        tibble(year = x$year, 
-               quarter = x$quarter, 
-               vf = x$vf, 
-               catch = x$catch, 
-               fjoldi = distributions$LDIST.ALLS, 
-               length_cm = ldist_bins[[19]][-1])
-      
-      return(x)
-      
-    }) %>% 
-    bind_rows() %>% 
-    group_by(year, quarter, length_cm) %>% 
-    summarise(n_1000s = sum(fjoldi)/1000) %>% 
-    mutate(source = 'commercial', country = 'Iceland', division = '27.5.a')
-  
+#catch data....
+catch <- 
+  afli_stofn(mar) %>% 
+  inner_join(afli_afli(mar)) %>% 
+  filter(tegund == 19) %>% #, 
+  #ar == tyr) %>% 
+  rename(month = man) %>% 
+  mutate(quarter = ifelse(month %in% c(1,2,3), 1, 
+                          ifelse(month %in% c(4,5,6), 2, 
+                                 ifelse(month %in% c(7,8,9), 3, 4)))) %>%
+  mutate(GRIDCELL = 10*reitur + smareitur) %>% 
+  inner_join(tbl(mar,'husky_gearlist'),
+             by =c('veidarf'='veidarfaeri')) %>% 
+  rename(vf = geartext) %>% 
+  inner_join(tbl(mar,'reitmapping')) %>% 
+  rename(region = DIVISION) %>% 
+  filter(region %in% local(global_regions)) %>% 
+  rename(year = ar) 
 
-  ldist.gr <- 
-    readxl::read_xlsx('../../data/Argentina silus_lengthraised_Pamela Woods.xlsx') %>% 
-    mutate(source = 'EG',
-           country = 'Greenland',
-           division = '27.14.b',
-           year  = Year,
-           quarter = 3,
-           length_cm = Length,
-           n_1000s = CountRaised/1000) %>% 
-    dplyr::select(source, country, division, year, quarter, division, year, quarter, length_cm, n_1000s)
-  
-  ldist <-
-    ldist.surv %>% 
-    bind_rows(ldist.comm) %>% 
-    bind_rows(ldist.gr) %>% 
-    write_csv('data_to_share/LengthDistData_ARU.27.5a14.csv')
-  
-  
-  
+#.... by gear and compared with landings_caa
+sc <- 
+  catch %>% 
+  group_by(year, vf) %>% 
+  summarise(catch = sum(afli)) %>% 
+  left_join(landings_caa)
+
+#.... corrected by the discrepancy between landings_caa and catch specific to gear types...
+commcatch <- 
+  catch %>% 
+  left_join(sc) %>% 
+  mutate(landings_caa = ifelse(is.na(landings_caa), catch, landings_caa),
+         catch = afli*landings_caa/catch) %>% #discrepancy correction
+  #group_by(vf, man) %>% 
+  filter(!is.na(catch)) %>% 
+  #mutate(catch = afli) %>% 
+  collect(n=Inf) #%>% 
+
+#catch for the ind grouping - used as a weight when combining catch data
+afli_ind <- 
+  commcatch %>% 
+  unite(index, c(year, quarter, vf), sep = '_', remove = FALSE) %>% 
+  group_by(index, year, quarter, vf) %>% 
+  summarise(catch = sum(catch,na.rm=TRUE)) %>% 
+  mutate(catch = catch/1000) 
+
+ldist.comm <-
+  afli_ind %>%
+  split(., .$index) %>% 
+  purrr::map(function(x){
+    
+    distributions <- husky::MakeLdist(Species,
+                                      lengd=ldist_bins[[19]],
+                                      Stodvar=ldist1 %>% 
+                                        filter(!(synaflokkur %in% c(30,35))) %>% 
+                                        dplyr::select(-c(tegund, lengd, fjoldi, kyn, kynthroski)) %>% 
+                                        rename(synis.id = synis_id, year = ar) %>% 
+                                        collect(n = Inf) %>% 
+                                        inner_join(x %>% ungroup %>% dplyr::select(year, quarter, vf))%>% 
+                                        dplyr::select(-c(year, vf, quarter)),
+                                      lengdir=ldist1 %>% 
+                                        filter(!(synaflokkur %in% c(30,35))) %>% 
+                                        dplyr::select(c(synis_id, ar, tegund, lengd, fjoldi, kyn, kynthroski, vf))%>% 
+                                        rename(synis.id = synis_id, year = ar)%>%
+                                        collect(n=Inf) %>% 
+                                        inner_join(x %>% ungroup %>% dplyr::select(year, quarter, vf)) %>% 
+                                        dplyr::select(-c(year, vf, quarter)),
+                                      lengd.thyngd.data=data_frame(condition = 0.01, power = 3) %>% unlist,
+                                      talid=F,afli=x$catch)
+    
+    x <- 
+      tibble(year = x$year, 
+             quarter = x$quarter, 
+             vf = x$vf, 
+             catch = x$catch, 
+             fjoldi = distributions$LDIST.ALLS, 
+             length_cm = ldist_bins[[19]][-1])
+    
+    return(x)
+    
+  }) %>% 
+  bind_rows() %>% 
+  group_by(year, quarter, length_cm) %>% 
+  summarise(n_1000s = sum(fjoldi)/1000) %>% 
+  mutate(source = 'commercial', country = 'Iceland', division = '27.5.a')
+
+
+ldist.gr <- 
+  readxl::read_xlsx('../../data/Argentina silus_lengthraised_Pamela Woods.xlsx') %>% 
+  mutate(source = 'EG',
+         country = 'Greenland',
+         division = '27.14.b',
+         year  = Year,
+         quarter = 3,
+         length_cm = Length,
+         n_1000s = CountRaised/1000) %>% 
+  dplyr::select(source, country, division, year, quarter, division, year, quarter, length_cm, n_1000s)
+
+ldist <-
+  ldist.surv %>% 
+  bind_rows(ldist.comm) %>% 
+  bind_rows(ldist.gr) %>% 
+  write_csv('data_to_share/LengthDistData_ARU.27.5a14.csv')
+
+
