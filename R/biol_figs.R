@@ -1,5 +1,5 @@
 library(tidyverse)
-library(fishmethods)#needed for "alternative growth moedels" and "age-length key" part of the code
+#library(fishmethods)#needed for "alternative growth moedels" and "age-length key" part of the code
 
 ### Get data ###
 
@@ -36,7 +36,7 @@ Far <-
 
 Far_st <-
   read_csv("data_received/StationsData_ARU_27.5.b_Faroes.csv") %>% 
-  rename(person = PERSON, source = SOURCE, country = COUNTRY, division = DIVISION, day = DAY, month = MONTH, year = YEAR, lat = LAT, lon = LON, depth_m = DEPTH_M)
+  rename(person = PERSON, source = SOURCE, country = COUNTRY, division = DIVISION, day = DAY, month = MONTH, year = YEAR, lat = LAT, lon = LON, depth_m = DEPTH_M, haul_id = HAUL_ID)
 
 
 all <-
@@ -52,12 +52,14 @@ all_st <-
 all %>% 
   filter(!(person=='Elvar Hallfredsson' & age==2 & length_cm>25), !(person=='Elvar Hallfredsson' & age==1 & length_cm>20))
 
+all %>% 
+  +   left_join(all_st) %>% filter(is.na(division)) %>% View()
+
 pr <- seq(0, max(all$age, na.rm =T)+1)
 
 vb_pars <-
   all %>% 
   left_join(all_st) %>% 
-  mutate(rect =  mapplots::ices.rect2(lon, lat)) %>% 
   filter(!is.na(age), !is.na(length_cm), !is.na(gender), length_cm > 0) %>% 
   mutate(age = age + (month-1)/12) %>% 
   unite(div_gen, division, gender, remove = F) %>% 
@@ -76,7 +78,6 @@ vb_pars <-
   lw_pars <-
     all %>% 
     left_join(all_st) %>% 
-    mutate(rect =  mapplots::ices.rect2(lon, lat)) %>% 
     filter(!is.na(weight_g), !is.na(length_cm), !is.na(gender), length_cm > 0) %>% 
   unite(div_gen, division, gender, remove = F) %>% 
     split(., .$div_gen) %>% #.[[1]]->x
@@ -93,13 +94,12 @@ vb_pars <-
   mat_pars <-
     all %>% 
     left_join(all_st) %>% 
-    mutate(rect =  mapplots::ices.rect2(lon, lat)) %>% 
     filter(!is.na(maturity), !is.na(length_cm), !is.na(gender), length_cm > 0) %>% 
   unite(div_gen, division, gender, remove = F) %>% 
     split(., .$div_gen) %>% #.[[1]]->x
     purrr::map(function(x){
       print(paste0(unique(x$division), '_', unique(x$gender)))
-      glm(mat~le, data=x %>% mutate(mat = ifelse(maturity=='mature', 1, 0)), family=binomial(link=logit))  %>% 
+      glm(mat~length_cm, data=x %>% mutate(mat = ifelse(maturity=='mature', 1, 0)), family=binomial(link=logit))  %>% 
         broom::tidy() %>% 
         mutate(division = unique(x$division),
                gender = unique(x$gender),
@@ -118,28 +118,37 @@ ml_age <-
   summarise(ml = mean(length_cm), sdl = sd(length_cm)) %>% 
   write_csv('R/biol_figs_output/meanlength_at_age_bydivision.csv')
 
-mat_pars <-
+
+size_depth <-
   all %>% 
   left_join(all_st) %>% 
   mutate(rect =  mapplots::ices.rect2(lon, lat)) %>% 
   filter(!is.na(maturity), !is.na(length_cm), !is.na(gender), length_cm > 0) %>% 
   unite(div_gen, division, gender, remove = F) %>% 
-  split(., .$div_gen) %>% #.[[1]]->x
-  purrr::map(function(x){
-    print(paste0(unique(x$division), '_', unique(x$gender)))
-    glm(mat~le, data=x %>% mutate(mat = ifelse(maturity=='mature', 1, 0)), family=binomial(link=logit))  %>% 
+  lm(length_cm ~ depth + division + depth*division, data=.)  %>% 
       broom::tidy() %>% 
-      mutate(division = unique(x$division),
-             gender = unique(x$gender),
-             L50 = -a/b1)
-  }) %>% 
-  bind_rows() %>% 
-  write_csv('R/biol_figs_output/matpars_bydivision.csv')
+  write_csv('R/biol_figs_output/size_depth_lm.csv')
 
-
-growth_plot <- 
+size_depth_latlon <-
   all %>% 
   left_join(all_st) %>% 
-  mutate(rect =  mapplots::ices.rect2(lon, lat)) %>% 
-  group_by(division, gender) %>% 
+  filter(!is.na(maturity), !is.na(length_cm), !is.na(gender), length_cm > 0) %>% 
+  unite(div_gen, division, gender, remove = F) %>% 
+  lm(length_cm ~ depth + lat + lon + depth*lat + depth*lon + lat*lon, data=.)  %>% 
+  broom::tidy() %>% 
+  write_csv('R/biol_figs_output/size_depth_latlon_lm.csv')
+
+overall_vb <- 
+  all %>% 
+  left_join(all_st) %>% 
+  filter(!is.na(age), !is.na(length_cm), !is.na(gender), length_cm > 0) %>% 
+  mutate(rect =  mapplots::ices.rect2(lon, lat),
+         age = age + (month-1)/12) %>% 
+  nls(log(length_cm)~log(Linf*(1-exp(-K*(age-t0)))), data=., start=list(Linf=50, K=0.2, t0=-0.5))
+
+
+growth_dev_plot <- 
+  overall_vb$data %>% 
+  mutate(res = overall_vb$residuals) %>% 
+  
   
