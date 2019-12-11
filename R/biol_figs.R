@@ -1,5 +1,14 @@
+#install.packages(c('tidyverse','purrr','broom', 'sf', 'readxl','devtools', 'mapplots'))
+#devtools::install_github('hafro/geo')
 library(tidyverse)
 #library(fishmethods)#needed for "alternative growth moedels" and "age-length key" part of the code
+library(sf)
+
+ia <- read_sf("R/gisdata/ICES_Areas_20160601_cut_dense_3857.gpkg") %>%
+  st_simplify(dTolerance = 10000) %>% 
+  st_transform(4326) %>% 
+  #st_geometry() #gets rid of all columns except geometry
+  select(Area_Full)
 
 ### Get data ###
 
@@ -252,10 +261,9 @@ growth_expected_plot <-
             `Residual Length (cm)` = mean(residuals, na.rm = T)) %>% 
   filter(year > yr_min-1, year < yr_max+1) %>% 
   bind_cols(mapplots::ices.rect(.$rect)) %>% 
-  #separate(sq,c("lon","lat"), sep=':',convert = TRUE) %>%
-  ggplot(aes(lon,lat)) + 
-  coord_quickmap(xlim = c(-38, 18),ylim = c(55, 74))+
-  geom_tile(aes(fill=`Expected Length (cm)`),interpolate = FALSE) + 
+  ggplot() + 
+  #coord_quickmap(xlim = c(-38, 18),ylim = c(55, 74))+
+  geom_tile(aes(lon, lat, fill=`Expected Length (cm)`),interpolate = FALSE) + 
   #geom_tile(aes(fill=`Expected Length (cm)`)) + 
   # geom_polygon(data=gisland::iceland,aes(long,lat,group=group),
   #              fill='white',col='black') + 
@@ -274,8 +282,9 @@ growth_expected_plot <-
   ylab('Latitude (N)') + 
   facet_wrap(~year, ncol = 3) +
   theme(legend.position = c(0.9, 0.1))+
-  geom_text(aes(x = x, y = y, label = label), data = tibble(year = yr_min:yr_max, x= 0, y = 73, label = year))
-
+  geom_text(aes(x = x, y = y, label = label), data = tibble(year = yr_min:yr_max, x= 0, y = 77, label = year)) +
+  geom_sf(data = ia, colour = 'black', fill = NA, lwd = 0.05) +
+  coord_sf(xlim = c(-34, 18),ylim = c(57, 80))
 
 growth_residuals_plot <- 
   tmp_vb %>% 
@@ -286,9 +295,9 @@ growth_residuals_plot <-
   filter(year > yr_min-1, year < yr_max+1) %>% 
   bind_cols(mapplots::ices.rect(.$rect)) %>% 
   #separate(sq,c("lon","lat"), sep=':',convert = TRUE) %>%
-  ggplot(aes(lon,lat)) + 
-  coord_quickmap(xlim = c(-38, 18),ylim = c(55, 74))+
-  geom_tile(aes(fill=`Residual Length (cm)`),interpolate = FALSE) + 
+  ggplot() + 
+  #coord_quickmap(xlim = c(-38, 18),ylim = c(55, 74))+
+  geom_tile(aes(lon, lat, fill=`Residual Length (cm)`),interpolate = FALSE) + 
   #geom_tile(aes(fill=`Expected Length (cm)`)) + 
   # geom_polygon(data=gisland::iceland,aes(long,lat,group=group),
   #              fill='white',col='black') + 
@@ -307,7 +316,9 @@ growth_residuals_plot <-
   ylab('Latitude (N)')+ 
   facet_wrap(~year, ncol = 3) +
   theme(legend.position = c(0.9, 0.1)) +
-  geom_text(aes(x = x, y = y, label = label), data = tibble(year = yr_min:yr_max, x= 0, y = 73, label = year))
+  geom_text(aes(x = x, y = y, label = label), data = tibble(year = yr_min:yr_max, x= 0, y = 77, label = year)) +
+  geom_sf(data = ia, colour = 'black', fill = NA, lwd = 0.05) +
+  coord_sf(xlim = c(-34, 18),ylim = c(57, 80))
 
 
 tmp_lw <-
@@ -337,9 +348,9 @@ weight_expected_plot <-
   filter(year > yr_min-1, year < yr_max+1) %>% 
   bind_cols(mapplots::ices.rect(.$rect)) %>% 
   #separate(sq,c("lon","lat"), sep=':',convert = TRUE) %>%
-  ggplot(aes(lon,lat)) + 
-  coord_quickmap(xlim = c(-38, 18),ylim = c(55, 74))+
-  geom_tile(aes(fill=`Expected Weight (kg)`),interpolate = FALSE) + 
+  ggplot() + 
+  #coord_quickmap(xlim = c(-38, 18),ylim = c(55, 74))+
+  geom_tile(aes(lon, lat, fill=`Expected Weight (kg)`),interpolate = FALSE) + 
   #geom_tile(aes(fill=`Expected Length (cm)`)) + 
   # geom_polygon(data=gisland::iceland,aes(long,lat,group=group),
   #              fill='white',col='black') + 
@@ -358,7 +369,9 @@ weight_expected_plot <-
   ylab('Latitude (N)') + 
   facet_wrap(~year, ncol = 3) +
   theme(legend.position = c(0.9, 0.1))+
-  geom_text(aes(x = x, y = y, label = label), data = tibble(year = yr_min:yr_max, x= 0, y = 73, label = year))
+  geom_text(aes(x = x, y = y, label = label), data = tibble(year = yr_min:yr_max, x= 0, y = 77, label = year)) +
+  geom_sf(data = ia, colour = 'black', fill = NA, lwd = 0.05) +
+  coord_sf(xlim = c(-34, 18),ylim = c(57, 80))
 
 
 weight_residuals_plot <- 
@@ -371,9 +384,9 @@ weight_residuals_plot <-
   filter(year > yr_min-1, year < yr_max+1) %>% 
   bind_cols(mapplots::ices.rect(.$rect)) %>% 
   #separate(sq,c("lon","lat"), sep=':',convert = TRUE) %>%
-  ggplot(aes(lon,lat)) + 
-  coord_quickmap(xlim = c(-38, 18),ylim = c(55, 74))+
-  geom_tile(aes(fill=`Residual Weight (kg)`),interpolate = FALSE) + 
+  ggplot() + 
+  #coord_quickmap(xlim = c(-38, 18),ylim = c(55, 74))+
+  geom_tile(aes(lon, lat, fill=`Residual Weight (kg)`),interpolate = FALSE) + 
   #geom_tile(aes(fill=`Expected Length (cm)`)) + 
   # geom_polygon(data=gisland::iceland,aes(long,lat,group=group),
   #              fill='white',col='black') + 
@@ -392,7 +405,9 @@ weight_residuals_plot <-
   ylab('Latitude (N)')+ 
   facet_wrap(~year, ncol = 3) +
   theme(legend.position = c(0.9, 0.1)) +
-  geom_text(aes(x = x, y = y, label = label), data = tibble(year = yr_min:yr_max, x= 0, y = 73, label = year))
+  geom_text(aes(x = x, y = y, label = label), data = tibble(year = yr_min:yr_max, x= 0, y = 77, label = year)) +
+  geom_sf(data = ia, colour = 'black', fill = NA, lwd = 0.05) +
+  coord_sf(xlim = c(-34, 18),ylim = c(57, 80))
 
 
 #max age
@@ -412,9 +427,9 @@ maxage_plot <-
   filter(year > yr_min-1, year < yr_max+1) %>% 
   bind_cols(mapplots::ices.rect(.$rect)) %>% 
   #separate(sq,c("lon","lat"), sep=':',convert = TRUE) %>%
-  ggplot(aes(lon,lat)) + 
-  coord_quickmap(xlim = c(-38, 18),ylim = c(55, 74))+
-  geom_tile(aes(fill=`Max. age`),interpolate = FALSE) + 
+  ggplot() + 
+  #coord_quickmap(xlim = c(-38, 18),ylim = c(55, 74))+
+  geom_tile(aes(lon, lat, fill=`Max. age`),interpolate = FALSE) + 
   geom_polygon(data = map_data('world','Greenland'), aes(long, lat, group=group),
                fill = 'gray',col='black',lwd=0.1) +
   geom_polygon(data = map_data('world','Norway'), aes(long, lat, group=group),
@@ -430,7 +445,9 @@ maxage_plot <-
   ylab('Latitude (N)')+ 
   facet_wrap(~year, ncol = 3) +
   theme(legend.position = c(0.9, 0.1)) +
-  geom_text(aes(x = x, y = y, label = label), data = tibble(year = yr_min:yr_max, x= 0, y = 73, label = year))
+  geom_text(aes(x = x, y = y, label = label), data = tibble(year = yr_min:yr_max, x= 0, y = 77, label = year)) +
+  geom_sf(data = ia, colour = 'black', fill = NA, lwd = 0.05) +
+  coord_sf(xlim = c(-34, 18),ylim = c(57, 80))
 
 age95_plot <- 
   tmp_maxage %>% 
@@ -440,9 +457,9 @@ age95_plot <-
   filter(year > yr_min-1, year < yr_max+1) %>% 
   bind_cols(mapplots::ices.rect(.$rect)) %>% 
   #separate(sq,c("lon","lat"), sep=':',convert = TRUE) %>%
-  ggplot(aes(lon,lat)) + 
-  coord_quickmap(xlim = c(-38, 18),ylim = c(55, 74))+
-  geom_tile(aes(fill=`95% age`),interpolate = FALSE) + 
+  ggplot() + 
+  #coord_quickmap(xlim = c(-38, 18),ylim = c(55, 74))+
+  geom_tile(aes(lon, lat, fill=`95% age`),interpolate = FALSE) + 
   geom_polygon(data = map_data('world','Greenland'), aes(long, lat, group=group),
                fill = 'gray',col='black',lwd=0.1) +
   geom_polygon(data = map_data('world','Norway'), aes(long, lat, group=group),
@@ -458,7 +475,9 @@ age95_plot <-
   ylab('Latitude (N)')+ 
   facet_wrap(~year, ncol = 3) +
   theme(legend.position = c(0.9, 0.1)) +
-  geom_text(aes(x = x, y = y, label = label), data = tibble(year = yr_min:yr_max, x= 0, y = 73, label = year))
+  geom_text(aes(x = x, y = y, label = label), data = tibble(year = yr_min:yr_max, x= 0, y = 77, label = year)) +
+  geom_sf(data = ia, colour = 'black', fill = NA, lwd = 0.05) +
+  coord_sf(xlim = c(-34, 18),ylim = c(57, 80))
 
 #95% length - need to get from length distributions
 #max age
@@ -478,9 +497,9 @@ maxl_plot <-
   filter(year > yr_min-1, year < yr_max+1) %>% 
   bind_cols(mapplots::ices.rect(.$rect)) %>% 
   #separate(sq,c("lon","lat"), sep=':',convert = TRUE) %>%
-  ggplot(aes(lon,lat)) + 
-  coord_quickmap(xlim = c(-38, 18),ylim = c(55, 74))+
-  geom_tile(aes(fill=`Max. length (cm)`),interpolate = FALSE) + 
+  ggplot() + 
+  #coord_quickmap(xlim = c(-38, 18),ylim = c(55, 74))+
+  geom_tile(aes(lon, lat, fill=`Max. length (cm)`),interpolate = FALSE) + 
   geom_polygon(data = map_data('world','Greenland'), aes(long, lat, group=group),
                fill = 'gray',col='black',lwd=0.1) +
   geom_polygon(data = map_data('world','Norway'), aes(long, lat, group=group),
@@ -496,7 +515,9 @@ maxl_plot <-
   ylab('Latitude (N)')+ 
   facet_wrap(~year, ncol = 3) +
   theme(legend.position = c(0.9, 0.1)) +
-  geom_text(aes(x = x, y = y, label = label), data = tibble(year = yr_min:yr_max, x= 0, y = 73, label = year))
+  geom_text(aes(x = x, y = y, label = label), data = tibble(year = yr_min:yr_max, x= 0, y = 77, label = year)) +
+  geom_sf(data = ia, colour = 'black', fill = NA, lwd = 0.05) +
+  coord_sf(xlim = c(-34, 18),ylim = c(57, 80))
 
 l95_plot <- 
   tmp_maxl %>% 
@@ -506,9 +527,9 @@ l95_plot <-
   filter(year > yr_min-1, year < yr_max+1) %>% 
   bind_cols(mapplots::ices.rect(.$rect)) %>% 
   #separate(sq,c("lon","lat"), sep=':',convert = TRUE) %>%
-  ggplot(aes(lon,lat)) + 
-  coord_quickmap(xlim = c(-38, 18),ylim = c(55, 74))+
-  geom_tile(aes(fill=`95% length (cm)`),interpolate = FALSE) + 
+  ggplot() + 
+  #coord_quickmap(xlim = c(-38, 18),ylim = c(55, 74))+
+  geom_tile(aes(lon, lat, fill=`95% length (cm)`),interpolate = FALSE) + 
   geom_polygon(data = map_data('world','Greenland'), aes(long, lat, group=group),
                fill = 'gray',col='black',lwd=0.1) +
   geom_polygon(data = map_data('world','Norway'), aes(long, lat, group=group),
@@ -524,7 +545,9 @@ l95_plot <-
   ylab('Latitude (N)')+ 
   facet_wrap(~year, ncol = 3) +
   theme(legend.position = c(0.9, 0.1)) +
-  geom_text(aes(x = x, y = y, label = label), data = tibble(year = yr_min:yr_max, x= 0, y = 73, label = year))
+  geom_text(aes(x = x, y = y, label = label), data = tibble(year = yr_min:yr_max, x= 0, y = 77, label = year)) +
+  geom_sf(data = ia, colour = 'black', fill = NA, lwd = 0.05) +
+  coord_sf(xlim = c(-34, 18),ylim = c(57, 80))
 
 
 l50_plot_0 <- 
@@ -536,9 +559,9 @@ l50_plot_0 <-
   filter(year > yr_min-1, year < yr_max+1) %>% 
   bind_cols(mapplots::ices.rect(.$rect)) %>% 
   #separate(sq,c("lon","lat"), sep=':',convert = TRUE) %>%
-  ggplot(aes(lon,lat)) + 
-  coord_quickmap(xlim = c(-38, 18),ylim = c(55, 74))+
-  geom_tile(aes(fill=`50% length (cm)`),interpolate = FALSE) + 
+  ggplot() + 
+  #coord_quickmap(xlim = c(-38, 18),ylim = c(55, 74))+
+  geom_tile(aes(lon, lat, fill=`50% length (cm)`),interpolate = FALSE) + 
   geom_polygon(data = map_data('world','Greenland'), aes(long, lat, group=group),
                fill = 'gray',col='black',lwd=0.1) +
   geom_polygon(data = map_data('world','Norway'), aes(long, lat, group=group),
@@ -554,7 +577,9 @@ l50_plot_0 <-
   ylab('Latitude (N)')+ 
   facet_wrap(~year, ncol = 3) +
   theme(legend.position = c(0.9, 0.1)) +
-  geom_text(aes(x = x, y = y, label = label), data = tibble(year = yr_min:yr_max, x= 0, y = 73, label = year))
+  geom_text(aes(x = x, y = y, label = label), data = tibble(year = yr_min:yr_max, x= 0, y = 77, label = year)) +
+  geom_sf(data = ia, colour = 'black', fill = NA, lwd = 0.05) +
+  coord_sf(xlim = c(-34, 18),ylim = c(57, 80))
 
 l50_plot_300 <- 
   tmp_maxl %>% 
@@ -565,9 +590,9 @@ l50_plot_300 <-
   filter(year > yr_min-1, year < yr_max+1) %>% 
   bind_cols(mapplots::ices.rect(.$rect)) %>% 
   #separate(sq,c("lon","lat"), sep=':',convert = TRUE) %>%
-  ggplot(aes(lon,lat)) + 
-  coord_quickmap(xlim = c(-38, 18),ylim = c(55, 74))+
-  geom_tile(aes(fill=`50% length (cm)`),interpolate = FALSE) + 
+  ggplot() + 
+  #coord_quickmap(xlim = c(-38, 18),ylim = c(55, 74))+
+  geom_tile(aes(lon, lat, fill=`50% length (cm)`),interpolate = FALSE) + 
   geom_polygon(data = map_data('world','Greenland'), aes(long, lat, group=group),
                fill = 'gray',col='black',lwd=0.1) +
   geom_polygon(data = map_data('world','Norway'), aes(long, lat, group=group),
@@ -583,7 +608,9 @@ l50_plot_300 <-
   ylab('Latitude (N)')+ 
   facet_wrap(~year, ncol = 3) +
   theme(legend.position = c(0.9, 0.1)) +
-  geom_text(aes(x = x, y = y, label = label), data = tibble(year = yr_min:yr_max, x= 0, y = 73, label = year))
+  geom_text(aes(x = x, y = y, label = label), data = tibble(year = yr_min:yr_max, x= 0, y = 77, label = year)) +
+  geom_sf(data = ia, colour = 'black', fill = NA, lwd = 0.05) +
+  coord_sf(xlim = c(-34, 18),ylim = c(57, 80))
 
 l50_plot_500 <- 
   tmp_maxl %>% 
@@ -594,9 +621,9 @@ l50_plot_500 <-
   filter(year > yr_min-1, year < yr_max+1) %>% 
   bind_cols(mapplots::ices.rect(.$rect)) %>% 
   #separate(sq,c("lon","lat"), sep=':',convert = TRUE) %>%
-  ggplot(aes(lon,lat)) + 
-  coord_quickmap(xlim = c(-38, 18),ylim = c(55, 74))+
-  geom_tile(aes(fill=`50% length (cm)`),interpolate = FALSE) + 
+  ggplot() + 
+  #coord_quickmap(xlim = c(-38, 18),ylim = c(55, 74))+
+  geom_tile(aes(lon, lat, fill=`50% length (cm)`),interpolate = FALSE) + 
   geom_polygon(data = map_data('world','Greenland'), aes(long, lat, group=group),
                fill = 'gray',col='black',lwd=0.1) +
   geom_polygon(data = map_data('world','Norway'), aes(long, lat, group=group),
@@ -612,7 +639,9 @@ l50_plot_500 <-
   ylab('Latitude (N)')+ 
   facet_wrap(~year, ncol = 3) +
   theme(legend.position = c(0.9, 0.1)) +
-  geom_text(aes(x = x, y = y, label = label), data = tibble(year = yr_min:yr_max, x= 0, y = 73, label = year))
+  geom_text(aes(x = x, y = y, label = label), data = tibble(year = yr_min:yr_max, x= 0, y = 77, label = year)) +
+  geom_sf(data = ia, colour = 'black', fill = NA, lwd = 0.05) +
+  coord_sf(xlim = c(-34, 18),ylim = c(57, 80))
 
 
 #length at ages 8 & 9 (most frequent age)
@@ -649,9 +678,9 @@ l8_expected_plot <-
   filter(year > yr_min-1, year < yr_max+1) %>% 
   bind_cols(mapplots::ices.rect(.$rect)) %>% 
   #separate(sq,c("lon","lat"), sep=':',convert = TRUE) %>%
-  ggplot(aes(lon,lat)) + 
-  coord_quickmap(xlim = c(-38, 18),ylim = c(55, 74))+
-  geom_tile(aes(fill=`Expected Length (cm)`),interpolate = FALSE) + 
+  ggplot() + 
+  #coord_quickmap(xlim = c(-38, 18),ylim = c(55, 74))+
+  geom_tile(aes(lon, lat, fill=`Expected Length (cm)`),interpolate = FALSE) + 
   #geom_tile(aes(fill=`Expected Length (cm)`)) + 
   # geom_polygon(data=gisland::iceland,aes(long,lat,group=group),
   #              fill='white',col='black') + 
@@ -670,7 +699,9 @@ l8_expected_plot <-
   ylab('Latitude (N)') + 
   facet_wrap(~year, ncol = 3) +
   theme(legend.position = c(0.9, 0.1))+
-  geom_text(aes(x = x, y = y, label = label), data = tibble(year = yr_min:yr_max, x= 0, y = 73, label = year))
+  geom_text(aes(x = x, y = y, label = label), data = tibble(year = yr_min:yr_max, x= 0, y = 77, label = year)) +
+  geom_sf(data = ia, colour = 'black', fill = NA, lwd = 0.05) +
+  coord_sf(xlim = c(-34, 18),ylim = c(57, 80))
 
 l8_residual_plot <- 
   tmp_l8 %>% 
@@ -681,9 +712,9 @@ l8_residual_plot <-
   filter(year > yr_min-1, year < yr_max+1) %>% 
   bind_cols(mapplots::ices.rect(.$rect)) %>% 
   #separate(sq,c("lon","lat"), sep=':',convert = TRUE) %>%
-  ggplot(aes(lon,lat)) + 
-  coord_quickmap(xlim = c(-38, 18),ylim = c(55, 74))+
-  geom_tile(aes(fill=`Residual Length (cm)`),interpolate = FALSE) + 
+  ggplot() + 
+  #coord_quickmap(xlim = c(-38, 18),ylim = c(55, 74))+
+  geom_tile(aes(lon, lat, fill=`Residual Length (cm)`),interpolate = FALSE) + 
   #geom_tile(aes(fill=`Expected Length (cm)`)) + 
   # geom_polygon(data=gisland::iceland,aes(long,lat,group=group),
   #              fill='white',col='black') + 
@@ -702,7 +733,9 @@ l8_residual_plot <-
   ylab('Latitude (N)') + 
   facet_wrap(~year, ncol = 3) +
   theme(legend.position = c(0.9, 0.1))+
-  geom_text(aes(x = x, y = y, label = label), data = tibble(year = yr_min:yr_max, x= 0, y = 73, label = year))
+  geom_text(aes(x = x, y = y, label = label), data = tibble(year = yr_min:yr_max, x= 0, y = 77, label = year)) +
+  geom_sf(data = ia, colour = 'black', fill = NA, lwd = 0.05) +
+  coord_sf(xlim = c(-34, 18),ylim = c(57, 80))
 
 
 #L50 maturity
@@ -731,9 +764,9 @@ l50_plot <-
   filter(year > yr_min-1, year < yr_max+1) %>% 
   bind_cols(mapplots::ices.rect(.$rect)) %>% 
   #separate(sq,c("lon","lat"), sep=':',convert = TRUE) %>%
-  ggplot(aes(lon,lat)) + 
-  coord_quickmap(xlim = c(-38, 18),ylim = c(55, 74))+
-  geom_tile(aes(fill=L50),interpolate = FALSE) + 
+  ggplot() + 
+  #coord_quickmap(xlim = c(-38, 18),ylim = c(55, 74))+
+  geom_tile(aes(lon, lat, fill=L50),interpolate = FALSE) + 
   geom_polygon(data = map_data('world','Greenland'), aes(long, lat, group=group),
                fill = 'gray',col='black',lwd=0.1) +
   geom_polygon(data = map_data('world','Norway'), aes(long, lat, group=group),
@@ -749,53 +782,57 @@ l50_plot <-
   ylab('Latitude (N)')+ 
   facet_wrap(~year, ncol = 3) +
   theme(legend.position = c(0.9, 0.1)) +
-  geom_text(aes(x = x, y = y, label = label), data = tibble(year = yr_min:yr_max, x= 0, y = 73, label = year))
+  geom_text(aes(x = x, y = y, label = label), data = tibble(year = yr_min:yr_max, x= 0, y = 77, label = year)) +
+  geom_sf(data = ia, colour = 'black', fill = NA, lwd = 0.05) +
+  coord_sf(xlim = c(-34, 18),ylim = c(57, 80))
 
- png(paste0('R/biol_figs_output/growth_expected_plot.png'), height = 1000, width = 750)
+png_dims <- c(1000, 675)
+
+ png(paste0('R/biol_figs_output/growth_expected_plot.png'), height = png_dims[1], width = png_dims[2])
  print(growth_expected_plot)
  dev.off()
 
- png(paste0('R/biol_figs_output/growth_residuals_plot.png'), height = 1000, width = 750)
+ png(paste0('R/biol_figs_output/growth_residuals_plot.png'), height = png_dims[1], width = png_dims[2])
  print(growth_residuals_plot)
  dev.off()
 
-  png(paste0('R/biol_figs_output/weight_expected_plot.png'), height = 1000, width = 750)
+  png(paste0('R/biol_figs_output/weight_expected_plot.png'), height = png_dims[1], width = png_dims[2])
  print(weight_expected_plot)
  dev.off()
 
-  png(paste0('R/biol_figs_output/weight_residuals_plot.png'), height = 1000, width = 750)
+  png(paste0('R/biol_figs_output/weight_residuals_plot.png'), height = png_dims[1], width = png_dims[2])
  print(weight_residuals_plot)
  dev.off()
  
- png(paste0('R/biol_figs_output/l8_expected_plot.png'), height = 1000, width = 750)
+ png(paste0('R/biol_figs_output/l8_expected_plot.png'), height = png_dims[1], width = png_dims[2])
  print(l8_expected_plot)
  dev.off()
  
- png(paste0('R/biol_figs_output/l8_residuals_plot.png'), height = 1000, width = 750)
- print(l8_residuals_plot)
+ png(paste0('R/biol_figs_output/l8_residual_plot.png'), height = png_dims[1], width = png_dims[2])
+ print(l8_residual_plot)
  dev.off()
  
- png(paste0('R/biol_figs_output/age95_plot.png'), height = 1000, width = 750)
+ png(paste0('R/biol_figs_output/age95_plot.png'), height = png_dims[1], width = png_dims[2])
  print(age95_plot)
  dev.off()
  
- png(paste0('R/biol_figs_output/l95_plot.png'), height = 1000, width = 750)
+ png(paste0('R/biol_figs_output/l95_plot.png'), height = png_dims[1], width = png_dims[2])
  print(l95_plot)
  dev.off()
  
- png(paste0('R/biol_figs_output/l50_plot.png'), height = 1000, width = 750)
+ png(paste0('R/biol_figs_output/l50_plot.png'), height = png_dims[1], width = png_dims[2])
  print(l50_plot)
  dev.off()
  
- png(paste0('R/biol_figs_output/l50_plot_0.png'), height = 1000, width = 750)
+ png(paste0('R/biol_figs_output/l50_plot_0.png'), height = png_dims[1], width = png_dims[2])
  print(l50_plot_0)
  dev.off()
  
- png(paste0('R/biol_figs_output/l50_plot_300.png'), height = 1000, width = 750)
+ png(paste0('R/biol_figs_output/l50_plot_300.png'), height = png_dims[1], width = png_dims[2])
  print(l50_plot_300)
  dev.off()
  
- png(paste0('R/biol_figs_output/l50_plot_500.png'), height = 1000, width = 750)
+ png(paste0('R/biol_figs_output/l50_plot_500.png'), height = png_dims[1], width = png_dims[2])
  print(l50_plot_500)
  dev.off()
  
