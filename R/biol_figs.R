@@ -16,7 +16,8 @@ Nor <-
   readxl::read_excel("data_received/Template_data_sharing_NOR.xls", sheet = "biological data") %>% 
   rename(gender = gender...10, species = specie) %>% 
   dplyr::select(-c(gender...7, number)) %>% 
-  mutate(source = ifelse(source=='Reffleet_ocea', 'Reffleet_ocean', source))
+  mutate(source = ifelse(source=='Reffleet_ocea', 'Reffleet_ocean', source), 
+         spawning = ifelse(maturity_stage==6, 'yes', 'no'))
 
 Nor_st <- 
   readxl::read_excel("data_received/Template_data_sharing_NOR.xls", sheet = "station") %>%
@@ -62,13 +63,12 @@ all_st <-
   bind_rows(Nor_st) %>% 
   bind_rows(Far_st)
 
-all %>% 
+all <-
+  all %>% 
   filter(!(person=='Elvar Hallfredsson' & age==2 & length_cm>25), !(person=='Elvar Hallfredsson' & age==1 & length_cm>20))
 
 
 # Begin analyses to get parameters summarised by division
-pr <- seq(0, max(all$age, na.rm =T)+1)
-
 vb_pars <-
   all %>% 
   left_join(all_st) %>% 
@@ -103,6 +103,9 @@ vb_pars_2018 <-
   bind_rows() %>% 
   write_csv('R/biol_figs_output/vbpars_bydivision_2018.csv')
 
+vb_pars %>% 
+  bind_cols(vb_pars_2018 %>% right_join(vb_pars %>% select(term, division, gender))) %>% 
+  write_csv('R/biol_figs_output/vbpars_bydivision_both.csv')
 
   lw_pars <-
     all %>% 
@@ -142,6 +145,10 @@ vb_pars_2018 <-
     }) %>% 
     bind_rows() %>% 
     write_csv('R/biol_figs_output/lwpars_bydivision_2018.csv')
+
+  lw_pars %>% 
+    bind_cols(lw_pars_2018 %>% right_join(lw_pars %>% select(term, division, gender))) %>% 
+    write_csv('R/biol_figs_output/lwpars_bydivision_both.csv')
   
   mat_pars <-
     all %>% 
@@ -160,7 +167,10 @@ vb_pars_2018 <-
                              ifelse(term=='length_cm', 'Length (cm)', term))
                ) 
       
-        bind_rows(tmp,tibble(term = 'L50', estimate = - tmp$estimate[tmp$term=='Intercept']/tmp$estimate[tmp$term=='Length (cm)']))
+      bind_rows(tmp,tibble(term = 'L50', 
+                           estimate = - tmp$estimate[tmp$term=='Intercept']/tmp$estimate[tmp$term=='Length (cm)'], 
+                           division = unique(tmp$division),
+                           gender = unique(tmp$gender)))
     }) %>% 
     bind_rows() %>% 
     write_csv('R/biol_figs_output/matpars_bydivision.csv')
@@ -182,21 +192,36 @@ vb_pars_2018 <-
                              ifelse(term=='length_cm', 'Length (cm)', term))
         ) 
       
-      bind_rows(tmp,tibble(term = 'L50', estimate = - tmp$estimate[tmp$term=='Intercept']/tmp$estimate[tmp$term=='Length (cm)']))
+      bind_rows(tmp,tibble(term = 'L50', 
+                           estimate = - tmp$estimate[tmp$term=='Intercept']/tmp$estimate[tmp$term=='Length (cm)'], 
+                           division = unique(tmp$division),
+                           gender = unique(tmp$gender)))
     }) %>% 
     bind_rows() %>% 
     write_csv('R/biol_figs_output/matpars_bydivision_2018.csv')
   
+  mat_pars %>% 
+    bind_cols(mat_pars_2018 %>% right_join(mat_pars %>% select(term, division, gender))) %>% 
+    write_csv('R/biol_figs_output/matpars_bydivision_both.csv')
   
 ml_age <-
   all %>% 
   left_join(all_st) %>% 
-  mutate(rect =  mapplots::ices.rect2(lon, lat)) %>% 
-  mutate(age = ifelse(age < 6, age + (month-1)/12, age)) %>% 
-  group_by(division, gender, age, year) %>% 
+  mutate(quarter = ifelse(month %in% c(1,2,3), 1,
+                          ifelse(month %in% c(4,5,6), 2, 
+                                 ifelse(month %in% c(7,8,9), 3,
+                                        ifelse(month %in% c(10,11,12), 4, month)))),
+    age = ifelse(age < 11, age + (quarter-1)/4, age)) %>% 
+  filter(age < 21, year==2018) %>% 
+  group_by(country, division, source, age, year) %>% 
   filter(!is.na(age), !is.na(length_cm), length_cm > 0) %>% 
-  summarise(ml = mean(length_cm), sdl = sd(length_cm)) %>%
-  arrange(year, division, gender, age) %>% 
+  summarise(ml = round(mean(length_cm, na.rm = T), 1), sdl = round(sd(length_cm, na.rm = T), 1)) %>%
+  arrange(country, division, source, year, age) 
+
+ ml_age %>%
+   select(country, division, source, age, ml) %>% 
+   unite('CDS', country, division, source) %>% 
+   spread(value = ml, key = CDS) %>% 
   write_csv('R/biol_figs_output/meanlength_at_age_bydivision.csv')
 
 
@@ -235,6 +260,10 @@ size_depth_latlon_2018 <-
   lm(length_cm ~ depth_m + lat + lon + depth_m*lat + depth_m*lon + lat*lon, data=.)  %>% 
   broom::tidy() %>% 
   write_csv('R/biol_figs_output/size_depth_latlon_lm_2018.csv')
+
+
+
+# maps 
 
 tmp_vb <-
   all %>% 
@@ -786,6 +815,70 @@ l50_plot <-
   geom_sf(data = ia, colour = 'black', fill = NA, lwd = 0.05) +
   coord_sf(xlim = c(-34, 18),ylim = c(57, 80))
 
+
+#spawning
+tmp_sp <-
+  all %>% 
+  left_join(all_st) %>%
+  filter(!is.na(length_cm), length_cm > 0, !is.na(spawning)) %>% 
+  mutate(rect =  mapplots::ices.rect2(lon, lat),
+         age = age + (month-1)/12,
+         quarter = ifelse(month %in% c(1,2,3), 1,
+                          ifelse(month %in% c(4,5,6), 2, 
+                                 ifelse(month %in% c(7,8,9), 3,
+                                        ifelse(month %in% c(10,11,12), 4, month)))))
+
+spawning_plot <- 
+  tmp_sp %>% 
+  group_by(rect, quarter, spawning) %>% 
+  count() %>% 
+  ungroup %>% 
+  filter(spawning=='yes') %>% 
+  rename(n_sp = n) %>% 
+  left_join(tmp_sp %>% 
+              group_by(rect, quarter) %>% 
+              count()) %>% 
+  mutate(`Proportion spawners` = n_sp/n) %>% 
+  #filter(year > yr_min-1, year < yr_max+1) %>% 
+  bind_cols(mapplots::ices.rect(.$rect)) %>% 
+  #separate(sq,c("lon","lat"), sep=':',convert = TRUE) %>%
+  ggplot() + 
+  #coord_quickmap(xlim = c(-38, 18),ylim = c(55, 74))+
+  geom_tile(aes(lon, lat, fill=`Proportion spawners`),interpolate = FALSE) + 
+  geom_polygon(data = map_data('world','Greenland'), aes(long, lat, group=group),
+               fill = 'gray',col='black',lwd=0.1) +
+  geom_polygon(data = map_data('world','Norway'), aes(long, lat, group=group),
+               fill = 'gray',col='black',lwd=0.1) +
+  geom_polygon(data = geo::bisland, aes(lon, lat), fill = 'gray',col='black',lwd=0.1) +
+  geom_polygon(data = geo::faeroes, aes(lon, lat), fill = 'gray',col='black',lwd=0.1) +
+  #mapplots::draw.rect() %>% 
+  theme_bw()+
+  theme(strip.background = element_blank(),
+        strip.text.x = element_blank()) +
+  scale_fill_viridis_c(direction = -1)+
+  xlab('Longitude (W)') +
+  ylab('Latitude (N)')+ 
+  facet_wrap(~quarter) +
+  #theme(legend.position = c(0.9, 0.1)) +
+  geom_text(aes(x = x, y = y, label = label), data = tibble(quarter = 1:4, x= 0, y = 77, label = quarter)) +
+  geom_sf(data = ia, colour = 'black', fill = NA, lwd = 0.05) +
+  coord_sf(xlim = c(-34, 18),ylim = c(57, 80))
+
+tmp_sp %>% 
+  group_by(country, division, source, month, spawning) %>% 
+  count() %>% 
+  ungroup %>% 
+  filter(spawning=='yes') %>% 
+  rename(n_sp = n) %>% 
+  left_join(tmp_sp %>% 
+              group_by(country, division, source, month) %>% 
+              count()) %>% 
+  mutate(p = n_sp/n) %>% 
+  filter(p > 0.2) %>% 
+  select(country, division, source, month, p) %>% 
+  arrange(country, desc(p)) %>% 
+  write_csv('R/biol_figs_output/sp_bydivision.csv')
+
 png_dims <- c(1000, 675)
 
  png(paste0('R/biol_figs_output/growth_expected_plot.png'), height = png_dims[1], width = png_dims[2])
@@ -836,4 +929,6 @@ png_dims <- c(1000, 675)
  print(l50_plot_500)
  dev.off()
  
- 
+ png(paste0('R/biol_figs_output/spawning_plot.png'), height = 500, width = 500)
+ print(spawning_plot)
+ dev.off()
