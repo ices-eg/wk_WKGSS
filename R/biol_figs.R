@@ -107,7 +107,271 @@ vb_pars %>%
   bind_cols(vb_pars_2018 %>% right_join(vb_pars %>% select(term, division, gender))) %>% 
   write_csv('R/biol_figs_output/vbpars_bydivision_both.csv')
 
-  lw_pars <-
+vb_pars_bystock <-
+  all %>% 
+  left_join(all_st) %>% 
+  filter(!is.na(age), !is.na(length_cm), !is.na(gender), length_cm > 0) %>% 
+  mutate(age = age + (month-1)/12,
+         person_sh = person %>% substr(., 1, 3)) %>% 
+  unite(st_gen, person_sh, gender, remove = F) %>% 
+  split(., .$st_gen) %>% #.[[1]]->x
+  purrr::map(function(x){
+    #print(paste0(unique(x$division), '_', unique(x$gender)))
+    prL<-seq(0,120,1)
+    prA<-seq(0,60,1)
+    mod <- nls(log(length_cm)~log(Linf*(1-exp(-K*(age-t0)))), data=x, start=list(Linf=50, K=0.2, t0=-0.5))
+    fit <-exp(predict(mod, data.frame(length_cm=prA),type="response"))
+    y <- 
+      list(
+        mod =  mod %>% 
+          broom::tidy() %>% 
+          mutate(person = unique(x$person),
+                 gender = unique(x$gender)),
+        x = cbind(x, fit) %>% select(-c(st_gen, person_sh))
+      )
+    return(y)
+  }) 
+
+vb_pars_bystock %>% 
+  flatten() %>% 
+  keep(., names(.)=="mod") %>% 
+  bind_rows() %>% 
+  write_csv('R/biol_figs_output/vbpars_bystock.csv')
+
+vb_plot_bystock <-
+  vb_pars_bystock %>% 
+  flatten() %>% 
+  keep(., names(.)=="x") %>% 
+  bind_rows() %>% 
+  mutate(stock = ifelse(person=='Elvar Hallfredsson', 'aru.27.123a4',
+                        ifelse(person=='Pamela J. Woods', 'aru.27.5a14', 
+                               ifelse(person=='Lise H. Ofstad', 'aru.27.5b6a', person))),
+         gender = ifelse(gender=='F', 'Female',
+                         ifelse(gender=='M', 'Male', gender))) %>%
+  unite(age_stock, age, stock, remove = FALSE) %>% 
+  rename(`Length (cm)` = length_cm, Age = age, Stock = stock, Gender = gender) %>% 
+  filter(Age < 30) %>% 
+  ggplot() +
+  geom_boxplot(aes(x = Age, y = `Length (cm)`, group = age_stock, color = Stock, fill = Stock)) +
+  geom_line(aes(x = Age, y = fit, color = Stock),
+            data = vb_pars_bystock %>% 
+              flatten() %>% 
+              keep(., names(.)=="x") %>% 
+              bind_rows() %>% 
+              mutate(stock = ifelse(person=='Elvar Hallfredsson', 'aru.27.123a4',
+                                    ifelse(person=='Pamela J. Woods', 'aru.27.5a14', 
+                                           ifelse(person=='Lise H. Ofstad', 'aru.27.5b6a', person))),
+                     gender = ifelse(gender=='F', 'Female',
+                                     ifelse(gender=='M', 'Male', gender))) %>%
+              unite(age_stock, age, stock, remove = FALSE) %>% 
+              rename(Age = age, Stock = stock, Gender = gender) %>% 
+              filter(Age < 30) )+
+  theme_bw() + 
+  facet_wrap(~Gender, ncol = 1)
+  
+  vb_pars_bystock_2018 <-
+    all %>% 
+    left_join(all_st) %>% 
+    filter(!is.na(age), !is.na(length_cm), !is.na(gender), length_cm > 0,
+           year==2018) %>% 
+    mutate(age = age + (month-1)/12,
+           person_sh = person %>% substr(., 1, 3)) %>% 
+    unite(st_gen, person_sh, gender, remove = F) %>% 
+    split(., .$st_gen) %>% #.[[1]]->x
+    purrr::map(function(x){
+      #print(paste0(unique(x$division), '_', unique(x$gender)))
+      prL<-seq(0,120,1)
+      prA<-seq(0,60,1)
+      mod <- nls(log(length_cm)~log(Linf*(1-exp(-K*(age-t0)))), data=x, start=list(Linf=50, K=0.2, t0=-0.5))
+      fit <-exp(predict(mod, data.frame(length_cm=prA),type="response"))
+      y <- 
+        list(
+          mod =  mod %>% 
+            broom::tidy() %>% 
+            mutate(person = unique(x$person),
+                   gender = unique(x$gender)),
+          x = cbind(x, fit) %>% select(-c(st_gen, person_sh))
+        )
+      return(y)
+    }) 
+  
+  vb_pars_bystock_2018 %>% 
+    flatten() %>% 
+    keep(., names(.)=="mod") %>% 
+    bind_rows() %>% 
+    write_csv('R/biol_figs_output/vbpars_bystock_2018.csv')
+  
+  vb_plot_bystock_2018 <-
+    vb_pars_bystock_2018 %>% 
+    flatten() %>% 
+    keep(., names(.)=="x") %>% 
+    bind_rows() %>% 
+    mutate(stock = ifelse(person=='Elvar Hallfredsson', 'aru.27.123a4',
+                          ifelse(person=='Pamela J. Woods', 'aru.27.5a14', 
+                                 ifelse(person=='Lise H. Ofstad', 'aru.27.5b6a', person))),
+           gender = ifelse(gender=='F', 'Female',
+                           ifelse(gender=='M', 'Male', gender))) %>%
+    unite(age_stock, age, stock, remove = FALSE) %>% 
+    rename(`Length (cm)` = length_cm, Age = age, Stock = stock, Gender = gender) %>% 
+    filter(Age < 30) %>% 
+    ggplot() +
+    geom_boxplot(aes(x = Age, y = `Length (cm)`, group = age_stock, color = Stock, fill = Stock)) +
+    geom_line(aes(x = Age, y = fit, color = Stock),
+              data = vb_pars_bystock %>% 
+                flatten() %>% 
+                keep(., names(.)=="x") %>% 
+                bind_rows() %>% 
+                mutate(stock = ifelse(person=='Elvar Hallfredsson', 'aru.27.123a4',
+                                      ifelse(person=='Pamela J. Woods', 'aru.27.5a14', 
+                                             ifelse(person=='Lise H. Ofstad', 'aru.27.5b6a', person))),
+                       gender = ifelse(gender=='F', 'Female',
+                                       ifelse(gender=='M', 'Male', gender))) %>%
+                unite(age_stock, age, stock, remove = FALSE) %>% 
+                rename(Age = age, Stock = stock, Gender = gender) %>% 
+                filter(Age < 30, year==2018) )+
+    theme_bw() + 
+    facet_wrap(~Gender, ncol = 1)
+  
+  vb_pars_bystock_overtime <-
+    all %>% 
+    left_join(all_st) %>% 
+    filter(!is.na(age), !is.na(length_cm), !is.na(gender), length_cm > 0) %>% 
+    mutate(age = age + (month-1)/12,
+           person_sh = person %>% substr(., 1, 3)) %>% 
+    unite(st_gen, person_sh, gender, year, remove = F) %>% 
+    split(., .$st_gen) %>% #.[[19]]->x
+    purrr::map(function(x){
+      print(paste0(unique(x$division), '_', unique(x$gender)))
+      prL<-seq(0,120,1)
+      prA<-seq(0,60,1)
+      mod <- NULL; fit <- NULL
+      
+      try( 
+        {mod <- nls(log(length_cm)~log(Linf*(1-exp(-K*(age-t0)))), data=x, start=list(Linf=50, K=0.2, t0=-0.5))
+        fit <- exp(predict(mod, data.frame(length_cm=prA),type="response"))}, 
+        silent = TRUE)
+      
+      if(!is.null(mod)){
+      y <- 
+        list(
+          mod = mod %>% 
+            broom::tidy() %>% 
+            mutate(person = unique(x$person),
+                   gender = unique(x$gender),
+                   year = unique(x$year)),
+          x = cbind(x, fit) %>% select(-c(st_gen, person_sh))
+        )
+      } else { y <- list (mod = NULL, x = x %>% select(-c(st_gen, person_sh)))}
+      return(y)
+    }) 
+  
+  vb_plot_overtime_aru.27.123a4 <-
+    vb_pars_bystock_overtime %>% 
+    flatten() %>% 
+    keep(., names(.)=="x") %>% 
+    bind_rows() %>% 
+    mutate(stock = ifelse(person=='Elvar Hallfredsson', 'aru.27.123a4',
+                          ifelse(person=='Pamela J. Woods', 'aru.27.5a14', 
+                                 ifelse(person=='Lise H. Ofstad', 'aru.27.5b6a', person))),
+           gender = ifelse(gender=='F', 'Female',
+                           ifelse(gender=='M', 'Male', gender)),
+           Year = as.factor(year)) %>%
+    unite(age_year, age, year, remove = FALSE) %>% 
+    rename(`Length (cm)` = length_cm, Age = age, Stock = stock, Gender = gender) %>% 
+    filter(Age < 30, Stock== 'aru.27.123a4') %>% 
+    ggplot() +
+    geom_boxplot(aes(x = Age, y = `Length (cm)`, group = age_year, color = Year, fill = Year)) +
+    geom_line(aes(x = Age, y = fit, color = Year),
+              data = vb_pars_bystock %>% 
+                flatten() %>% 
+                keep(., names(.)=="x") %>% 
+                bind_rows() %>% 
+                mutate(stock = ifelse(person=='Elvar Hallfredsson', 'aru.27.123a4',
+                                      ifelse(person=='Pamela J. Woods', 'aru.27.5a14', 
+                                             ifelse(person=='Lise H. Ofstad', 'aru.27.5b6a', person))),
+                       gender = ifelse(gender=='F', 'Female',
+                                       ifelse(gender=='M', 'Male', gender)),
+                       Year = as.factor(year)) %>%
+                unite(age_stock, age, stock, remove = FALSE) %>% 
+                rename(Age = age, Stock = stock, Gender = gender) %>% 
+                filter(Age < 30, Stock=='aru.27.123a4') )+
+    theme_bw() + 
+    scale_fill_viridis_d() + 
+    scale_color_viridis_d() +
+    facet_wrap(~Gender, ncol = 1)
+
+  vb_plot_overtime_aru.27.5b6a <-
+    vb_pars_bystock_overtime %>% 
+    flatten() %>% 
+    keep(., names(.)=="x") %>% 
+    bind_rows() %>% 
+    mutate(stock = ifelse(person=='Elvar Hallfredsson', 'aru.27.123a4',
+                          ifelse(person=='Pamela J. Woods', 'aru.27.5a14', 
+                                 ifelse(person=='Lise H. Ofstad', 'aru.27.5b6a', person))),
+           gender = ifelse(gender=='F', 'Female',
+                           ifelse(gender=='M', 'Male', gender)),
+           Year = as.factor(year)) %>%
+    unite(age_year, age, year, remove = FALSE) %>% 
+    rename(`Length (cm)` = length_cm, Age = age, Stock = stock, Gender = gender) %>% 
+    filter(Age < 30, Stock== 'aru.27.5b6a') %>% 
+    ggplot() +
+    geom_boxplot(aes(x = Age, y = `Length (cm)`, group = age_year, color = Year, fill = Year)) +
+    geom_line(aes(x = Age, y = fit, color = Year),
+              data = vb_pars_bystock %>% 
+                flatten() %>% 
+                keep(., names(.)=="x") %>% 
+                bind_rows() %>% 
+                mutate(stock = ifelse(person=='Elvar Hallfredsson', 'aru.27.123a4',
+                                      ifelse(person=='Pamela J. Woods', 'aru.27.5a14', 
+                                             ifelse(person=='Lise H. Ofstad', 'aru.27.5b6a', person))),
+                       gender = ifelse(gender=='F', 'Female',
+                                       ifelse(gender=='M', 'Male', gender)),
+                       Year = as.factor(year)) %>%
+                unite(age_stock, age, stock, remove = FALSE) %>% 
+                rename(Age = age, Stock = stock, Gender = gender) %>% 
+                filter(Age < 30, Stock=='aru.27.5b6a') )+
+    theme_bw() + 
+    scale_fill_viridis_d() + 
+    scale_color_viridis_d() +
+    facet_wrap(~Gender, ncol = 1)
+  
+  vb_plot_overtime_aru.27.5a14 <-
+    vb_pars_bystock_overtime %>% 
+    flatten() %>% 
+    keep(., names(.)=="x") %>% 
+    bind_rows() %>% 
+    mutate(stock = ifelse(person=='Elvar Hallfredsson', 'aru.27.123a4',
+                          ifelse(person=='Pamela J. Woods', 'aru.27.5a14', 
+                                 ifelse(person=='Lise H. Ofstad', 'aru.27.5b6a', person))),
+           gender = ifelse(gender=='F', 'Female',
+                           ifelse(gender=='M', 'Male', gender)),
+           Year = as.factor(year)) %>%
+    unite(age_year, age, year, remove = FALSE) %>% 
+    rename(`Length (cm)` = length_cm, Age = age, Stock = stock, Gender = gender) %>% 
+    filter(Age < 30, Stock== 'aru.27.5a14') %>% 
+    ggplot() +
+    geom_boxplot(aes(x = Age, y = `Length (cm)`, group = age_year, color = Year, fill = Year)) +
+    geom_line(aes(x = Age, y = fit, color = Year),
+              data = vb_pars_bystock %>% 
+                flatten() %>% 
+                keep(., names(.)=="x") %>% 
+                bind_rows() %>% 
+                mutate(stock = ifelse(person=='Elvar Hallfredsson', 'aru.27.123a4',
+                                      ifelse(person=='Pamela J. Woods', 'aru.27.5a14', 
+                                             ifelse(person=='Lise H. Ofstad', 'aru.27.5b6a', person))),
+                       gender = ifelse(gender=='F', 'Female',
+                                       ifelse(gender=='M', 'Male', gender)),
+                       Year = as.factor(year)) %>%
+                unite(age_stock, age, stock, remove = FALSE) %>% 
+                rename(Age = age, Stock = stock, Gender = gender) %>% 
+                filter(Age < 30, Stock=='aru.27.5a14') )+
+    theme_bw() + 
+    scale_fill_viridis_d() + 
+    scale_color_viridis_d() +
+    facet_wrap(~Gender, ncol = 1)
+  
+
+    lw_pars <-
     all %>% 
     left_join(all_st) %>% 
     filter(!is.na(weight_g), !is.na(length_cm), !is.na(gender), length_cm > 0) %>% 
@@ -932,3 +1196,24 @@ png_dims <- c(1000, 675)
  png(paste0('R/biol_figs_output/spawning_plot.png'), height = 500, width = 500)
  print(spawning_plot)
  dev.off()
+ 
+ png(paste0('R/biol_figs_output/vb_plot_bystock.png'), height = png_dims[2], width = png_dims[1])
+ print(vb_plot_bystock)
+ dev.off()
+ 
+ png(paste0('R/biol_figs_output/vb_plot_bystock_2018.png'), height = png_dims[2], width = png_dims[1])
+ print(vb_plot_bystock_2018)
+ dev.off()
+ 
+ png(paste0('R/biol_figs_output/vb_plot_overtime_aru.27.123a4.png'), height = png_dims[2], width = png_dims[1])
+ print(vb_plot_overtime_aru.27.123a4)
+ dev.off()
+ 
+ png(paste0('R/biol_figs_output/vb_plot_overtime_aru.27.5a14.png'), height = png_dims[2], width = png_dims[1])
+ print(vb_plot_overtime_aru.27.5a14)
+ dev.off()
+
+ png(paste0('R/biol_figs_output/vb_plot_overtime_aru.27.5b6a.png'), height = png_dims[2], width = png_dims[1])
+ print(vb_plot_overtime_aru.27.5b6a)
+ dev.off()
+ 
