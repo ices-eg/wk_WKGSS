@@ -135,7 +135,7 @@ format_SAM <- function(x,
     purrr::map(function(x) clean_weights(x)) %>% 
     bind_cols(.) 
   
-y1 <- 1999
+y1 <- 2000
 
   cn_s <- format_SAM(cn, first_year = y1) #format_SAM(., add_ages = list(`1`=0.001,`2`=0.001)) # could do this here or above
   cw_s <- format_SAM(cw, first_year = y1) #format_SAM(., add_ages = list(`1`=0,`2`=0)) #could do this here or above
