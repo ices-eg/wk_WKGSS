@@ -256,7 +256,7 @@
                               ifelse(person=='Pamela J. Woods', 'aru.27.5a14', 
                                      ifelse(person=='Lise H. Ofstad', 'aru.27.5b6a', person))),
                gender = ifelse(gender=='F', 'Female',
-                               ifelse(gender=='M', 'Male',
+                               ifelse(gender=='M', 'Male', 
                                       ifelse(gender=='U', 'Unidentified', gender)))) %>%
         filter(!is.na(stock)) %>% 
         unite(age_stock, age, stock, remove = FALSE) %>% 
@@ -1215,10 +1215,10 @@
     growth_expected_plot <- 
       tmp_vb %>% 
       mutate(expected_length = exp(fitted(overall_vb)), residuals = length_cm - expected_length) %>% 
-      group_by(rect, year) %>% 
+      group_by(rect, yr) %>% 
       summarise(`Expected Length (cm)` = mean(expected_length, na.rm = T),
                 `Residual Length (cm)` = mean(residuals, na.rm = T)) %>% 
-      filter(year > yr_min-1, year < yr_max+1) %>% 
+      filter(yr > yr_min-1, yr < yr_max+1) %>% 
       bind_cols(mapplots::ices.rect(.$rect)) %>% 
       ggplot() + 
       #coord_quickmap(xlim = c(-38, 18),ylim = c(55, 74))+
@@ -1239,19 +1239,19 @@
       scale_fill_viridis_c(direction = -1)+
       xlab('Longitude (W)') +
       ylab('Latitude (N)') + 
-      facet_wrap(~year, ncol = 3) +
+      facet_wrap(~yr, ncol = 3) +
       theme(legend.position = c(0.9, 0.1))+
-      geom_text(aes(x = x, y = y, label = label), data = tibble(year = yr_min:yr_max, x= 0, y = 77, label = year)) +
+      geom_text(aes(x = x, y = y, label = label), data = tibble(yr = yr_min:yr_max, x= 0, y = 77, label = yr)) +
       geom_sf(data = ia, colour = 'black', fill = NA, lwd = 0.05) +
       coord_sf(xlim = c(-34, 18),ylim = c(57, 80))
     
     growth_residuals_plot <- 
       tmp_vb %>% 
       mutate(expected_length = exp(fitted(overall_vb)), residuals = length_cm - expected_length) %>% 
-      group_by(rect, year) %>% 
+      group_by(rect, yr) %>% 
       summarise(`Expected Length (cm)` = mean(expected_length, na.rm = T),
                 `Residual Length (cm)` = mean(residuals, na.rm = T)) %>% 
-      filter(year > yr_min-1, year < yr_max+1) %>% 
+      filter(yr > yr_min-1, yr < yr_max+1) %>% 
       bind_cols(mapplots::ices.rect(.$rect)) %>% 
       #separate(sq,c("lon","lat"), sep=':',convert = TRUE) %>%
       ggplot() + 
@@ -1273,9 +1273,9 @@
       scale_fill_viridis_c(direction = -1)+
       xlab('Longitude (W)') +
       ylab('Latitude (N)')+ 
-      facet_wrap(~year, ncol = 3) +
+      facet_wrap(~yr, ncol = 3) +
       theme(legend.position = c(0.9, 0.1)) +
-      geom_text(aes(x = x, y = y, label = label), data = tibble(year = yr_min:yr_max, x= 0, y = 77, label = year)) +
+      geom_text(aes(x = x, y = y, label = label), data = tibble(yr = yr_min:yr_max, x= 0, y = 77, label = yr)) +
       geom_sf(data = ia, colour = 'black', fill = NA, lwd = 0.05) +
       coord_sf(xlim = c(-34, 18),ylim = c(57, 80))
     
@@ -1301,10 +1301,10 @@
     weight_expected_plot <- 
       tmp_lw %>% 
       mutate(expected_weight = exp(fitted(overall_lw)), residuals = weight_g - expected_weight) %>% 
-      group_by(rect, year) %>% 
+      group_by(rect, yr) %>% 
       summarise(`Expected Weight (kg)` = mean(expected_weight, na.rm = T),
                 `Residual Weight (kg)` = mean(residuals, na.rm = T)) %>% 
-      filter(year > yr_min-1, year < yr_max+1) %>% 
+      filter(yr > yr_min-1, yr < yr_max+1) %>% 
       bind_cols(mapplots::ices.rect(.$rect)) %>% 
       #separate(sq,c("lon","lat"), sep=':',convert = TRUE) %>%
       ggplot() + 
@@ -1326,9 +1326,9 @@
       scale_fill_viridis_c(direction = -1)+
       xlab('Longitude (W)') +
       ylab('Latitude (N)') + 
-      facet_wrap(~year, ncol = 3) +
+      facet_wrap(~yr, ncol = 3) +
       theme(legend.position = c(0.9, 0.1))+
-      geom_text(aes(x = x, y = y, label = label), data = tibble(year = yr_min:yr_max, x= 0, y = 77, label = year)) +
+      geom_text(aes(x = x, y = y, label = label), data = tibble(yr = yr_min:yr_max, x= 0, y = 77, label = yr)) +
       geom_sf(data = ia, colour = 'black', fill = NA, lwd = 0.05) +
       coord_sf(xlim = c(-34, 18),ylim = c(57, 80))
     
@@ -1337,10 +1337,10 @@
       tmp_lw %>% 
       mutate(expected_weight = exp(fitted(overall_lw)), residuals = weight_g/1e3 - expected_weight) %>% 
       filter(residuals < 1) %>% 
-      group_by(rect, year) %>% 
+      group_by(rect, yr) %>% 
       summarise(`Expected Weight (kg)` = mean(expected_weight, na.rm = T),
                 `Residual Weight (kg)` = mean(residuals, na.rm = T)) %>% 
-      filter(year > yr_min-1, year < yr_max+1) %>% 
+      filter(yr > yr_min-1, yr < yr_max+1) %>% 
       bind_cols(mapplots::ices.rect(.$rect)) %>% 
       #separate(sq,c("lon","lat"), sep=':',convert = TRUE) %>%
       ggplot() + 
@@ -1362,9 +1362,9 @@
       scale_fill_viridis_c(direction = -1)+
       xlab('Longitude (W)') +
       ylab('Latitude (N)')+ 
-      facet_wrap(~year, ncol = 3) +
+      facet_wrap(~yr, ncol = 3) +
       theme(legend.position = c(0.9, 0.1)) +
-      geom_text(aes(x = x, y = y, label = label), data = tibble(year = yr_min:yr_max, x= 0, y = 77, label = year)) +
+      geom_text(aes(x = x, y = y, label = label), data = tibble(yr = yr_min:yr_max, x= 0, y = 77, label = yr)) +
       geom_sf(data = ia, colour = 'black', fill = NA, lwd = 0.05) +
       coord_sf(xlim = c(-34, 18),ylim = c(57, 80))
     
@@ -1400,10 +1400,10 @@
     l8_expected_plot <- 
       tmp_l8 %>% 
       mutate(expected_length = fitted(overall_l8), residuals = length_cm - expected_length) %>% 
-      group_by(rect, year) %>% 
+      group_by(rect, yr) %>% 
       summarise(`Expected Length (cm)` = mean(expected_length, na.rm = T),
                 `Residual Length (cm)` = mean(residuals, na.rm = T)) %>% 
-      filter(year > yr_min-1, year < yr_max+1) %>% 
+      filter(yr > yr_min-1, yr < yr_max+1) %>% 
       bind_cols(mapplots::ices.rect(.$rect)) %>% 
       #separate(sq,c("lon","lat"), sep=':',convert = TRUE) %>%
       ggplot() + 
@@ -1425,19 +1425,19 @@
       scale_fill_viridis_c(direction = -1)+
       xlab('Longitude (W)') +
       ylab('Latitude (N)') + 
-      facet_wrap(~year, ncol = 3) +
+      facet_wrap(~yr, ncol = 3) +
       theme(legend.position = c(0.9, 0.1))+
-      geom_text(aes(x = x, y = y, label = label), data = tibble(year = yr_min:yr_max, x= 0, y = 77, label = year)) +
+      geom_text(aes(x = x, y = y, label = label), data = tibble(yr = yr_min:yr_max, x= 0, y = 77, label = yr)) +
       geom_sf(data = ia, colour = 'black', fill = NA, lwd = 0.05) +
       coord_sf(xlim = c(-34, 18),ylim = c(57, 80))
     
     l8_residual_plot <- 
       tmp_l8 %>% 
       mutate(expected_length = fitted(overall_l8), residuals = length_cm - expected_length) %>% 
-      group_by(rect, year) %>% 
+      group_by(rect, yr) %>% 
       summarise(`Expected Length (cm)` = mean(expected_length, na.rm = T),
                 `Residual Length (cm)` = mean(residuals, na.rm = T)) %>% 
-      filter(year > yr_min-1, year < yr_max+1) %>% 
+      filter(yr > yr_min-1, yr < yr_max+1) %>% 
       bind_cols(mapplots::ices.rect(.$rect)) %>% 
       #separate(sq,c("lon","lat"), sep=':',convert = TRUE) %>%
       ggplot() + 
@@ -1459,9 +1459,9 @@
       scale_fill_viridis_c(direction = -1)+
       xlab('Longitude (W)') +
       ylab('Latitude (N)') + 
-      facet_wrap(~year, ncol = 3) +
+      facet_wrap(~yr, ncol = 3) +
       theme(legend.position = c(0.9, 0.1))+
-      geom_text(aes(x = x, y = y, label = label), data = tibble(year = yr_min:yr_max, x= 0, y = 77, label = year)) +
+      geom_text(aes(x = x, y = y, label = label), data = tibble(yr = yr_min:yr_max, x= 0, y = 77, label = yr)) +
       geom_sf(data = ia, colour = 'black', fill = NA, lwd = 0.05) +
       coord_sf(xlim = c(-34, 18),ylim = c(57, 80))
     
@@ -1480,10 +1480,10 @@
     
     maxage_plot <- 
       tmp_maxage %>% 
-      group_by(rect, year) %>% 
+      group_by(rect, yr) %>% 
       summarise(`Max. age` = max(age, na.rm = T),
                 `95% age` = quantile(age, 0.95, na.rm = T)) %>% 
-      filter(year > yr_min-1, year < yr_max+1) %>% 
+      filter(yr > yr_min-1, yr < yr_max+1) %>% 
       bind_cols(mapplots::ices.rect(.$rect)) %>% 
       #separate(sq,c("lon","lat"), sep=':',convert = TRUE) %>%
       ggplot() + 
@@ -1502,18 +1502,18 @@
       scale_fill_viridis_c(direction = -1)+
       xlab('Longitude (W)') +
       ylab('Latitude (N)')+ 
-      facet_wrap(~year, ncol = 3) +
+      facet_wrap(~yr, ncol = 3) +
       theme(legend.position = c(0.9, 0.1)) +
-      geom_text(aes(x = x, y = y, label = label), data = tibble(year = yr_min:yr_max, x= 0, y = 77, label = year)) +
+      geom_text(aes(x = x, y = y, label = label), data = tibble(yr = yr_min:yr_max, x= 0, y = 77, label = yr)) +
       geom_sf(data = ia, colour = 'black', fill = NA, lwd = 0.05) +
       coord_sf(xlim = c(-34, 18),ylim = c(57, 80))
     
     age95_plot <- 
       tmp_maxage %>% 
-      group_by(rect, year) %>% 
+      group_by(rect, yr) %>% 
       summarise(`Max. age` = max(age, na.rm = T),
                 `95% age` = quantile(age, 0.95, na.rm = T)) %>% 
-      filter(year > yr_min-1, year < yr_max+1) %>% 
+      filter(yr > yr_min-1, yr < yr_max+1) %>% 
       bind_cols(mapplots::ices.rect(.$rect)) %>% 
       #separate(sq,c("lon","lat"), sep=':',convert = TRUE) %>%
       ggplot() + 
@@ -1532,9 +1532,9 @@
       scale_fill_viridis_c(direction = -1)+
       xlab('Longitude (W)') +
       ylab('Latitude (N)')+ 
-      facet_wrap(~year, ncol = 3) +
+      facet_wrap(~yr, ncol = 3) +
       theme(legend.position = c(0.9, 0.1)) +
-      geom_text(aes(x = x, y = y, label = label), data = tibble(year = yr_min:yr_max, x= 0, y = 77, label = year)) +
+      geom_text(aes(x = x, y = y, label = label), data = tibble(yr = yr_min:yr_max, x= 0, y = 77, label = yr)) +
       geom_sf(data = ia, colour = 'black', fill = NA, lwd = 0.05) +
       coord_sf(xlim = c(-34, 18),ylim = c(57, 80))
     
@@ -1550,10 +1550,10 @@
     
     maxl_plot <- 
       tmp_maxl %>% 
-      group_by(rect, year) %>% 
+      group_by(rect, yr) %>% 
       summarise(`Max. length (cm)` = max(length_cm, na.rm = T),
                 `95% length (cm)` = quantile(length_cm, 0.95, na.rm = T)) %>% 
-      filter(year > yr_min-1, year < yr_max+1) %>% 
+      filter(yr > yr_min-1, yr < yr_max+1) %>% 
       bind_cols(mapplots::ices.rect(.$rect)) %>% 
       #separate(sq,c("lon","lat"), sep=':',convert = TRUE) %>%
       ggplot() + 
@@ -1572,18 +1572,18 @@
       scale_fill_viridis_c(direction = -1)+
       xlab('Longitude (W)') +
       ylab('Latitude (N)')+ 
-      facet_wrap(~year, ncol = 3) +
+      facet_wrap(~yr, ncol = 3) +
       theme(legend.position = c(0.9, 0.1)) +
-      geom_text(aes(x = x, y = y, label = label), data = tibble(year = yr_min:yr_max, x= 0, y = 77, label = year)) +
+      geom_text(aes(x = x, y = y, label = label), data = tibble(yr = yr_min:yr_max, x= 0, y = 77, label = yr)) +
       geom_sf(data = ia, colour = 'black', fill = NA, lwd = 0.05) +
       coord_sf(xlim = c(-34, 18),ylim = c(57, 80))
     
     l95_plot <- 
       tmp_maxl %>% 
-      group_by(rect, year) %>% 
+      group_by(rect, yr) %>% 
       summarise(`Max. length (cm)` = max(length_cm, na.rm = T),
                 `95% length (cm)` = quantile(length_cm, 0.95, na.rm = T)) %>% 
-      filter(year > yr_min-1, year < yr_max+1) %>% 
+      filter(yr > yr_min-1, yr < yr_max+1) %>% 
       bind_cols(mapplots::ices.rect(.$rect)) %>% 
       #separate(sq,c("lon","lat"), sep=':',convert = TRUE) %>%
       ggplot() + 
@@ -1602,9 +1602,9 @@
       scale_fill_viridis_c(direction = -1)+
       xlab('Longitude (W)') +
       ylab('Latitude (N)')+ 
-      facet_wrap(~year, ncol = 3) +
+      facet_wrap(~yr, ncol = 3) +
       theme(legend.position = c(0.9, 0.1)) +
-      geom_text(aes(x = x, y = y, label = label), data = tibble(year = yr_min:yr_max, x= 0, y = 77, label = year)) +
+      geom_text(aes(x = x, y = y, label = label), data = tibble(yr = yr_min:yr_max, x= 0, y = 77, label = yr)) +
       geom_sf(data = ia, colour = 'black', fill = NA, lwd = 0.05) +
       coord_sf(xlim = c(-34, 18),ylim = c(57, 80))
     
@@ -1612,10 +1612,10 @@
     l50_plot_0 <- 
       tmp_maxl %>% 
       filter(depth_m <= 300) %>% 
-      group_by(rect, year) %>% 
+      group_by(rect, yr) %>% 
       summarise(`Mean length (cm)` = mean(length_cm, na.rm = T),
                 `50% length (cm)` = quantile(length_cm, 0.50, na.rm = T)) %>% 
-      filter(year > yr_min-1, year < yr_max+1) %>% 
+      filter(yr > yr_min-1, yr < yr_max+1) %>% 
       bind_cols(mapplots::ices.rect(.$rect)) %>% 
       #separate(sq,c("lon","lat"), sep=':',convert = TRUE) %>%
       ggplot() + 
@@ -1634,19 +1634,19 @@
       scale_fill_viridis_c(direction = -1)+
       xlab('Longitude (W)') +
       ylab('Latitude (N)')+ 
-      facet_wrap(~year, ncol = 3) +
+      facet_wrap(~yr, ncol = 3) +
       theme(legend.position = c(0.9, 0.1)) +
-      geom_text(aes(x = x, y = y, label = label), data = tibble(year = yr_min:yr_max, x= 0, y = 77, label = year)) +
+      geom_text(aes(x = x, y = y, label = label), data = tibble(yr = yr_min:yr_max, x= 0, y = 77, label = yr)) +
       geom_sf(data = ia, colour = 'black', fill = NA, lwd = 0.05) +
       coord_sf(xlim = c(-34, 18),ylim = c(57, 80))
     
     l50_plot_300 <- 
       tmp_maxl %>% 
       filter(depth_m > 300, depth_m <= 500) %>% 
-      group_by(rect, year) %>% 
+      group_by(rect, yr) %>% 
       summarise(`Mean length (cm)` = mean(length_cm, na.rm = T),
                 `50% length (cm)` = quantile(length_cm, 0.50, na.rm = T)) %>% 
-      filter(year > yr_min-1, year < yr_max+1) %>% 
+      filter(yr > yr_min-1, yr < yr_max+1) %>% 
       bind_cols(mapplots::ices.rect(.$rect)) %>% 
       #separate(sq,c("lon","lat"), sep=':',convert = TRUE) %>%
       ggplot() + 
@@ -1665,19 +1665,19 @@
       scale_fill_viridis_c(direction = -1)+
       xlab('Longitude (W)') +
       ylab('Latitude (N)')+ 
-      facet_wrap(~year, ncol = 3) +
+      facet_wrap(~yr, ncol = 3) +
       theme(legend.position = c(0.9, 0.1)) +
-      geom_text(aes(x = x, y = y, label = label), data = tibble(year = yr_min:yr_max, x= 0, y = 77, label = year)) +
+      geom_text(aes(x = x, y = y, label = label), data = tibble(yr = yr_min:yr_max, x= 0, y = 77, label = yr)) +
       geom_sf(data = ia, colour = 'black', fill = NA, lwd = 0.05) +
       coord_sf(xlim = c(-34, 18),ylim = c(57, 80))
     
     l50_plot_500 <- 
       tmp_maxl %>% 
       filter(depth_m > 500) %>% 
-      group_by(rect, year) %>% 
+      group_by(rect, yr) %>% 
       summarise(`Mean length (cm)` = mean(length_cm, na.rm = T),
                 `50% length (cm)` = quantile(length_cm, 0.50, na.rm = T)) %>% 
-      filter(year > yr_min-1, year < yr_max+1) %>% 
+      filter(yr > yr_min-1, yr < yr_max+1) %>% 
       bind_cols(mapplots::ices.rect(.$rect)) %>% 
       #separate(sq,c("lon","lat"), sep=':',convert = TRUE) %>%
       ggplot() + 
@@ -1696,9 +1696,9 @@
       scale_fill_viridis_c(direction = -1)+
       xlab('Longitude (W)') +
       ylab('Latitude (N)')+ 
-      facet_wrap(~year, ncol = 3) +
+      facet_wrap(~yr, ncol = 3) +
       theme(legend.position = c(0.9, 0.1)) +
-      geom_text(aes(x = x, y = y, label = label), data = tibble(year = yr_min:yr_max, x= 0, y = 77, label = year)) +
+      geom_text(aes(x = x, y = y, label = label), data = tibble(yr = yr_min:yr_max, x= 0, y = 77, label = yr)) +
       geom_sf(data = ia, colour = 'black', fill = NA, lwd = 0.05) +
       coord_sf(xlim = c(-34, 18),ylim = c(57, 80))
     
@@ -1725,13 +1725,13 @@
       filter(maturity=='Mature') %>% 
       rename(n_mat = n) %>% 
       left_join(tmp_l50 %>% 
-                  group_by(rect, year, length_cm) %>% 
+                  group_by(rect, yr, length_cm) %>% 
                   count()) %>% 
       mutate(p = n_mat/n) %>% 
       filter(p <= 0.5, length_cm > 10) %>% 
-      group_by(rect, year) %>% 
+      group_by(rect, yr) %>% 
       summarise(L50 = max(length_cm, na.rm = T)) %>% 
-      filter(year > yr_min-1, year < yr_max+1) %>% 
+      filter(yr > yr_min-1, yr < yr_max+1) %>% 
       bind_cols(mapplots::ices.rect(.$rect)) %>% 
       #separate(sq,c("lon","lat"), sep=':',convert = TRUE) %>%
       ggplot() + 
@@ -1750,9 +1750,9 @@
       scale_fill_viridis_c(direction = -1)+
       xlab('Longitude (W)') +
       ylab('Latitude (N)')+ 
-      facet_wrap(~year, ncol = 3) +
+      facet_wrap(~yr, ncol = 3) +
       theme(legend.position = c(0.9, 0.1)) +
-      geom_text(aes(x = x, y = y, label = label), data = tibble(year = yr_min:yr_max, x= 0, y = 77, label = year)) +
+      geom_text(aes(x = x, y = y, label = label), data = tibble(yr = yr_min:yr_max, x= 0, y = 77, label = yr)) +
       geom_sf(data = ia, colour = 'black', fill = NA, lwd = 0.05) +
       coord_sf(xlim = c(-34, 18),ylim = c(57, 80))
     
