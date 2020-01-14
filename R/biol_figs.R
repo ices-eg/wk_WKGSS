@@ -51,13 +51,20 @@
                  lat = as.numeric(ifelse(lat=='NA', NA, lat)),
                  long = as.numeric(ifelse(long=='NA', NA, long))) %>% 
           rename(lon = long, depth_m = depth) %>%
-          mutate(division = as.character(division))
+          mutate(division = as.character(division)) %>% 
+          mutate(division = ifelse(division == '27.2a', '27.2.a',
+                                   ifelse(division == '27.2b', '27.2.b',
+                                          ifelse(division=='27.4a', '27.4.a',
+                                                 ifelse(division == '27.3a', '27.3.a',
+                                                        ifelse(division == '27.4b', '27.4.b', division)))))) %>% 
+        filter(!is.na(division), division != 'NA')
         
         Ice <- 
           read_csv("data_received/BiolData_ARU.27.5a14.csv", col_types = cols(weight_g = 'd')) %>% 
           mutate(maturity = ifelse(maturity == 'mature', 'Mature', 
-                        ifelse(maturity== 'immature', 'Immature', maturity)))
-        
+                        ifelse(maturity== 'immature', 'Immature', maturity))) %>% 
+                filter((weight_g < 2000 | is.na(weight_g)))
+          
         Ice_st <-
           read_csv("data_received/StationsData_ARU.27.5a14.csv") %>% 
           rename(depth_m = depth)
@@ -86,9 +93,9 @@
         all <-
           Ice %>% 
           bind_rows(Nor) %>% 
-          bind_rows(Far)%>% 
+          bind_rows(Far) %>% 
           filter(!(person=='Elvar Hallfredsson' & age==2 & length_cm>25), !(person=='Elvar Hallfredsson' & age==1 & length_cm>20)) %>% 
-          filter(!(person=='Pamela J. Woods' & weight_g > 2000), !(person=='Pamela J. Woods' & length_cm < 20 & weight_g > 500)) %>% 
+          filter(!(person=='Pamela J. Woods' & length_cm < 20 & weight_g > 500)) %>% 
           mutate(gender = ifelse(is.na(gender) & person=='Lise H. Ofstad', 'U', gender))
         
         all_st <-
@@ -104,6 +111,7 @@
                                                            ifelse(yr < 1994, 19940000, yr)))))))
         
         
+        
         ####--------------Von Bertalanffy growth curves -------------####
         
         ####--------------By division and overall -------------####
@@ -111,7 +119,7 @@
         vb_pars <-
           all %>% 
           left_join(all_st) %>% 
-          filter(!is.na(age), !is.na(length_cm), !is.na(gender), length_cm > 0) %>% 
+          filter(!is.na(age), !is.na(length_cm), !is.na(gender), length_cm > 0, !is.na(division)) %>% 
           mutate(age = age + (month-1)/12) %>% 
           unite(div_gen, division, gender, remove = F) %>% 
           split(., .$div_gen) %>% #.[[1]]->x
@@ -152,7 +160,7 @@
         vb_pars_bystock <-
           all %>% 
           left_join(all_st) %>% 
-          filter(!is.na(age), !is.na(length_cm), !is.na(gender), length_cm > 0) %>% 
+          filter(!is.na(age), !is.na(length_cm), !is.na(gender), length_cm > 0, !is.na(division)) %>% 
           mutate(age = age + (month-1)/12,
                  person_sh = person %>% substr(., 1, 3)) %>% 
           unite(st_gen, person_sh, gender, remove = F) %>% 
@@ -219,7 +227,7 @@
             all %>% 
             left_join(all_st) %>% 
             filter(!is.na(age), !is.na(length_cm), !is.na(gender), length_cm > 0,
-                   year==20162019) %>% 
+                   year==20162019, !is.na(division)) %>% 
             mutate(age = age + (month-1)/12,
                    person_sh = person %>% substr(., 1, 3)) %>% 
             unite(st_gen, person_sh, gender, remove = F) %>% 
@@ -285,7 +293,7 @@
           vb_pars_bystock_overtime <-
             all %>% 
             left_join(all_st) %>% 
-            filter(!is.na(age), !is.na(length_cm), !is.na(gender), length_cm > 0) %>% 
+            filter(!is.na(age), !is.na(length_cm), !is.na(gender), length_cm > 0, !is.na(division)) %>% 
             mutate(age = age + (month-1)/12,
                    person_sh = person %>% substr(., 1, 3)) %>% 
             unite(st_gen, person_sh, gender, year, remove = F) %>% 
@@ -442,7 +450,7 @@
             lw_pars <-
             all %>% 
             left_join(all_st) %>% 
-            filter(!is.na(weight_g), !is.na(length_cm), !is.na(gender), length_cm > 0) %>% 
+            filter(!is.na(weight_g), !is.na(length_cm), !is.na(gender), length_cm > 0, !is.na(division)) %>% 
           unite(div_gen, division, gender, remove = F) %>% 
             split(., .$div_gen) %>% #.[[1]]->x
             purrr::map(function(x){
@@ -487,7 +495,7 @@
           lw_pars_bystock <-
             all %>% 
             left_join(all_st) %>% 
-            filter(!is.na(weight_g), !is.na(length_cm), !is.na(gender), length_cm > 0) %>% 
+            filter(!is.na(weight_g), !is.na(length_cm), !is.na(gender), length_cm > 0, !is.na(division)) %>% 
             mutate(age = age + (month-1)/12,
                    person_sh = person %>% substr(., 1, 3)) %>% 
             unite(st_gen, person_sh, gender, remove = F) %>% 
@@ -564,7 +572,7 @@
           lw_pars_bystock_overtime <-
             all %>% 
             left_join(all_st) %>% 
-            filter(!is.na(weight_g), !is.na(length_cm), !is.na(gender), length_cm > 0) %>% 
+            filter(!is.na(weight_g), !is.na(length_cm), !is.na(gender), length_cm > 0, !is.na(division)) %>% 
             mutate(age = age + (month-1)/12,
                    person_sh = person %>% substr(., 1, 3)) %>% 
             unite(st_gen, person_sh, gender, year, remove = F) %>% 
@@ -743,7 +751,7 @@
             mutate(maturity_stage = ifelse(person=='Lise H. Ofstad' & (haul_id %in% c(18080027, 18080028) | year %in% c(1994:1998)), NA, maturity_stage),
                    maturity = ifelse(person=='Lise H. Ofstad' & (haul_id %in% c(18080027, 18080028) | year %in% c(1994:1998)), NA, maturity),
                    spawning = ifelse(person=='Lise H. Ofstad' & (haul_id %in% c(18080027, 18080028) | year %in% c(1994:1998)), NA, spawning)) %>% 
-            filter(!is.na(maturity), !is.na(length_cm), !is.na(gender), length_cm > 0, gender != 'U') %>% 
+            filter(!is.na(maturity), !is.na(length_cm), !is.na(gender), length_cm > 0, gender != 'U', !is.na(division)) %>% 
           unite(div_gen, division, gender, remove = F) %>% 
             split(., .$div_gen) %>% #.[[1]]->x
             purrr::map(function(x){
@@ -806,7 +814,7 @@
             mutate(maturity_stage = ifelse(person=='Lise H. Ofstad' & (haul_id %in% c(18080027, 18080028) | year %in% c(1994:1998)), NA, maturity_stage),
                    maturity = ifelse(person=='Lise H. Ofstad' & (haul_id %in% c(18080027, 18080028) | year %in% c(1994:1998)), NA, maturity),
                    spawning = ifelse(person=='Lise H. Ofstad' & (haul_id %in% c(18080027, 18080028) | year %in% c(1994:1998)), NA, spawning)) %>% 
-            filter(!is.na(maturity), !is.na(length_cm), !is.na(gender), length_cm > 0, gender != 'U') %>% 
+            filter(!is.na(maturity), !is.na(length_cm), !is.na(gender), length_cm > 0, gender != 'U', !is.na(division)) %>% 
             mutate(age = age + (month-1)/12,
                    person_sh = person %>% substr(., 1, 3)) %>% 
             unite(st_gen, person_sh, gender, remove = F) %>% 
@@ -1142,7 +1150,7 @@
             age = ifelse(age < 11, age + (quarter-1)/4, age)) %>% 
           filter(age < 21, year==20162019) %>% 
           group_by(country, division, source, age, year) %>% 
-          filter(!is.na(age), !is.na(length_cm), length_cm > 0) %>% 
+          filter(!is.na(age), !is.na(length_cm), length_cm > 0, !is.na(division)) %>% 
           summarise(ml = round(mean(length_cm, na.rm = T), 1), sdl = round(sd(length_cm, na.rm = T), 1)) %>%
           arrange(country, division, source, year, age) 
         
@@ -1155,11 +1163,27 @@
          
          ####--------------Size and depth relationships -------------####
          
-        size_depth <-
+         #size x depth
+         size_depth_plot <-
+                 all %>% 
+                 left_join(all_st) %>% 
+                 mutate(stock = ifelse(person=='Elvar Hallfredsson', 'aru.27.123a4',
+                                       ifelse(person=='Pamela J. Woods', 'aru.27.5a14', 
+                                              ifelse(person=='Lise H. Ofstad', 'aru.27.5b6a', person))),
+                        Depth = -depth_m,
+                        Year = as.factor(yr)) %>%
+                 rename(Length = length_cm, Stock = stock) %>%
+                 filter(yr > 1999) %>% 
+                 ggplot() + 
+                 geom_point(aes(y = Depth, x = Length, color = Year))+
+                 facet_wrap(~Stock) + 
+                 theme_bw()
+         
+         size_depth <-
           all %>% 
           left_join(all_st) %>% 
           mutate(rect =  mapplots::ices.rect2(lon, lat)) %>% 
-          filter(!is.na(length_cm), length_cm > 0) %>% 
+          filter(!is.na(length_cm), length_cm > 0, !is.na(division)) %>% 
           lm(length_cm ~ depth_m + division + depth_m*division, data=.)  %>% 
               broom::tidy() %>% 
           write_csv('R/biol_figs_output/size_depth_lm.csv')
@@ -1168,7 +1192,7 @@
           all %>% 
           left_join(all_st) %>% 
           mutate(rect =  mapplots::ices.rect2(lon, lat)) %>% 
-          filter(!is.na(length_cm), length_cm > 0) %>% 
+          filter(!is.na(length_cm), length_cm > 0, !is.na(division)) %>% 
           lm(length_cm ~ depth_m + lat + lon + depth_m*lat + depth_m*lon + lat*lon, data=.)  %>% 
           broom::tidy() %>% 
           write_csv('R/biol_figs_output/size_depth_latlon_lm.csv')
@@ -1198,7 +1222,7 @@
         tmp_vb <-
           all %>% 
           left_join(all_st) %>%
-          filter(!is.na(age), !is.na(length_cm), length_cm > 0) %>% 
+          filter(!is.na(age), !is.na(length_cm), length_cm > 0, !is.na(division)) %>% 
           mutate(rect =  mapplots::ices.rect2(lon, lat),
                  age = age + (month-1)/12)
         
@@ -1283,7 +1307,7 @@
         tmp_lw <-
           all %>% 
           left_join(all_st) %>%
-          filter(!is.na(weight_g), !is.na(length_cm), length_cm > 0) %>% 
+          filter(!is.na(weight_g), !is.na(length_cm), length_cm > 0, !is.na(division)) %>% 
           mutate(rect =  mapplots::ices.rect2(lon, lat),
                  age = age + (month-1)/12)
         
@@ -1381,7 +1405,7 @@
         tmp_l8 <-
           all %>% 
           left_join(all_st) %>%
-          filter(!is.na(length_cm), length_cm > 0, age %in% c(8,9)) %>% 
+          filter(!is.na(length_cm), length_cm > 0, age %in% c(8,9, !is.na(division))) %>% 
           mutate(rect =  mapplots::ices.rect2(lon, lat),
                  age = age + (month-1)/12)
         
@@ -1473,7 +1497,7 @@
         tmp_maxage <-
           all %>% 
           left_join(all_st) %>%
-          filter(!is.na(age)) %>% 
+          filter(!is.na(age), !is.na(division)) %>% 
           mutate(rect =  mapplots::ices.rect2(lon, lat),
                  age = age + (month-1)/12)
         
@@ -1543,7 +1567,7 @@
         tmp_maxl <-
           all %>% 
           left_join(all_st) %>%
-          filter(!is.na(length_cm), length_cm > 0) %>% 
+          filter(!is.na(length_cm), length_cm > 0, !is.na(division)) %>% 
           mutate(rect =  mapplots::ices.rect2(lon, lat),
                  age = age + (month-1)/12)
         
@@ -1712,7 +1736,7 @@
           mutate(maturity_stage = ifelse(person=='Lise H. Ofstad' & (haul_id %in% c(18080027, 18080028) | year %in% c(1994:1998)), NA, maturity_stage),
                  maturity = ifelse(person=='Lise H. Ofstad' & (haul_id %in% c(18080027, 18080028) | year %in% c(1994:1998)), NA, maturity),
                  spawning = ifelse(person=='Lise H. Ofstad' & (haul_id %in% c(18080027, 18080028) | year %in% c(1994:1998)), NA, spawning)) %>% 
-          filter(!is.na(length_cm), length_cm > 0, !is.na(maturity)) %>% 
+          filter(!is.na(length_cm), length_cm > 0, !is.na(maturity), !is.na(division)) %>% 
           mutate(rect =  mapplots::ices.rect2(lon, lat),
                  age = age + (month-1)/12)
         
@@ -1764,7 +1788,7 @@
           mutate(maturity_stage = ifelse(person=='Lise H. Ofstad' & (haul_id %in% c(18080027, 18080028) | year %in% c(1994:1998)), NA, maturity_stage),
                  maturity = ifelse(person=='Lise H. Ofstad' & (haul_id %in% c(18080027, 18080028) | year %in% c(1994:1998)), NA, maturity),
                  spawning = ifelse(person=='Lise H. Ofstad' & (haul_id %in% c(18080027, 18080028) | year %in% c(1994:1998)), NA, spawning)) %>% 
-          filter(!is.na(length_cm), length_cm > 0, !is.na(spawning)) %>% 
+          filter(!is.na(length_cm), length_cm > 0, !is.na(spawning), !is.na(division)) %>% 
           mutate(rect =  mapplots::ices.rect2(lon, lat),
                  age = age + (month-1)/12,
                  quarter = ifelse(month %in% c(1,2,3), 1,
@@ -1823,6 +1847,24 @@
           arrange(country, desc(p)) %>% 
           write_csv('R/biol_figs_output/sp_bydivision.csv')
         
+        #samples
+        tmp_samples <-
+                all %>% 
+                left_join(all_st) %>%
+                filter(!is.na(length_cm), length_cm > 0,!is.na(division)) %>% 
+                mutate(rect =  mapplots::ices.rect2(lon, lat),
+                       quarter = ifelse(month %in% c(1,2,3), 1,
+                                        ifelse(month %in% c(4,5,6), 2, 
+                                               ifelse(month %in% c(7,8,9), 3,
+                                                      ifelse(month %in% c(10,11,12), 4, month))))) %>% 
+                group_by(division, person, source) %>% 
+                count() %>% 
+                mutate(ifelse(person=='Elvar Hallfredsson', 'Norway',
+                              ifelse(person == 'Pamela J. Woods', 'Iceland',
+                                     ifelse(person=='Lise H. Ofstad', 'Faroe Islands', person)))) %>% 
+                ungroup %>% 
+                select(-c(person)) %>% 
+                write_csv('R/biol_figs_output/sample_origin.csv')
         
         
         ####-------------- Figure output -------------####
@@ -1933,5 +1975,426 @@
          png(paste0('R/biol_figs_output/mat_plot_overtime_aru.27.5b6a.png'), height = png_dims[2]*0.75, width = png_dims[1]*0.75)
          print(mat_plot_overtime_aru.27.5b6a)
          dev.off()
+
+         png(paste0('R/biol_figs_output/size_depth_plot.png'), height = png_dims[2]*0.75, width = png_dims[1]*0.75)
+         print(size_depth_plot)
+         dev.off()
          
          
+         #ICELAND ONLY
+        library(mar)
+        mar <- connect_mar()
+         
+        spat_ind <- 
+                 tbl(mar,paste0("raw_index_calc_",19)) %>%
+                 rename(year=ar) %>%
+                 #filter((synaflokkur == 30 & tognumer %in% c(1:39, NA))|(synaflokkur == 35 & )) %>% 
+                 filter(!(year==2011&synaflokkur==35)) %>% 
+                 mutate(synaflokkur = ifelse(synaflokkur == 30, 'Spring survey','Autumn survey'),
+                        GRIDCELL = as.character(GRIDCELL)) %>% 
+                 #filter(year>1992,year<tyr) %>% 
+                 collect(n=Inf) 
+                         
+        all_30_map <- 
+                spat_ind %>% 
+                mutate(rect =  mapplots::ices.rect2(lon, lat)) %>% 
+                #filter(lengd < 25) %>%
+                filter(N > 0) %>%  
+                group_by(rect, year, synaflokkur) %>% 
+                summarise(logN = log(mean(N, na.rm = T))) %>% 
+                rename(Survey = synaflokkur) %>% 
+                filter(Survey=='Spring survey') %>% 
+                bind_cols(mapplots::ices.rect(.$rect)) %>% 
+                 ggplot() + 
+                 #coord_quickmap(xlim = c(-38, 18),ylim = c(55, 74))+
+                 geom_tile(aes(lon, lat, fill=logN)) + 
+                 geom_polygon(data = geo::bisland, aes(lon, lat), fill = 'gray',col='black',lwd=0.1) +
+                 theme_bw()+
+                 scale_fill_viridis_c(direction = -1)+
+                 xlab('Longitude (W)') +
+                 ylab('Latitude (N)')+ 
+                 facet_wrap(~year, ncol = 5)
+
+        l25_30_map <- 
+                spat_ind %>% 
+                mutate(rect =  mapplots::ices.rect2(lon, lat)) %>% 
+                filter(lengd < 25) %>%
+                filter(N > 0) %>%  
+                group_by(rect, year, synaflokkur) %>% 
+                summarise(logN = log(mean(N, na.rm = T))) %>% 
+                rename(Survey = synaflokkur) %>% 
+                filter(Survey=='Spring survey') %>% 
+                bind_cols(mapplots::ices.rect(.$rect)) %>% 
+                ggplot() + 
+                #coord_quickmap(xlim = c(-38, 18),ylim = c(55, 74))+
+                geom_tile(aes(lon, lat, fill=logN)) + 
+                geom_polygon(data = geo::bisland, aes(lon, lat), fill = 'gray',col='black',lwd=0.1) +
+                theme_bw()+
+                scale_fill_viridis_c(direction = -1)+
+                xlab('Longitude (W)') +
+                ylab('Latitude (N)')+ 
+                facet_wrap(~year, ncol = 5)
+        
+        l40_30_map <- 
+                spat_ind %>% 
+                mutate(rect =  mapplots::ices.rect2(lon, lat)) %>% 
+                filter(lengd > 40) %>%
+                filter(N > 0) %>%  
+                group_by(rect, year, synaflokkur) %>% 
+                summarise(logN = log(mean(N, na.rm = T))) %>% 
+                rename(Survey = synaflokkur) %>% 
+                filter(Survey=='Spring survey') %>% 
+                bind_cols(mapplots::ices.rect(.$rect)) %>% 
+                ggplot() + 
+                #coord_quickmap(xlim = c(-38, 18),ylim = c(55, 74))+
+                geom_tile(aes(lon, lat, fill=logN)) + 
+                geom_polygon(data = geo::bisland, aes(lon, lat), fill = 'gray',col='black',lwd=0.1) +
+                theme_bw()+
+                scale_fill_viridis_c(direction = -1)+
+                xlab('Longitude (W)') +
+                ylab('Latitude (N)')+ 
+                facet_wrap(~year, ncol = 5)
+        
+        png(paste0('R/biol_figs_output/all_30_map.png'), height = png_dims[2], width = png_dims[1])
+        print(all_30_map)
+        dev.off()
+        
+        png(paste0('R/biol_figs_output/l25_30_map.png'), height = png_dims[2], width = png_dims[1])
+        print(l25_30_map)
+        dev.off()
+        
+        png(paste0('R/biol_figs_output/l40_30_map.png'), height = png_dims[2], width = png_dims[1])
+        print(l40_30_map)
+        dev.off()
+        
+        all_35_map <- 
+                spat_ind %>% 
+                mutate(rect =  mapplots::ices.rect2(lon, lat)) %>% 
+                #filter(lengd < 25) %>%
+                filter(N > 0) %>%  
+                group_by(rect, year, synaflokkur) %>% 
+                summarise(logN = log(mean(N, na.rm = T))) %>% 
+                rename(Survey = synaflokkur) %>% 
+                filter(Survey=='Autumn survey') %>% 
+                bind_cols(mapplots::ices.rect(.$rect)) %>% 
+                ggplot() + 
+                #coord_quickmap(xlim = c(-38, 18),ylim = c(55, 74))+
+                geom_tile(aes(lon, lat, fill=logN)) + 
+                geom_polygon(data = geo::bisland, aes(lon, lat), fill = 'gray',col='black',lwd=0.1) +
+                theme_bw()+
+                scale_fill_viridis_c(direction = -1)+
+                xlab('Longitude (W)') +
+                ylab('Latitude (N)')+ 
+                facet_wrap(~year, ncol = 5)
+        
+        l25_35_map <- 
+                spat_ind %>% 
+                mutate(rect =  mapplots::ices.rect2(lon, lat)) %>% 
+                filter(lengd < 25) %>%
+                filter(N > 0, year > 1999, year!=2011) %>%  
+                group_by(rect, year, synaflokkur) %>% 
+                summarise(logN = log(mean(N, na.rm = T))) %>% 
+                rename(Survey = synaflokkur) %>% 
+                filter(Survey=='Autumn survey') %>% 
+                bind_cols(mapplots::ices.rect(.$rect)) %>% 
+                ggplot() + 
+                #coord_quickmap(xlim = c(-38, 18),ylim = c(55, 74))+
+                geom_tile(aes(lon, lat, fill=logN)) + 
+                geom_polygon(data = geo::bisland, aes(lon, lat), fill = 'gray',col='black',lwd=0.1) +
+                theme_bw()+
+                scale_fill_viridis_c(direction = -1)+
+                xlab('Longitude (W)') +
+                ylab('Latitude (N)')+ 
+                facet_wrap(~year, ncol = 4)
+        
+        l40_35_map <- 
+                spat_ind %>% 
+                mutate(rect =  mapplots::ices.rect2(lon, lat)) %>% 
+                filter(lengd > 40) %>%
+                filter(N > 0, year > 1999, year!=2011) %>%  
+                group_by(rect, year, synaflokkur) %>% 
+                summarise(logN = log(mean(N, na.rm = T))) %>% 
+                rename(Survey = synaflokkur) %>% 
+                filter(Survey=='Autumn survey') %>% 
+                bind_cols(mapplots::ices.rect(.$rect)) %>% 
+                ggplot() + 
+                #coord_quickmap(xlim = c(-38, 18),ylim = c(55, 74))+
+                geom_tile(aes(lon, lat, fill=logN)) + 
+                geom_polygon(data = geo::bisland, aes(lon, lat), fill = 'gray',col='black',lwd=0.1) +
+                theme_bw()+
+                scale_fill_viridis_c(direction = -1)+
+                xlab('Longitude (W)') +
+                ylab('Latitude (N)')+ 
+                facet_wrap(~year, ncol = 4)
+        
+        png(paste0('R/biol_figs_output/all_35_map.png'), height = png_dims[2], width = png_dims[1])
+        print(all_35_map)
+        dev.off()
+        
+        png(paste0('R/biol_figs_output/l25_35_map.png'), height = png_dims[2], width = png_dims[1])
+        print(l25_35_map)
+        dev.off()
+        
+        png(paste0('R/biol_figs_output/l40_35_map.png'), height = png_dims[2], width = png_dims[1])
+        print(l40_35_map)
+        dev.off()
+        
+        
+        vb_pars_bystock_byyear_overtime <-
+                all %>% 
+                left_join(all_st) %>% 
+                filter(!is.na(age), !is.na(length_cm), !is.na(gender), length_cm > 0, !is.na(division)) %>% 
+                mutate(age = age + (month-1)/12,
+                       person_sh = person %>% substr(., 1, 3)) %>% 
+                unite(st_gen, person_sh, gender, yr, remove = F) %>% 
+                split(., .$st_gen) %>% #.[[19]]->x
+                purrr::map(function(x){
+                        print(paste0(unique(x$division), '_', unique(x$gender)))
+                        prL<-seq(0,120,1)
+                        prA<-seq(0,60,1)
+                        mod <- NULL; fit <- NULL
+                        
+                        try( 
+                                {mod <- nls(log(length_cm)~log(Linf*(1-exp(-K*(age-t0)))), data=x, start=list(Linf=50, K=0.2, t0=-0.5))
+                                fit <- exp(predict(mod, data.frame(age=prA),type="response"))}, 
+                                silent = TRUE)
+                        
+                        if(!is.null(mod)){
+                                y <- 
+                                        list(
+                                                mod = mod %>% 
+                                                        broom::tidy() %>% 
+                                                        mutate(person = unique(x$person),
+                                                               gender = unique(x$gender),
+                                                               yr = unique(x$yr)),
+                                                x = full_join(x, data.frame(age = prA, 
+                                                                            fit,
+                                                                            person = unique(x$person),
+                                                                            gender = unique(x$gender),
+                                                                            yr = unique(x$yr))) %>% select(-c(st_gen, person_sh))
+                                        )
+                        } else { y <- list (mod = NULL, x = x %>% select(-c(st_gen, person_sh)))}
+                        return(y)
+                }) 
+        
+
+        
+        vb_plot_overtime_byyear_aru.27.5a14 <-
+                vb_pars_bystock_byyear_overtime %>% 
+                flatten() %>% 
+                keep(., names(.)=="x") %>% 
+                bind_rows() %>% 
+                mutate(stock = ifelse(person=='Elvar Hallfredsson', 'aru.27.123a4',
+                                      ifelse(person=='Pamela J. Woods', 'aru.27.5a14', 
+                                             ifelse(person=='Lise H. Ofstad', 'aru.27.5b6a', person))),
+                       gender = ifelse(gender=='F', 'Female',
+                                       ifelse(gender=='M', 'Male',  
+                                              ifelse(gender=='U', 'Unidentified', gender))),
+                       Year = as.factor(yr)) %>%
+                filter(!is.na(stock), yr > 2004) %>% 
+                unite(age_year, age, yr, remove = FALSE) %>% 
+                rename(`Length (cm)` = length_cm, Age = age, Stock = stock, Gender = gender) %>% 
+                filter(Age < 30, Stock== 'aru.27.5a14') %>% 
+                ggplot() +
+                geom_boxplot(aes(x = Age, y = `Length (cm)`, group = age_year, color = Year, fill = Year), alpha = 0.2) +
+                geom_line(aes(x = Age, y = fit, color = Year),
+                          data = vb_pars_bystock_byyear_overtime %>% 
+                                  flatten() %>% 
+                                  keep(., names(.)=="x") %>% 
+                                  bind_rows() %>% 
+                                  mutate(stock = ifelse(person=='Elvar Hallfredsson', 'aru.27.123a4',
+                                                        ifelse(person=='Pamela J. Woods', 'aru.27.5a14', 
+                                                               ifelse(person=='Lise H. Ofstad', 'aru.27.5b6a', person))),
+                                         gender = ifelse(gender=='F', 'Female',
+                                                         ifelse(gender=='M', 'Male', gender)),
+                                         Year = as.factor(yr)) %>%
+                                  filter(!is.na(stock), !is.na(fit), yr > 2004) %>% 
+                                  unite(age_stock, age, stock, remove = FALSE) %>% 
+                                  rename(Age = age, Stock = stock, Gender = gender) %>% 
+                                  filter(Age < 30, Stock=='aru.27.5a14') )+
+                theme_bw() + 
+                scale_fill_viridis_d() + 
+                scale_color_viridis_d() +
+                facet_wrap(~Gender, ncol = 1)
+
+        vb_plot_overtime_byyear_aru.27.123a4 <-
+                vb_pars_bystock_byyear_overtime %>% 
+                flatten() %>% 
+                keep(., names(.)=="x") %>% 
+                bind_rows() %>% 
+                mutate(stock = ifelse(person=='Elvar Hallfredsson', 'aru.27.123a4',
+                                      ifelse(person=='Pamela J. Woods', 'aru.27.5a14', 
+                                             ifelse(person=='Lise H. Ofstad', 'aru.27.5b6a', person))),
+                       gender = ifelse(gender=='F', 'Female',
+                                       ifelse(gender=='M', 'Male',  
+                                              ifelse(gender=='U', 'Unidentified', gender))),
+                       Year = as.factor(yr)) %>%
+                filter(!is.na(stock), yr > 2004) %>% 
+                unite(age_year, age, yr, remove = FALSE) %>% 
+                rename(`Length (cm)` = length_cm, Age = age, Stock = stock, Gender = gender) %>% 
+                filter(Age < 30, Stock== 'aru.27.123a4') %>% 
+                ggplot() +
+                geom_boxplot(aes(x = Age, y = `Length (cm)`, group = age_year, color = Year, fill = Year), alpha = 0.2) +
+                geom_line(aes(x = Age, y = fit, color = Year),
+                          data = vb_pars_bystock_byyear_overtime %>% 
+                                  flatten() %>% 
+                                  keep(., names(.)=="x") %>% 
+                                  bind_rows() %>% 
+                                  mutate(stock = ifelse(person=='Elvar Hallfredsson', 'aru.27.123a4',
+                                                        ifelse(person=='Pamela J. Woods', 'aru.27.5a14', 
+                                                               ifelse(person=='Lise H. Ofstad', 'aru.27.5b6a', person))),
+                                         gender = ifelse(gender=='F', 'Female',
+                                                         ifelse(gender=='M', 'Male', gender)),
+                                         Year = as.factor(yr)) %>%
+                                  filter(!is.na(stock), !is.na(fit), yr > 2004) %>% 
+                                  unite(age_stock, age, stock, remove = FALSE) %>% 
+                                  rename(Age = age, Stock = stock, Gender = gender) %>% 
+                                  filter(Age < 30, Stock=='aru.27.123a4') )+
+                theme_bw() + 
+                scale_fill_viridis_d() + 
+                scale_color_viridis_d() +
+                facet_wrap(~Gender, ncol = 1)
+
+        vb_plot_overtime_byyear_aru.27.5b6a <-
+                vb_pars_bystock_byyear_overtime %>% 
+                flatten() %>% 
+                keep(., names(.)=="x") %>% 
+                bind_rows() %>% 
+                mutate(stock = ifelse(person=='Elvar Hallfredsson', 'aru.27.123a4',
+                                      ifelse(person=='Pamela J. Woods', 'aru.27.5a14', 
+                                             ifelse(person=='Lise H. Ofstad', 'aru.27.5b6a', person))),
+                       gender = ifelse(gender=='F', 'Female',
+                                       ifelse(gender=='M', 'Male',  
+                                              ifelse(gender=='U', 'Unidentified', gender))),
+                       Year = as.factor(yr)) %>%
+                filter(!is.na(stock), yr > 2004) %>% 
+                unite(age_year, age, yr, remove = FALSE) %>% 
+                rename(`Length (cm)` = length_cm, Age = age, Stock = stock, Gender = gender) %>% 
+                filter(Age < 30, Stock== 'aru.27.5b6a') %>% 
+                ggplot() +
+                geom_boxplot(aes(x = Age, y = `Length (cm)`, group = age_year, color = Year, fill = Year), alpha = 0.2) +
+                geom_line(aes(x = Age, y = fit, color = Year),
+                          data = vb_pars_bystock_byyear_overtime %>% 
+                                  flatten() %>% 
+                                  keep(., names(.)=="x") %>% 
+                                  bind_rows() %>% 
+                                  mutate(stock = ifelse(person=='Elvar Hallfredsson', 'aru.27.123a4',
+                                                        ifelse(person=='Pamela J. Woods', 'aru.27.5a14', 
+                                                               ifelse(person=='Lise H. Ofstad', 'aru.27.5b6a', person))),
+                                         gender = ifelse(gender=='F', 'Female',
+                                                         ifelse(gender=='M', 'Male',  
+                                                                ifelse(gender=='U', 'Unidentified', gender))),
+                                         Year = as.factor(yr)) %>%
+                                  filter(!is.na(stock), !is.na(fit), yr > 2004) %>% 
+                                  unite(age_stock, age, stock, remove = FALSE) %>% 
+                                  rename(Age = age, Stock = stock, Gender = gender) %>% 
+                                  filter(Age < 30, Stock=='aru.27.5b6a') )+
+                theme_bw() + 
+                scale_fill_viridis_d() + 
+                scale_color_viridis_d() +
+                facet_wrap(~Gender, ncol = 1)
+        
+        png(paste0('R/biol_figs_output/vb_plot_overtime_byyear_aru.27.123a4.png'), height = png_dims[2]*0.75, width = png_dims[1]*0.75)
+        print(vb_plot_overtime_byyear_aru.27.123a4)
+        dev.off()
+        
+        png(paste0('R/biol_figs_output/vb_plot_overtime_byyear_aru.27.5a14.png'), height = png_dims[2]*0.75, width = png_dims[1]*0.75)
+        print(vb_plot_overtime_byyear_aru.27.5a14)
+        dev.off()
+        
+        png(paste0('R/biol_figs_output/vb_plot_overtime_byyear_aru.27.5b6a.png'), height = png_dims[2]*0.75, width = png_dims[1]*0.75)
+        print(vb_plot_overtime_byyear_aru.27.5b6a)
+        dev.off()
+        
+        #OTHER ZOOMED MAPS
+        
+        
+        png(paste0('R/biol_figs_output/l50_plot_0_faroes.png'), height = png_dims[1], width = png_dims[2])
+        print(l50_plot_0 +
+                      coord_sf(xlim = c(-12, -2),ylim = c(60, 63.5))+
+                      geom_text(aes(x = x, y = y, label = label), data = tibble(yr = yr_min:yr_max, x= -8, y = 63.25, label = yr))
+        )
+        dev.off()
+        
+        png(paste0('R/biol_figs_output/l50_plot_300_faroes.png'), height = png_dims[1], width = png_dims[2])
+        print(l50_plot_300 +
+                      coord_sf(xlim = c(-12, -2),ylim = c(60, 63.5))+
+                      geom_text(aes(x = x, y = y, label = label), data = tibble(yr = yr_min:yr_max, x= -8, y = 63.25, label = yr))
+        )
+        dev.off()
+        
+        png(paste0('R/biol_figs_output/l50_plot_500_faroes.png'), height = png_dims[1], width = png_dims[2])
+        print(l50_plot_500+
+                      coord_sf(xlim = c(-12, -2),ylim = c(60, 63.5))+
+                      geom_text(aes(x = x, y = y, label = label), data = tibble(yr = yr_min:yr_max, x= -8, y = 63.25, label = yr))
+        )
+        dev.off()
+        
+        
+        png(paste0('R/biol_figs_output/l50_plot_0_iceland.png'), height = png_dims[1], width = png_dims[2])
+        print(l50_plot_0 +
+                      coord_sf(xlim = c(-31, -12),ylim = c(62, 68))+
+                      geom_text(aes(x = x, y = y, label = label), data = tibble(yr = yr_min:yr_max, x= -28, y = 67, label = yr))
+        )
+        dev.off()
+        
+        png(paste0('R/biol_figs_output/l50_plot_300_iceland.png'), height = png_dims[1], width = png_dims[2])
+        print(l50_plot_300 +
+                      coord_sf(xlim = c(-31, -12),ylim = c(62, 68)) +
+                      geom_text(aes(x = x, y = y, label = label), data = tibble(yr = yr_min:yr_max, x= -28, y = 67, label = yr))
+        )
+        dev.off()
+        
+        png(paste0('R/biol_figs_output/l50_plot_500_iceland.png'), height = png_dims[1], width = png_dims[2])
+        print(l50_plot_500+
+                      coord_sf(xlim = c(-31, -12),ylim = c(62, 68)) +
+                      geom_text(aes(x = x, y = y, label = label), data = tibble(yr = yr_min:yr_max, x= -28, y = 67, label = yr)) 
+        )
+        dev.off()
+        
+        
+        png(paste0('R/biol_figs_output/l50_plot_0_norway_s.png'), height = png_dims[1], width = png_dims[2])
+        print(l50_plot_0 +
+                      coord_sf(xlim = c(-2, 18),ylim = c(57, 66)) +
+                      geom_text(aes(x = x, y = y, label = label), data = tibble(yr = yr_min:yr_max, x=2, y = 65, label = yr)) 
+        )
+        dev.off()
+        
+        png(paste0('R/biol_figs_output/l50_plot_300_norway_s.png'), height = png_dims[1], width = png_dims[2])
+        print(l50_plot_300 +
+                      coord_sf(xlim = c(-2, 18),ylim = c(57, 66)) +
+                      geom_text(aes(x = x, y = y, label = label), data = tibble(yr = yr_min:yr_max,  x= 2, y = 65, label = yr)) 
+        )
+        dev.off()
+        
+        png(paste0('R/biol_figs_output/l50_plot_500_norway_s.png'), height = png_dims[1], width = png_dims[2])
+        print(l50_plot_500+
+                      coord_sf(xlim = c(-2, 18),ylim = c(57, 66)) +
+                      geom_text(aes(x = x, y = y, label = label), data = tibble(yr = yr_min:yr_max, x= 8, y = 65, label = yr)) 
+        )
+        dev.off()
+        
+        png(paste0('R/biol_figs_output/l50_plot_0_norway_n.png'), height = png_dims[1], width = png_dims[2])
+        print(l50_plot_0 +
+                      coord_sf(xlim = c(5, 27),ylim = c(66, 80)) +
+                      geom_text(aes(x = x, y = y, label = label), data = tibble(yr = yr_min:yr_max, x= 8, y = 78, label = yr)) 
+        )
+        dev.off()
+        
+        png(paste0('R/biol_figs_output/l50_plot_300_norway_n.png'), height = png_dims[1], width = png_dims[2])
+        print(l50_plot_300 +
+                      coord_sf(xlim = c(5, 27),ylim = c(66, 80)) + 
+                      geom_text(aes(x = x, y = y, label = label), data = tibble(yr = yr_min:yr_max, x= 8, y = 78, label = yr)) 
+        )
+        dev.off()
+        
+        png(paste0('R/biol_figs_output/l50_plot_500_norway_n.png'), height = png_dims[1], width = png_dims[2])
+        print(l50_plot_500+
+                      coord_sf(xlim = c(5, 27),ylim = c(66, 80)) + 
+                      geom_text(aes(x = x, y = y, label = label), data = tibble(yr = yr_min:yr_max, x= 6, y = 78, label = yr)) 
+        )
+        dev.off()
+        
+        
+        
+        
