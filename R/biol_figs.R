@@ -1169,6 +1169,7 @@
                  group_by(`Country/Division/Source`) %>% 
                  ggplot() + 
                  geom_line(aes(x = Age, y = `Mean Length (cm)`, color = `Country/Division/Source`)) + 
+                 theme_bw()+
                  facet_wrap(~Year)
         
          
@@ -1883,11 +1884,11 @@
         
         png_dims <- c(1000, 675)
         
-         png(paste0('R/biol_figs_output/growth_expected_plot.png'), height = png_dims[1], width = png_dims[2])
+         png(paste0('R/biol_figs_output/growth_expected_plot.png'), height = png_dims[1], width = png_dims[1])
          print(growth_expected_plot)
          dev.off()
         
-         png(paste0('R/biol_figs_output/growth_residuals_plot.png'), height = png_dims[1], width = png_dims[2])
+         png(paste0('R/biol_figs_output/growth_residuals_plot.png'), height = png_dims[1], width = png_dims[1])
          print(growth_residuals_plot)
          dev.off()
         
@@ -2020,7 +2021,7 @@
                 filter(Survey=='Spring survey') %>% 
                 bind_cols(mapplots::ices.rect(.$rect)) %>% 
                  ggplot() + 
-                 #coord_quickmap(xlim = c(-38, 18),ylim = c(55, 74))+
+                 coord_quickmap(xlim = c(-28, -10),ylim = c(62, 68))+
                  geom_tile(aes(lon, lat, fill=logN)) + 
                  geom_polygon(data = geo::bisland, aes(lon, lat), fill = 'gray',col='black',lwd=0.1) +
                  theme_bw()+
@@ -2040,7 +2041,7 @@
                 filter(Survey=='Spring survey') %>% 
                 bind_cols(mapplots::ices.rect(.$rect)) %>% 
                 ggplot() + 
-                #coord_quickmap(xlim = c(-38, 18),ylim = c(55, 74))+
+                coord_quickmap(xlim = c(-28, -10),ylim = c(62, 68))+
                 geom_tile(aes(lon, lat, fill=logN)) + 
                 geom_polygon(data = geo::bisland, aes(lon, lat), fill = 'gray',col='black',lwd=0.1) +
                 theme_bw()+
@@ -2060,7 +2061,7 @@
                 filter(Survey=='Spring survey') %>% 
                 bind_cols(mapplots::ices.rect(.$rect)) %>% 
                 ggplot() + 
-                #coord_quickmap(xlim = c(-38, 18),ylim = c(55, 74))+
+                coord_quickmap(xlim = c(-28, -10),ylim = c(62, 68))+
                 geom_tile(aes(lon, lat, fill=logN)) + 
                 geom_polygon(data = geo::bisland, aes(lon, lat), fill = 'gray',col='black',lwd=0.1) +
                 theme_bw()+
@@ -2092,7 +2093,7 @@
                 filter(Survey=='Autumn survey') %>% 
                 bind_cols(mapplots::ices.rect(.$rect)) %>% 
                 ggplot() + 
-                #coord_quickmap(xlim = c(-38, 18),ylim = c(55, 74))+
+                coord_quickmap(xlim = c(-35, -7),ylim = c(62, 68))+
                 geom_tile(aes(lon, lat, fill=logN)) + 
                 geom_polygon(data = geo::bisland, aes(lon, lat), fill = 'gray',col='black',lwd=0.1) +
                 theme_bw()+
@@ -2112,7 +2113,7 @@
                 filter(Survey=='Autumn survey') %>% 
                 bind_cols(mapplots::ices.rect(.$rect)) %>% 
                 ggplot() + 
-                #coord_quickmap(xlim = c(-38, 18),ylim = c(55, 74))+
+                coord_quickmap(xlim = c(-35, -7),ylim = c(62, 68))+
                 geom_tile(aes(lon, lat, fill=logN)) + 
                 geom_polygon(data = geo::bisland, aes(lon, lat), fill = 'gray',col='black',lwd=0.1) +
                 theme_bw()+
@@ -2132,7 +2133,7 @@
                 filter(Survey=='Autumn survey') %>% 
                 bind_cols(mapplots::ices.rect(.$rect)) %>% 
                 ggplot() + 
-                #coord_quickmap(xlim = c(-38, 18),ylim = c(55, 74))+
+                coord_quickmap(xlim = c(-35, -7),ylim = c(62, 68))+
                 geom_tile(aes(lon, lat, fill=logN)) + 
                 geom_polygon(data = geo::bisland, aes(lon, lat), fill = 'gray',col='black',lwd=0.1) +
                 theme_bw()+
@@ -2320,24 +2321,24 @@
         print(vb_plot_overtime_byyear_aru.27.5b6a)
         dev.off()
         
+        
         #OTHER ZOOMED MAPS
         
-        
-        png(paste0('R/biol_figs_output/l50_plot_0_faroes.png'), height = png_dims[1], width = png_dims[2])
+        png(paste0('R/biol_figs_output/l50_plot_0_faroes.png'), height = png_dims[1]*0.7, width = png_dims[1]*0.7)
         print(l50_plot_0 +
                       coord_sf(xlim = c(-12, -2),ylim = c(60, 63.5))+
                       geom_text(aes(x = x, y = y, label = label), data = tibble(yr = yr_min:yr_max, x= -8, y = 63.25, label = yr))
         )
         dev.off()
         
-        png(paste0('R/biol_figs_output/l50_plot_300_faroes.png'), height = png_dims[1], width = png_dims[2])
+        png(paste0('R/biol_figs_output/l50_plot_300_faroes.png'), height = png_dims[1]*0.7, width = png_dims[1]*0.7)
         print(l50_plot_300 +
                       coord_sf(xlim = c(-12, -2),ylim = c(60, 63.5))+
                       geom_text(aes(x = x, y = y, label = label), data = tibble(yr = yr_min:yr_max, x= -8, y = 63.25, label = yr))
         )
         dev.off()
         
-        png(paste0('R/biol_figs_output/l50_plot_500_faroes.png'), height = png_dims[1], width = png_dims[2])
+        png(paste0('R/biol_figs_output/l50_plot_500_faroes.png'), height = png_dims[1]*0.7, width = png_dims[1]*0.7)
         print(l50_plot_500+
                       coord_sf(xlim = c(-12, -2),ylim = c(60, 63.5))+
                       geom_text(aes(x = x, y = y, label = label), data = tibble(yr = yr_min:yr_max, x= -8, y = 63.25, label = yr))
@@ -2345,21 +2346,21 @@
         dev.off()
         
         
-        png(paste0('R/biol_figs_output/l50_plot_0_iceland.png'), height = png_dims[1], width = png_dims[2])
+        png(paste0('R/biol_figs_output/l50_plot_0_iceland.png'), height = png_dims[1]*0.7, width = png_dims[1]*0.7)
         print(l50_plot_0 +
                       coord_sf(xlim = c(-31, -12),ylim = c(62, 68))+
                       geom_text(aes(x = x, y = y, label = label), data = tibble(yr = yr_min:yr_max, x= -28, y = 67, label = yr))
         )
         dev.off()
         
-        png(paste0('R/biol_figs_output/l50_plot_300_iceland.png'), height = png_dims[1], width = png_dims[2])
+        png(paste0('R/biol_figs_output/l50_plot_300_iceland.png'), height = png_dims[1]*0.7, width = png_dims[1]*0.7)
         print(l50_plot_300 +
                       coord_sf(xlim = c(-31, -12),ylim = c(62, 68)) +
                       geom_text(aes(x = x, y = y, label = label), data = tibble(yr = yr_min:yr_max, x= -28, y = 67, label = yr))
         )
         dev.off()
         
-        png(paste0('R/biol_figs_output/l50_plot_500_iceland.png'), height = png_dims[1], width = png_dims[2])
+        png(paste0('R/biol_figs_output/l50_plot_500_iceland.png'), height = png_dims[1]*0.7, width = png_dims[1]*0.7)
         print(l50_plot_500+
                       coord_sf(xlim = c(-31, -12),ylim = c(62, 68)) +
                       geom_text(aes(x = x, y = y, label = label), data = tibble(yr = yr_min:yr_max, x= -28, y = 67, label = yr)) 
@@ -2367,45 +2368,51 @@
         dev.off()
         
         
-        png(paste0('R/biol_figs_output/l50_plot_0_norway_s.png'), height = png_dims[1], width = png_dims[2])
+        png(paste0('R/biol_figs_output/l50_plot_0_norway_s.png'), height = png_dims[1]*0.7, width = png_dims[1]*0.7)
         print(l50_plot_0 +
                       coord_sf(xlim = c(-2, 18),ylim = c(57, 66)) +
                       geom_text(aes(x = x, y = y, label = label), data = tibble(yr = yr_min:yr_max, x=2, y = 65, label = yr)) 
         )
         dev.off()
         
-        png(paste0('R/biol_figs_output/l50_plot_300_norway_s.png'), height = png_dims[1], width = png_dims[2])
+        png(paste0('R/biol_figs_output/l50_plot_300_norway_s.png'), height = png_dims[1]*0.7, width = png_dims[1]*0.7)
         print(l50_plot_300 +
                       coord_sf(xlim = c(-2, 18),ylim = c(57, 66)) +
                       geom_text(aes(x = x, y = y, label = label), data = tibble(yr = yr_min:yr_max,  x= 2, y = 65, label = yr)) 
         )
         dev.off()
         
-        png(paste0('R/biol_figs_output/l50_plot_500_norway_s.png'), height = png_dims[1], width = png_dims[2])
+        png(paste0('R/biol_figs_output/l50_plot_500_norway_s.png'), height = png_dims[1]*0.7, width = png_dims[1]*0.7)
         print(l50_plot_500+
                       coord_sf(xlim = c(-2, 18),ylim = c(57, 66)) +
                       geom_text(aes(x = x, y = y, label = label), data = tibble(yr = yr_min:yr_max, x= 8, y = 65, label = yr)) 
         )
         dev.off()
         
-        png(paste0('R/biol_figs_output/l50_plot_0_norway_n.png'), height = png_dims[1], width = png_dims[2])
+        png(paste0('R/biol_figs_output/l50_plot_0_norway_n.png'), height = png_dims[1]*0.7, width = png_dims[1]*0.7)
         print(l50_plot_0 +
-                      coord_sf(xlim = c(5, 27),ylim = c(66, 80)) +
-                      geom_text(aes(x = x, y = y, label = label), data = tibble(yr = yr_min:yr_max, x= 8, y = 78, label = yr)) 
+                      coord_sf(xlim = c(5, 31),ylim = c(66, 79)) + 
+                      geom_text(aes(x = x, y = y, label = label), data = tibble(yr = yr_min:yr_max, x= 8, y = 78, label = yr)) +
+                      theme(axis.text.x = element_text(angle = 90))+
+                      theme(legend.position = c(0.9, 0.07))
         )
         dev.off()
         
-        png(paste0('R/biol_figs_output/l50_plot_300_norway_n.png'), height = png_dims[1], width = png_dims[2])
+        png(paste0('R/biol_figs_output/l50_plot_300_norway_n.png'), height = png_dims[1]*0.7, width = png_dims[1]*0.7)
         print(l50_plot_300 +
-                      coord_sf(xlim = c(5, 27),ylim = c(66, 80)) + 
-                      geom_text(aes(x = x, y = y, label = label), data = tibble(yr = yr_min:yr_max, x= 8, y = 78, label = yr)) 
+                      coord_sf(xlim = c(5, 31),ylim = c(66, 79)) + 
+                      geom_text(aes(x = x, y = y, label = label), data = tibble(yr = yr_min:yr_max, x= 8, y = 78, label = yr)) +
+                      theme(axis.text.x = element_text(angle = 90))+
+                      theme(legend.position = c(0.9, 0.07))
         )
         dev.off()
         
-        png(paste0('R/biol_figs_output/l50_plot_500_norway_n.png'), height = png_dims[1], width = png_dims[2])
+        png(paste0('R/biol_figs_output/l50_plot_500_norway_n.png'), height = png_dims[1]*0.75, width = png_dims[1]*0.75)
         print(l50_plot_500+
-                      coord_sf(xlim = c(5, 27),ylim = c(66, 80)) + 
-                      geom_text(aes(x = x, y = y, label = label), data = tibble(yr = yr_min:yr_max, x= 6, y = 78, label = yr)) 
+                      coord_sf(xlim = c(5, 31),ylim = c(66, 79)) + 
+                      geom_text(aes(x = x, y = y, label = label), data = tibble(yr = yr_min:yr_max, x= 8, y = 78, label = yr)) +
+                      theme(axis.text.x = element_text(angle = 90))+
+                      theme(legend.position = c(0.9, 0.07))
         )
         dev.off()
         
