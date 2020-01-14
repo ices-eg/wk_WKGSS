@@ -1159,6 +1159,17 @@
            unite('CDS', country, division, source) %>% 
            spread(value = ml, key = CDS) %>% 
           write_csv('R/biol_figs_output/meanlength_at_age_bydivision.csv')
+         
+         ml_age_plot <-
+                ml_age %>%
+                 ungroup() %>% 
+                 mutate(source = ifelse(source=='Fishery', 'commercial', source)) %>% 
+                 unite(`Country/Division/Source`, country, division, source, sep = '/') %>% 
+                 rename(Age = age, `Mean Length (cm)` = ml, Year = year) %>% 
+                 group_by(`Country/Division/Source`) %>% 
+                 ggplot() + 
+                 geom_line(aes(x = Age, y = `Mean Length (cm)`, color = `Country/Division/Source`)) + 
+                 facet_wrap(~Year)
         
          
          ####--------------Size and depth relationships -------------####
@@ -1980,6 +1991,9 @@
          print(size_depth_plot)
          dev.off()
          
+         png(paste0('R/biol_figs_output/ml_age_plot.png'), height = png_dims[2]*0.75, width = png_dims[1]*0.75)
+         print(ml_age_plot)
+         dev.off()
          
          #ICELAND ONLY
         library(mar)
