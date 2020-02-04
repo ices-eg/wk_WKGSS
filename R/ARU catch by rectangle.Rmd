@@ -1,0 +1,253 @@
+---
+output: 
+  word_document:
+    reference_docx: ../report_template_v1.5.dotx
+---
+
+```{r setup, echo=FALSE, fig.asp=1.0, fig.align="center", message=FALSE, warning=FALSE}
+
+# =======================================================================================
+# ARU catch by rectangle.Rmd
+# 
+# Generate catch by rectangle plot
+#
+# 14/11/2019 First coding; integrated with sharepoint data; fixed the rectangle positions; added selections
+# =======================================================================================
+
+require("knitr")
+knitr::opts_chunk$set(echo = FALSE,	message = FALSE,	warning = FALSE,	comment = "",	
+                      crop = TRUE, fig.width=10) 
+
+rm(list=ls())
+
+library(tidyverse)    # tidying packages
+library(readxl)       # read excel
+library(lubridate)
+library(data.table)
+library(scales)
+library(RColorBrewer)
+library(viridis)
+library(pander)
+
+# lowcase function
+lowcase <- function(df) {
+  names(df) <- tolower(names(df)) %>% gsub("\\?|\\s+|\\.+|_+|\\(|\\)","",.) 
+  df
+}
+
+# Data path
+datapath <- "//community.ices.dk/ExpertGroups/benchmarks/2020/wkdeep/2014 Meeting docs/06. Data"
+# datapath  <- "//community.ices.dk@SSL/DavWWWRoot/ExpertGroups/benchmarks/2020/wkdeep/2014 Meeting docs/06. Data"
+# datapath <- "D:/TEMP/2014 Meeting docs/06. Data"
+# datapath <- "D:/WGWIDE/2019/06. Data/_catch_by_rectangle"
+# datapath <- "D:/temp"
+
+# load spatial datasets
+load(file.path(datapath, "rdata/world.df.RData"))
+load(file.path(datapath, "rdata/fao.df.RData"))
+icesrectangles.df <-
+  get(load(file.path(datapath, "rdata/icesrectangles.df.RData"))) %>% 
+  mutate(rect = as.character(rect)) %>% 
+  group_by(rect) %>% 
+  filter(row_number() == 1) %>% 
+  distinct(rect, lat, lon=long)
+
+# list the available files
+fn <- file.path(datapath, "combined","CatchByRectangle all.xlsx")
+
+# read the files and start with an empty data frame
+catch_by_species_year_country_raw <- 
+    read_excel(fn, col_names=TRUE, col_types="text") %>% 
+    lowcase() %>% 
+    mutate_at(c("year","pnum"), list(as.integer) )  %>% 
+    # mutate_at(c("lat","lon","catch"), list(as.numeric) )  %>%
+    mutate_at(c("catch"), list(as.numeric) )  %>%
+    mutate(rect = gsub("\\s+","", rect)) %>% 
+    dplyr::select(-one_of("lat","lon")) %>% 
+    
+    # add lat lon for rectangle
+    left_join(dplyr::select(icesrectangles.df, rect, lat, lon), 
+              by="rect") 
+
+# ================================================================================
+# FUNCTIONS
+# ================================================================================
+
+table_catch_by_year_country <- function(myspecies=c("MAC"), myyears=NA) {
+  
+  catch_by_species_year_country_raw %>% 
+    
+    # make uppercase
+    mutate(species = toupper(species)) %>% 
+    
+    # filter species
+    filter(species %in% myspecies) %>% 
+    
+    # if year not specified, take all. Otherwise filter years
+    {if ((length(myyears) == 1) & all(is.na(myyears))) {
+      filter(.)
+    } else {
+      filter(., year %in% myyears)
+    }} %>% 
+    
+    # if multiple species: aggretate theme into one string
+    {if (sum(!is.na(myspecies)) > 1) mutate(.,  species = paste0(myspecies, collapse="/") ) else .} %>% 
+
+    group_by(species, year, country) %>% 
+    summarize(catch = as.integer(sum(catch, na.rm=TRUE))) %>% 
+    dcast(country ~ year, value.var="catch", sum, margins=c("year","country")) %>% 
+    # { if (ncol(.) > split) }
+    pandoc.table(.,
+               style = "simple",
+               split.tables=120, 
+               justify = "right",
+               missing=".")
+
+} # end of table_catch_by_year_country
+
+
+# myspecies=c("ARU","ARY"); myyears=NA; mycountry=NA; plot_catch=TRUE; ncol=6
+# myspecies=c("ARU","ARY"); myyears=2011:2019; mycountry=c("NOR","ICE"); plot_catch=TRUE; ncol=6
+
+plot_catch_by_year <- function(myspecies="MAC", myyears=NA, mycountry=NA, plot_catch=TRUE, ncol=6) {
+  
+  catch2 <-
+    
+    catch_by_species_year_country_raw %>% 
+    
+    # make uppercase
+    mutate(species = toupper(species)) %>% 
+    mutate(country = toupper(country)) %>% 
+
+    filter(species %in% myspecies) %>%
+    
+    # filter countries
+    {if ((length(mycountry) == 1) & all(is.na(mycountry))) {
+      mutate(., country= "ALL")
+    } else {
+      filter(., country %in% mycountry)
+    }} %>% 
+    
+    # filter years
+    {if ((length(myyears) == 1) & all(is.na(myyears))) {
+      filter(.)
+    } else {
+      filter(., year %in% myyears)
+    }} %>% 
+    
+    {if (!all(is.na(myyears))) bind_rows(., data.frame(year = myyears)) else (.) } %>% 
+    
+    # if multiple species: aggretate them into one string
+    {if (sum(!is.na(myspecies)) > 1) mutate(.,  species = paste0(myspecies, collapse="/") ) else .} %>% 
+    
+    # if multiple countries: aggretate them into one string
+    {if (sum(!is.na(mycountry)) > 1) mutate(.,  country = paste0(mycountry, collapse="/") ) else .} %>% 
+
+    group_by(species, year, rect, lat, lon) %>% 
+    summarize(catch = sum(catch, na.rm=TRUE)) %>% 
+  
+    mutate(catch_interval = cut(as.integer(catch), breaks=c(1 %o% 10^(0:12)), dig.lab=10 ) ) %>% 
+    mutate(catch_interval = gsub(" ","", catch_interval)) %>% 
+    filter(!is.na(catch_interval)) %>% 
+    filter(grepl("\\,", catch_interval)) %>%   
+    group_by(species, year, rect, lat, lon, catch_interval) %>% 
+    summarize(catch = sum(catch, na.rm=TRUE))
+
+
+  xlim <- range(catch2$lon, na.rm=TRUE)
+  ylim <- range(catch2$lat, na.rm=TRUE)
+
+  tc <-
+    catch2 %>% 
+    group_by(species, year) %>% 
+    summarize(catch = sum(catch, na.rm=TRUE)) %>% 
+    mutate(catch  = as.integer(catch) ) %>% 
+    
+    group_by(species) %>% 
+    mutate(catch2 = ylim[1] + (catch / max(catch, na.rm=TRUE) * (ylim[2] - ylim[1])) )
+  
+  tt <- 
+    catch2 %>% 
+    ungroup() %>% 
+    filter(row_number() == 1) %>% 
+    {if ((length(myspecies) == 1) & all(is.na(myspecies))) {
+      mutate(., species= "ALL")
+    } else {
+      mutate(., species = paste0(myspecies, collapse="/"))
+    }} %>% 
+    
+    {if ((length(mycountry) == 1) & all(is.na(mycountry))) {
+      mutate(., country= "ALL")
+    } else {
+      mutate(., country = paste0(mycountry, collapse="/"))
+    }} %>% 
+    dplyr::select(species, country) %>% 
+    unite(title, species, country, sep=", countries: ") %>% 
+    as.character()
+
+  
+  
+  catch2 %>% 
+    filter(!is.na(catch_interval)) %>% 
+    ggplot(aes(lon, lat)) + 
+    theme_bw() +
+    theme(panel.border     = element_rect(colour="black" , size=0.2),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          strip.background = element_rect(colour="black", size =0.2),
+          plot.margin      = unit(c(0,0,0,0),"cm"),
+          plot.title       = element_text(hjust=0, vjust=0, size=10),
+          axis.text        = element_text(size=6),
+          legend.key.width = unit(0.4, "cm"), 
+          legend.position  = "bottom",
+          axis.title       = element_blank()) +
+    
+    coord_quickmap(xlim=xlim, ylim=ylim) +
+  
+    geom_polygon(data=fao.df, aes(long, lat, group=group), fill = NA, size=0.2,
+                 color="gray80", alpha=0.3) +
+  
+    geom_rect(aes(xmin=lon, xmax=lon+1, ymin=lat, ymax=lat+0.5, fill=catch_interval), 
+              colour=NA, alpha=1.0) +
+    scale_fill_viridis(option = "plasma", direction = -1, discrete=TRUE) +
+  
+    geom_polygon(data=world.df, aes(long, lat, group=group), fill = "cornsilk", 
+                 size=0.1, color="black") +
+    
+    {if (plot_catch) geom_label(data=tc, aes(label=paste0("catch:",catch)), 
+                       x=-Inf, y=Inf, hjust=0, vjust=1, inherit.aes=FALSE)  else .} +
+
+    labs(x = NULL, y = NULL, size = "tons", title=tt) +
+    guides(fill = guide_legend(nrow = 1, title="catch (tonnes)")) +
+    facet_wrap( ~ year, ncol=ncol)
+
+} # end of plot_catch_by_year
+
+
+
+```
+Working document xx, WKGSS 2020
+
+**Utilizing the full time-series of catch by rectangle**
+
+Martin Pastoors, `r format(Sys.time(), '%d/%m/%Y')`
+
+**Abstract**
+
+**Introduction**
+
+**Results**
+
+```{r, echo=FALSE, fig.asp=1.4, fig.align="center", message=FALSE, warning=FALSE}
+
+table_catch_by_year_country(myspecies=c("ARU", "ARY"), myyears = 2011:2019)
+
+```
+
+
+```{r, echo=FALSE, fig.asp=1.4, fig.align="center", message=FALSE, warning=FALSE}
+
+plot_catch_by_year(myspecies=c("ARU","ARY","ARG"), mycountry=NA, myyears = 2011:2019, plot_catch=T, ncol=4)
+
+```
+
