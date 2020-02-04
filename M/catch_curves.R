@@ -26,11 +26,11 @@ pdf("catch_curves.pdf", width=14, height=8)
 
 par(mfrow=c(2,3))
 
-plot(a, log(c95), main=95, ylim=c(4,9)); abline(v=c(14,19), lty=2)
-plot(a, log(c96), main=96, ylim=c(4,9)); abline(v=c(14,19), lty=2)
-plot(a, log(c97), main=97, ylim=c(4,9)); abline(v=c(14,19), lty=2)
-plot(a, log(c98), main=98, ylim=c(4,9)); abline(v=c(14,19), lty=2)
-plot(a, log(c99), main=99, ylim=c(4,9)); abline(v=c(14,19), lty=2)
+plot(a, log(c95), main=1995, ylim=c(4,9)); abline(v=c(14,19), lty=2)
+plot(a, log(c96), main=1996, ylim=c(4,9)); abline(v=c(14,19), lty=2)
+plot(a, log(c97), main=1997, ylim=c(4,9)); abline(v=c(14,19), lty=2)
+plot(a, log(c98), main=1998, ylim=c(4,9)); abline(v=c(14,19), lty=2)
+plot(a, log(c99), main=1999, ylim=c(4,9)); abline(v=c(14,19), lty=2)
 
 ## 3  Fit models
 
@@ -53,11 +53,11 @@ z
 
 par(mfrow=c(2,3))
 
-plot(a, log(c95), main=95, ylim=c(4,9)); abline(v=c(14,19), lty=2); abline(fm95); points(log(c95)~a, subset=a %in% 14:19, pch=16, cex=2.5)
-plot(a, log(c96), main=96, ylim=c(4,9)); abline(v=c(14,19), lty=2); abline(fm96); points(log(c96)~a, subset=a %in% 14:19, pch=16, cex=2.5)
-plot(a, log(c97), main=97, ylim=c(4,9)); abline(v=c(14,19), lty=2); abline(fm97); points(log(c97)~a, subset=a %in% 14:19, pch=16, cex=2.5)
-plot(a, log(c98), main=98, ylim=c(4,9)); abline(v=c(14,19), lty=2); abline(fm98); points(log(c98)~a, subset=a %in% 14:19, pch=16, cex=2.5)
-plot(a, log(c99), main=99, ylim=c(4,9)); abline(v=c(14,19), lty=2); abline(fm99); points(log(c99)~a, subset=a %in% 14:19, pch=16, cex=2.5)
+plot(a, log(c95), main=1995, ylim=c(4,9)); abline(v=c(14,19), lty=2); abline(fm95); points(log(c95)~a, subset=a %in% 14:19, pch=16, cex=2.5)
+plot(a, log(c96), main=1996, ylim=c(4,9)); abline(v=c(14,19), lty=2); abline(fm96); points(log(c96)~a, subset=a %in% 14:19, pch=16, cex=2.5)
+plot(a, log(c97), main=1997, ylim=c(4,9)); abline(v=c(14,19), lty=2); abline(fm97); points(log(c97)~a, subset=a %in% 14:19, pch=16, cex=2.5)
+plot(a, log(c98), main=1998, ylim=c(4,9)); abline(v=c(14,19), lty=2); abline(fm98); points(log(c98)~a, subset=a %in% 14:19, pch=16, cex=2.5)
+plot(a, log(c99), main=1999, ylim=c(4,9)); abline(v=c(14,19), lty=2); abline(fm99); points(log(c99)~a, subset=a %in% 14:19, pch=16, cex=2.5)
 
 frame()
 labels <- paste0(1995:1999, "    Z = ", format(round(z,2)))
