@@ -30,3 +30,15 @@ barplot(c98, main=1998)
 barplot(c99, main=1999)
 
 dev.off()
+
+## 3  Plot all years
+
+## Zoom in on younger ages, evaluating what is an appropriate age at recruitment
+
+cn.young <- t(cn[,as.character(5:8)])
+barchart(cn.young, groups=rownames(cn), horizontal=FALSE, as.table=TRUE)
+
+ic <- read.ices("data/cn_intercatch.dat")
+ic.young <- t(ic[,as.character(2:8)])
+
+barchart(ic.young, groups=rownames(ic), horizontal=FALSE, as.table=TRUE)
