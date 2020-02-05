@@ -1,0 +1,349 @@
+---
+title: |
+       | SPiCT scenarios for the Greater silver smelt (_Argentina silus_)
+       | in 5b and 6a. 
+author: "Martin Pastoors, Lise Helen Ofstad, Frodi Skuvedal"
+date: "05/02/2020"
+output: word_document
+tables: true
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+## Options about the creation of the pdf file
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, error = FALSE, cache = TRUE, 
+                      fig.width = 6, fig.height = 5)
+knitr::opts_knit$set(root.dir = normalizePath(".."))
+# knitr::opts_knit$get("root.dir") 
+
+```
+
+## Introduction
+
+This working document present a series of different assessments using the surplus production model in continous time (SPiCT; Pedersen2016) available as an R package (https://github.com/DTUAqua/spict).
+
+## Read in the data
+
+```{r data_pkg}
+# devtools::install_github("DTUAqua/spict/spict")
+library(spict)
+
+## Read in the data
+dat <- readxl::read_xlsx("D:/GIT/wk_WKGSS/aru.27.5b6a/data/ARU_indices 20200205.xlsx")
+
+## run retro or not 
+runretro <- FALSE
+```
+
+
+## Scenario 1
+
+: Input data for Scenario 1
+
++-----------------+--------------------+-----------+----------------------------+
+| Input data      | Name               | Range     |  Notes                     |
++=================+====================+===========+============================+
+| Catch           | Total catch        | 1988-2018 |                            |
++-----------------+--------------------+-----------+----------------------------+
+| Biomass indices | Faroe DW survey    | 2014-2018 |                            |
+|                 | Faroe Summer survey| 2005-2018 |                            |
+|                 | Scottish DW survey | 2005-2018 | Some missing years         |
+|                 | CPUE_comb          | 2005-2018 |                            |
+|                 | CPUE_FO            | 1995-2018 |                            |
++-----------------+--------------------+-----------+----------------------------+
+|                 |                    |           |  Default priors            |
++-----------------+--------------------+-----------+----------------------------+
+            
+
+```{r fit_scenario1}
+
+## Make the input list
+inp1 <- list(timeC = dat$year,                                      ## Timing of catch
+               obsC  = dat$catch,                                     ## Observed catches
+               timeI = list(dat$year + dat$FO_DW_month / 12,          ## Timing of FO_DW survey index
+                            dat$year + dat$FO_SS_month / 12,
+                            dat$year + dat$SC_DW_month / 12,
+                            dat$year,
+                            dat$year),
+               obsI = list(dat$FO_DW,                                 ## Observed indices
+                           dat$FO_SS,
+                           dat$SC_DW,
+                           dat$CPUE_comb,
+                           dat$CPUE_FO),
+               optimiser.control = list(iter.max = 1e5,               ## Optimiser options 
+                                        eval.max = 1e5),              ## sometimes help converge
+               priors = list(                                         ## List of priors (empty, i.e. default priors)
+                                                                      ## see possible priors with
+                                                                      ## list.possible.priors()
+                 ))
+## Check input time series, remove missing and zero observations
+inp1 <- check.inp(inp1)
+
+## Plot input data
+plotspict.data(inp1)
+
+## Fit spict
+fit1<- fit.spict(inp1)
+
+## Summary of the fit - in the vignette there is a line-by-line description of that summary
+fit1
+
+## If the model converged, it reports convergence as 0
+## Continue with plotting and diagnostics only if convergence was reached
+converged <- fit1$opt$convergence == 0
+
+if (converged) {
+  ## Calculate the One Step Ahead (osa) residuals  
+  fit1 <- calc.osa.resid((fit1))
+  
+  ## Make a plot showing relative F, relative B, Kobe plot catch 
+  par(mfrow = c(2,2),  ## 2x2 subplots
+      mar = c(4.1, 4.1, 0.5, 0.5)) ## Change default margins for the plots 
+  plotspict.catch(fit1)
+  plotspict.ffmsy(fit1)
+  plotspict.bbmsy(fit1)
+  plotspict.fb(fit1)
+}
+
+if (converged) {
+  plotspict.diagnostic(fit1)
+}
+
+  ## If runretro is TRUE, run and plot the retrospective analysis
+  if (runretro & converged) {
+    fit1 <- retro(fit1)
+    plotspict.retro(fit1)
+  }
+
+```
+
+
+## Scenario 2
+
+: Input data for Scenario 2
+
++-----------------+--------------------+-----------+----------------------------+
+| Input data      | Name               | Range     |  Notes                     |
++=================+====================+===========+============================+
+| Catch           | Total catch        | 1995-2018 |                            |
++-----------------+--------------------+-----------+----------------------------+
+| Biomass indices | Faroe DW survey    | 2014-2018 |                            |
+|                 | Faroe Summer survey| 2005-2018 |                            |
++-----------------+--------------------+-----------+----------------------------+
+|                 |                    |           |  Default priors            |
++-----------------+--------------------+-----------+----------------------------+
+            
+
+```{r fit_scenario2}
+
+dat2 <- dplyr::filter(dat, year >= 1995)
+
+## Make the input list
+inp2 <- list(timeC   = dat2$year,                                      ## Timing of catch
+               obsC  = dat2$catch,                                     ## Observed catches
+               timeI = list(dat2$year + dat2$FO_DW_month / 12,          ## Timing of FO_DW survey index
+                            dat2$year + dat2$FO_SS_month / 12),
+               obsI = list(dat2$FO_DW,                                 ## Observed indices
+                           dat2$FO_SS),
+               optimiser.control = list(iter.max = 1e5,               ## Optimiser options 
+                                        eval.max = 1e5),              ## sometimes help converge
+               priors = list(                                         ## List of priors (empty, i.e. default priors)
+                                                                      ## see possible priors with
+                                                                      ## list.possible.priors()
+                 ))
+## Check input time series, remove missing and zero observations
+inp2 <- check.inp(inp2)
+
+## Plot input data
+plotspict.data(inp2)
+
+## Fit spict
+fit2 <- fit.spict(inp2)
+
+## Summary of the fit - in the vignette there is a line-by-line description of that summary
+fit2
+
+## If the model converged, it reports convergence as 0
+## Continue with plotting and diagnostics only if convergence was reached
+converged <- fit2$opt$convergence == 0
+
+if (converged) {
+  ## Calculate the One Step Ahead (osa) residuals  
+  fit2 <- calc.osa.resid((fit2))
+  
+  ## Make a plot showing relative F, relative B, Kobe plot catch 
+  par(mfrow = c(2,2),  ## 2x2 subplots
+      mar = c(4.1, 4.1, 0.5, 0.5)) ## Change default margins for the plots 
+  plotspict.catch(fit2)
+  plotspict.ffmsy(fit2)
+  plotspict.bbmsy(fit2)
+  plotspict.fb(fit2)
+}
+
+if (converged) {
+  plotspict.diagnostic(fit2)
+}
+
+  ## If runretro is TRUE, run and plot the retrospective analysis
+  if (runretro & converged) {
+    fit <- retro(fit2)
+    plotspict.retro(fit2)
+  }
+
+```
+
+## Scenario 3
+
+: Input data for Scenario 3
+
++-----------------+--------------------+-----------+----------------------------+
+| Input data      | Name               | Range     |  Notes                     |
++=================+====================+===========+============================+
+| Catch           | Total catch        | 1995-2018 |                            |
++-----------------+--------------------+-----------+----------------------------+
+| Biomass indices | Faroe DW survey    | 2014-2018 |                            |
+|                 | Faroe Summer survey| 2005-2018 |                            |
+|                 | CPUE_FO            | 1995-2018 |                            |
++-----------------+--------------------+-----------+----------------------------+
+|                 |                    |           |  Default priors            |
++-----------------+--------------------+-----------+----------------------------+
+
+```{r fit_scenario3}
+
+dat2 <- dplyr::filter(dat, year >= 1995)
+
+## Make the input list
+inp3 <- list(timeC   = dat2$year,                                      ## Timing of catch
+               obsC  = dat2$catch,                                     ## Observed catches
+               timeI = list(dat2$year + dat2$FO_DW_month / 12,          ## Timing of FO_DW survey index
+                            dat2$year + dat2$FO_SS_month / 12,
+                            dat2$year),
+               obsI = list(dat2$FO_DW,                                 ## Observed indices
+                           dat2$FO_SS,
+                           dat2$CPUE_FO),
+               optimiser.control = list(iter.max = 1e5,               ## Optimiser options 
+                                        eval.max = 1e5),              ## sometimes help converge
+               priors = list(                                         ## List of priors (empty, i.e. default priors)
+                                                                      ## see possible priors with
+                                                                      ## list.possible.priors()
+                 ))
+## Check input time series, remove missing and zero observations
+inp3 <- check.inp(inp3)
+
+## Plot input data
+plotspict.data(inp3)
+
+## Fit spict
+fit3 <- fit.spict(inp3)
+
+## Summary of the fit - in the vignette there is a line-by-line description of that summary
+fit3
+
+## If the model converged, it reports convergence as 0
+## Continue with plotting and diagnostics only if convergence was reached
+converged <- fit3$opt$convergence == 0
+
+if (converged) {
+  ## Calculate the One Step Ahead (osa) residuals  
+  fit3 <- calc.osa.resid((fit3))
+  
+  ## Make a plot showing relative F, relative B, Kobe plot catch 
+  par(mfrow = c(2,2),  ## 2x2 subplots
+      mar = c(4.1, 4.1, 0.5, 0.5)) ## Change default margins for the plots 
+  
+  plotspict.catch(fit3)
+  plotspict.ffmsy(fit3)
+  plotspict.bbmsy(fit3)
+  plotspict.fb(fit3)
+}
+
+if (converged) {
+  plotspict.diagnostic(fit3)
+}
+
+  ## If runretro is TRUE, run and plot the retrospective analysis
+  if (runretro & converged) {
+    fit <- retro(fit3)
+    plotspict.retro(fit3)
+  }
+
+```
+
+## Scenario 4
+
+: Input data for Scenario 3
+
++-----------------+--------------------+-----------+----------------------------+
+| Input data      | Name               | Range     |  Notes                     |
++=================+====================+===========+============================+
+| Catch           | Total catch        | 1988-2018 |                            |
++-----------------+--------------------+-----------+----------------------------+
+| Biomass indices | Faroe DW survey    | 2014-2018 |                            |
+|                 | Faroe Summer survey| 2005-2018 |                            |
+|                 | CPUE_FO            | 1995-2018 |                            |
++-----------------+--------------------+-----------+----------------------------+
+|                 |                    |           |  Default priors            |
++-----------------+--------------------+-----------+----------------------------+
+
+```{r fit_scenario4}
+
+## Make the input list
+inp4 <- list(timeC = dat$year,                                      ## Timing of catch
+               obsC  = dat$catch,                                     ## Observed catches
+               timeI = list(dat$year + dat$FO_DW_month / 12,          ## Timing of FO_DW survey index
+                            dat$year + dat$FO_SS_month / 12,
+                            dat$year),
+               obsI = list(dat$FO_DW,                                 ## Observed indices
+                           dat$FO_SS,
+                           dat$CPUE_FO),
+               optimiser.control = list(iter.max = 1e5,               ## Optimiser options 
+                                        eval.max = 1e5),              ## sometimes help converge
+               priors = list(                                         ## List of priors (empty, i.e. default priors)
+                                                                      ## see possible priors with
+                                                                      ## list.possible.priors()
+                 ))
+## Check input time series, remove missing and zero observations
+inp4 <- check.inp(inp4)
+
+## Plot input data
+plotspict.data(inp4)
+
+## Fit spict
+fit4<- fit.spict(inp4)
+
+## Summary of the fit - in the vignette there is a line-by-line description of that summary
+fit4
+
+## If the model converged, it reports convergence as 0
+## Continue with plotting and diagnostics only if convergence was reached
+converged <- fit4$opt$convergence == 0
+
+if (converged) {
+  ## Calculate the One Step Ahead (osa) residuals  
+  fit4 <- calc.osa.resid((fit4))
+  
+  ## Make a plot showing relative F, relative B, Kobe plot catch 
+  par(mfrow = c(2,2),  ## 2x2 subplots
+      mar = c(4.1, 4.1, 0.5, 0.5)) ## Change default margins for the plots 
+  
+  plotspict.catch(fit4)
+  plotspict.ffmsy(fit4)
+  plotspict.bbmsy(fit4)
+  plotspict.fb(fit4)
+}
+
+if (converged) {
+  plotspict.diagnostic(fit4)
+}
+
+  ## If runretro is TRUE, run and plot the retrospective analysis
+  if (runretro & converged) {
+    fit1 <- retro(fit4)
+    plotspict.retro(fit4)
+  }
+
+```
+
+## References
+
