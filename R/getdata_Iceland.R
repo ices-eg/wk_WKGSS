@@ -58,24 +58,24 @@ landings <-
          country = ifelse(grepl('UK',country)|country=='GB','UK',country)) %>% 
   dplyr::select(year,species,country,area,gear,landings) %>% 
   #this is a hack that will improve next year when landings tables are requested
-  bind_rows(readxl::read_xlsx('../../data/Catches_ARGandARS_Greenland_logbooks (to PW, Iceland) (1).xlsx') %>% 
-              dplyr::select(NATION_KODE,YEAR, Amount) %>% 
-              setNames(.,c('country', 'year', 'catch')) %>% 
-              mutate(area = '27.14.b', 
-                     country = ifelse(country %in% c('EU', 'DEU'), 'Germany',
-                                      ifelse(country=='ISL', 'Iceland',
-                                             ifelse(country=='NOR', 'Norway',
-                                                    ifelse(country=='GRL', 'Greenland',
-                                                           country))))
-              ) %>% 
+    bind_rows(readxl::read_xlsx('../../data/Catches_ARGandARS_Greenland_logbooks (to PW, Iceland) (1).xlsx') %>% 
+                dplyr::select(NATION_KODE,YEAR, Amount) %>% 
+                setNames(.,c('country', 'year', 'catch')) %>% 
+                mutate(area = '27.14.b', 
+                       country = ifelse(country %in% c('EU', 'DEU'), 'Germany',
+                                        ifelse(country=='ISL', 'Iceland',
+                                               ifelse(country=='NOR', 'Norway',
+                                                      ifelse(country=='GRL', 'Greenland',
+                                                             country))))
+                ) %>% 
               group_by(country,year) %>% 
               summarise(landings = sum(catch)) %>% 
-              mutate(species = 19, gear = 'BMT')) %>%  
+              mutate(species = 19, gear = 'BMT', area = '14')) %>%  
   rename(Year = year, Country = country) %>% 
   mutate(Species = 'ARU',
          Stock = 'ARU',
          Subarea = ifelse(area=='14', '27.14', '27.5'), 
-         Division = ifelse(area=='14', '27.14.b', '27.5a'),
+         Division = ifelse(area=='14', '27.14.b', '27.5.a'),
          CatchCategory = 'landings') %>%
   group_by(Species, Stock, Year, Country, CatchCategory, Subarea, Division) %>% 
   summarise(Caton = sum(landings)) %>% 

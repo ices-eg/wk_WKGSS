@@ -4,28 +4,6 @@
         #library(fishmethods)#needed for "alternative growth moedels" and "age-length key" part of the code
         library(sf)
         
-        #TODO
-        #Difficult to see the results in maps (fig 5.1.1-5.1.3) because the maps are so small. Could those figures be in appendix and maybe a graph per area (27.2, 27.5.a, 27.5.b, 27.6.a...) present the differences.
-        #5.2 Ageing Make a Figure for comparison 
-          # Figure 4.4.2.2.1 VBF
-          # 
-          # o I can see that there are not enough data to calculate VBF by year by gender for all years.
-          # 
-          # o In the exploratory assessment there is no separation between genders, so the sample amounts are larger (at least from commercial fish data). Use all data per year (females+males+samples without gender) in the results and divide in periods (1994-2000, 2001-2005, 2006-2010, 2011-2015, 2016-2019). And the same for females and males separate. I think it will be easier to compare the results then.
-          # 
-          # - Figure 4.4.2.2.2 Length-weight
-          # 
-          # o It would be good to have a figure with all the data (females+males+samples without gender) per year.
-          # 
-          # o We are working on the catch at age matrix in the input values for the assessment. For the time being we use the length-weight relationship per year for all data together (females+males+samples without gender) in the calculation.
-          # 
-          # - Figure 4.4.2.2.3 Maturity ogive
-          # 
-          # o First of all- I can see that there are not enough data to have it year by year.
-          # 
-          # o I have tried it by periods (1994-2000 only 79 fish, 2001-2005 no data, 2006-2010 around 1000 fish and the same for 2011-2015 and 2016-2019). The three last periods gave almost the same results with L50 around 36-37 cm- and the difference between gender are not large. 
-        #My conclusion around this is to use all data together (do not separate by year or period) and make a graph of females, males and females+males in the same figure.
-        
         ia <- read_sf("R/gisdata/ICES_Areas_20160601_cut_dense_3857.gpkg") %>%
           st_simplify(dTolerance = 10000) %>% 
           st_transform(4326) %>% 
@@ -89,6 +67,19 @@
           rename(person = PERSON, source = SOURCE, country = COUNTRY, division = DIVISION, day = DAY, month = MONTH, year = YEAR, lat = LAT, lon = LON, depth_m = DEPTH_M, haul_id = HAUL_ID) %>% 
           mutate(division = ifelse(division %in% c('27.5.b.1', '27.5.b.2', '27.6.a'), '27.5.b', division))
         
+        Gre_raw <-
+                readxl::read_xlsx('../../data/Argentina silus_lengthraised_Pamela Woods.xlsx')  %>% 
+                tidyr::uncount(weights = CountRaised)
+                
+        Gre <-
+                Gre_raw %>% 
+                mutate(person = 'Julius Nielsen', source = 'GS', haul_id = KeyStationSubGear, age = NA, length_cm = Length, weight_g = NA, gender = NA, maturity_stage = NA, maturity = NA, spawning = NA) %>% 
+                select(person, source, haul_id, age, length_cm, weight_g, gender, maturity_stage, maturity, spawning)
+                
+        Gre_st <- 
+                Gre_raw %>% 
+                mutate(person = 'Julius Nielsen', source = 'GS', country = 'Greenland', division = '27.14', haul_id = KeyStationSubGear, day = NA, month = NA, year = Year) %>% 
+                select(person, source, country, division, haul_id, day, month, year)
         
         all <-
           Ice %>% 
@@ -2415,7 +2406,45 @@
                       theme(legend.position = c(0.9, 0.07))
         )
         dev.off()
+
         
+#Greenland indices
         
+        GrSI <-
+                Gre %>% 
+                left_join(Gre_st) %>% 
+                mutate(si = ifelse(length_cm < 25, 'si.10-25', 
+                                   ifelse(length_cm >=25 & length_cm < 30, 'si.25-30',
+                                          ifelse(length_cm >= 30 & length_cm < 35, 'si.30-35',
+                                                 ifelse(length_cm >= 35 & length_cm < 40, 'si.35-40',
+                                                        ifelse(length_cm >= 40 & length_cm < 45, 'si.40-45',
+                                                               ifelse(length_cm >= 45, 'si.45-50', length_cm))))))) %>% 
+                group_by(year, si) %>%
+                count() %>% 
+                mutate(`Numbers 000000s` = n/1000000) %>% 
+                rename(Year = year) %>% 
+                ggplot() + 
+                geom_point(aes(x = Year, y = `Numbers 000000s`)) + 
+                theme_bw() +
+                facet_wrap(~si, scales = 'free_y')
+                
         
+        Grlength <-
+                Gre %>% 
+                left_join(Gre_st) %>% 
+                group_by(year, length_cm) %>%
+                count() %>% 
+                rename(`Length (cm)` = length_cm, Year = year, Count = n) %>% 
+                ggplot() + 
+                geom_col(aes(x = `Length (cm)`, y = Count)) + 
+                theme_bw() +
+                facet_wrap(~Year, scales = 'free_y')
+                
+        png(paste0('R/biol_figs_output/GrSI.png'), height = png_dims[1]*0.5, width = png_dims[1]*0.75)
+        print(GrSI)
+        dev.off()
+        
+        png(paste0('R/biol_figs_output/GrLength.png'), height = png_dims[1]*0.5, width = png_dims[1]*0.75)
+        print(Grlength)
+        dev.off()
         
