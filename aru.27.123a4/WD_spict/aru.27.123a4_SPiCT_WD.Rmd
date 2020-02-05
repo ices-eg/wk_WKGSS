@@ -1,0 +1,128 @@
+---
+title: |
+       | SPiCT scenarios for the Greater silver smelt (_Argentina silus_)
+       | in Subareas 1, 2, and 4, and Division 3.a (Northeast Arctic, North Sea, Skagerrak and Kattegat)
+author: "Alexandros Kokkalis, Elvar Halldor Hallfredsson, Lise Heggebakken"
+date: "05/02/2020"
+output: pdf_document
+bibliography: bib.bib
+tables: true
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+## Options about the creation of the pdf file
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, error = FALSE, cache = TRUE, fig.width = 6, fig.height = 5)
+```
+
+## Introduction
+
+This working document present a series of different assessments using the surplus production model in continous time (SPiCT; @Pedersen2016) available as an R package (https://github.com/DTUAqua/spict).
+
+## Read in the data
+
+```{r data_pkg}
+library(spict)
+
+## Read in the data
+dat <- readxl::read_xlsx("../data/GSS_indices270120_AK.xlsx")
+## Sum up the catches from each area to get the total catch
+dat$catchTOT <- dat$catch1and2 + dat$catch3 + dat$catch4
+
+## run retro or not 
+runretro <- FALSE
+```
+
+
+## Scenario 1
+
+: Input data for Scenario 1
+
++-----------------+----------------+------------+----------------------------+
+| Input data      | Name           | Range      |  Notes                     |
++=================+================+============+============================+
+| Catch           | Total catch    | 1988-2018  |                            |
++-----------------+----------------+------------+----------------------------+
+| Biomass indices | Shrimp survey  | 1984--2002 |  Split in two periods      |
+|                 |                | 2005--2018 |                            |
++-----------------+----------------+------------+----------------------------+
+|                 |                |            |  Default priors            |
++-----------------+----------------+------------+----------------------------+
+            
+
+```{r fit_scenario1}
+## Choose only the years where the survey was in October 
+w <- !is.na(dat$northsea_month) & dat$northsea_month == 10
+## Choose only the years where the survey was in January or February 
+v <- !is.na(dat$northsea_month) & dat$northsea_month %in% c(1, 2)
+
+## Make the input list
+inp_NS <- list(timeC = dat$year,                                      ## Timing of catch
+               obsC = dat$catchTOT,                                   ## Observed catches
+               timeI = list(dat$year[w] + dat$northsea_month[w] / 12, ## Timing of survey index
+                            dat$year[v] + dat$northsea_month[v] / 12),
+               obsI = list(dat$northsea_SA[w],                        ## Observed indices
+                           dat$northsea_SA[v]),
+               optimiser.control = list(iter.max = 1e5,               ## Optimiser options 
+                                        eval.max = 1e5),              ## sometimes help converge
+               priors = list(                                         ## List of priors (empty, i.e. default priors)
+                                                                      ## see possible priors with list.possible.priors()
+                 ))
+## Check input time series, remove missing and zero observations
+inp_NS <- check.inp(inp_NS)
+
+## Plot input data
+plotspict.data(inp_NS)
+
+## Fit spict
+fit_NS <- fit.spict(inp_NS)
+
+## Summary of the fit - in the vignette there is a line-by-line description of that summary
+fit_NS
+
+## If the model converged, it reports convergence as 0
+## Continue with plotting and diagnostics only if convergence was reached
+converged <- fit_NS$opt$convergence == 0
+if (converged) {
+  ## Calculate the One Step Ahead (osa) residuals  
+  fit_NS <- calc.osa.resid((fit_NS))
+  
+  ## Make a plot showing relative F, relative B, Kobe plot catch 
+  par(mfrow = c(2,2),  ## 2x2 subplots
+      mar = c(4.1, 4.1, 0.5, 0.5)) ## Change default margins for the plots 
+  plotspict.catch(fit_NS)
+  plotspict.ffmsy(fit_NS)
+  plotspict.bbmsy(fit_NS)
+  plotspict.fb(fit_NS)
+}
+
+
+```
+
+```{r diagnostics_scenario_1, fig.height=8}
+if (converged) {
+  plotspict.diagnostic(fit_NS)
+}
+```
+
+
+```{r retro_scenario_1}
+  ## If runretro is TRUE, run and plot the retrospective analysis
+  if (runretro & converged) {
+    fit_NS <- retro(fit_NS)
+    plotspict.retro(fit_NS)
+  }
+```
+
+
+
+## Scenario 2
+
+## Scenario 3
+
+## Scenario 4
+
+
+## Referneces
+
