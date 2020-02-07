@@ -27,7 +27,8 @@ rm(list=ls())
 #this is great
 ##~--------------------------------------------------------------------------
 ## Directory info
-path <- "D:/ICES benchmarks/WKGSS 2020/Ref pts/"   # folder were the code is and where results will be saved (in a subfolder)
+#path <- "D:/ICES benchmarks/WKGSS 2020/Ref pts/"   # folder were the code is and where results will be saved (in a subfolder)
+path <- "./aru.27.5b6s/Reference Points/"   # folder were the code is and where results will be saved (in a subfolder)
 runName <- "GSS5b6a_5selbio_allSRRs_TEST4" # (no spaces) Results will be saved in a subfolder with this name (so make it descriptive)
 ## Save plots?
 savePlots <- T
@@ -229,7 +230,7 @@ Fstates <- fit$conf$keyLogFsta[1,]
 Fstates_start <- which(Fstates==0)
 #Fstates_end   <- which(Fstates==max(Fstates)) # doesn't work if variances assigned out of order
 # fix for GSS5b6a:
-harvest(stk)[c(1:5,7,6),] <- exp(fit$pl$logF)
+harvest(stk)[c(1:7),] <- exp(fit$pl$logF)
 harvest(stk)[as.character(12:21),] <- harvest(stk)[as.character(11),]
 
 # year range
