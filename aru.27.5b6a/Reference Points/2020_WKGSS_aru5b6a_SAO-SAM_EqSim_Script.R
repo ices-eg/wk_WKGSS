@@ -24,6 +24,7 @@ rm(list=ls())
 ##        SECTION WHERE CHANGES NEED TO BE MADE   
 ##~--------------------------------------------------------------------------
 
+#this is great
 ##~--------------------------------------------------------------------------
 ## Directory info
 path <- "D:/ICES benchmarks/WKGSS 2020/Ref pts/"   # folder were the code is and where results will be saved (in a subfolder)
@@ -68,7 +69,7 @@ rmSRRYrs <- c()                               # leave as 'c()' if the full time 
 #rmSRRYrs <- c(2015:2016)                     # Or specify here which other years (e.g. early period) should be left out
 
 # Autocorrelation in recruitment?
-rhoRec <- T                                   # Recruitment is strongly autocorrelated for this stockæ default=F
+rhoRec <- T                                   # Recruitment is strongly autocorrelated for this stock? default=F
 
 ## Weight at age and selectivity
 numAvgYrsB <- 5                               # Number of recent years to use for WAA
