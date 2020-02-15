@@ -11,6 +11,8 @@ gss.5b6a <- as.data.frame(read.ices(cn.dat))
 gss.5b6a[gss.5b6a=="-1"] <- 0
 
 ## 2  Calculate cut-off points
+gss.5a14 <- tail(gss.5a14, 20)
+gss.5b6a <- tail(gss.5b6a, 20)
 cutoff <- function(cn, probs=c(0.1, 0.9), na.rm=TRUE)
 {
   x <- cumsum(prop.table(colSums(cn, na.rm=na.rm)))
