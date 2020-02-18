@@ -397,7 +397,7 @@ if (runretro & converged) {
 
 ### Biomass comparison scenario 3 and 4
 
-```{r fig.cap="Figure XXXX. SPiCT biomass estimates from scenario 3 and 4. NC = SPiCT run with only acoustic indices, AC+SA_Oct = SPiCT run with acoustic incieces and swept area index from North Sea/Skagerrak survy in years when it was conducted in October, AC-StoX = acoustic biomass indx from the Norwegian Sea slope survey."}
+```{r fig.cap="Figure XXXX. SPiCT biomass estimates from scenario 3 and 4. AC = SPiCT run with only acoustic indices, AC+SA_Oct = SPiCT run with acoustic incieces and swept area index from North Sea/Skagerrak survy in years when it was conducted in October, AC-StoX = acoustic biomass indx from the Norwegian Sea slope survey."}
 bAC <- get.par(parname = "logBBmsy",fit_AC, exp = TRUE)
 time <- as.numeric(rownames(bAC))
 bNS <- get.par(parname = "logBBmsy",fit_NS, exp = TRUE)
