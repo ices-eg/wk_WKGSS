@@ -11,60 +11,57 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, message = FALSE, cache = TRUE)
+knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(mfdb)
 mdb<-mfdb('Iceland')
 library(Rgadget)
 #setwd('~/Documents/Hafro/fishvice/19-gss/exploratory_models/gadget/01-new_ass_no_distigfs_mt_s6')
-fit_M010<- gadget.fit( gd = '~/Documents/Hafro/fishvice/19-gss/exploratory_models/gadget/01-new_ass_no_igfs_mt_s6_M010',recruitment_step_age	= tibble(stock = 'gssimm', age = 5, step = 1))
+fit_no_igfs<- gadget.fit( gd = '/net/hafkaldi/export/home/haf/pamela/19-gss/exploratory_models/gadget/01-new_ass_no_igfs_mt_s5',
+                          recruitment_step_age	= tibble(stock = 'gssimm', age = 5, step = 1), 
+                          f.age.range = data.frame(stock = c('gssmat', 'gssimm'), age.min = c(6,6), age.max = c(14,14)),
+                    wgts = 'WGTS2')
 
-fit_M015<- gadget.fit( gd = '/net/hafkaldi/export/home/haf/pamela/19-gss/exploratory_models/gadget/01-new_ass_no_igfs_mt_s6_M015/',recruitment_step_age	= tibble(stock = 'gssimm', age = 5, step = 1))
+tmp_fit_no_igfs <- plot(fit_no_igfs,data='catchdist.fleets')
 
-  fit_M020<- gadget.fit( gd = '/net/hafkaldi/export/home/haf/pamela/19-gss/exploratory_models/gadget/01-new_ass_no_igfs_mt_s6_M020',recruitment_step_age	= tibble(stock = 'gssimm', age = 5, step = 1))
-
-fit_no_distigfs<- gadget.fit( gd = '~/Documents/Hafro/fishvice/19-gss/exploratory_models/gadget/01-new_ass_no_distigfs_mt_s6',recruitment_step_age	= tibble(stock = 'gssimm', age = 5, step = 1))
-
-
-    fit_all<- gadget.fit( gd = '/net/hafkaldi/export/home/haf/pamela/19-gss/exploratory_models/gadget/01-new_ass_mt_s6',recruitment_step_age	= tibble(stock = 'gssimm', age = 5, step = 1))
-
-
- load('~/Documents/Hafro/fishvice/19-gss/exploratory_models/gadget/01-new_ass_no_distigfs_mt_s6/retroFit.Rdata')
- retro.distigfs <- bind.gadget.fit(retro.fit,fit_no_distigfs)
- names(retro.distigfs$res.by.year)[1] <- 'model1'
- rm(retro.fit)
-
- load('~/Documents/Hafro/fishvice/19-gss/exploratory_models/gadget/01-new_ass_no_igfs_mt_s6_M010/retroFit.Rdata')
-  retro.igfs <- bind.gadget.fit(retro.fit,fit_M010)
-  names(retro.igfs$res.by.year)[1] <- 'model1'
-  rm(retro.fit)
-
- load('~/Documents/Hafro/fishvice/19-gss/exploratory_models/gadget/01-new_ass_no_igfs_mt_s6_M015/retroFit.Rdata')
-retro.igfs_M015 <- bind.gadget.fit(retro.fit,fit_M015)
-names(retro.igfs_M015$res.by.year)[1] <- 'model1'
-rm(retro.fit)
-
- load('~/Documents/Hafro/fishvice/19-gss/exploratory_models/gadget/01-new_ass_no_igfs_mt_s6_M020/retroFit.Rdata')
-retro.igfs_M020 <- bind.gadget.fit(retro.fit,fit_M020)
-names(retro.igfs_M020$res.by.year)[1] <- 'model1'
-rm(retro.fit)
-
+  R1 <- gadget.fit( gd = '/net/hafkaldi/export/home/haf/pamela/19-gss/exploratory_models/gadget/01-new_ass_no_igfs_mt_s5', wgts = NULL,
+                   main.file = 'Retro2/R1/main', 
+                   params.file = 'Retro2/params.retro.1',
+                   recruitment_step_age	= tibble(stock = 'gssimm', age = 5, step = 1), 
+                   f.age.range = data.frame(stock = c('gssmat', 'gssimm'), age.min = c(6,6), age.max = c(14,14)))
+  R2 <- gadget.fit( gd = '/net/hafkaldi/export/home/haf/pamela/19-gss/exploratory_models/gadget/01-new_ass_no_igfs_mt_s5',wgts = NULL,
+                   main.file = 'Retro2/R2/main', 
+                   params.file = 'Retro2/params.retro.2',
+                   recruitment_step_age	= tibble(stock = 'gssimm', age = 5, step = 1), 
+                   f.age.range = data.frame(stock = c('gssmat', 'gssimm'), age.min = c(6,6), age.max = c(14,14)))
+  R3 <- gadget.fit( gd = '/net/hafkaldi/export/home/haf/pamela/19-gss/exploratory_models/gadget/01-new_ass_no_igfs_mt_s5',wgts = NULL,
+                   main.file = 'Retro2/R3/main', 
+                   params.file = 'Retro2/params.retro.3',
+                   recruitment_step_age	= tibble(stock = 'gssimm', age = 5, step = 1), 
+                   f.age.range = data.frame(stock = c('gssmat', 'gssimm'), age.min = c(6,6), age.max = c(14,14)))
+  R4 <- gadget.fit( gd = '/net/hafkaldi/export/home/haf/pamela/19-gss/exploratory_models/gadget/01-new_ass_no_igfs_mt_s5',wgts = NULL,
+                   main.file = 'Retro2/R4/main', 
+                   params.file = 'Retro2/params.retro.4',
+                   recruitment_step_age	= tibble(stock = 'gssimm', age = 5, step = 1), 
+                   f.age.range = data.frame(stock = c('gssmat', 'gssimm'), age.min = c(6,6), age.max = c(14,14)))
+  R5 <- gadget.fit( gd = '/net/hafkaldi/export/home/haf/pamela/19-gss/exploratory_models/gadget/01-new_ass_no_igfs_mt_s5',wgts = NULL,
+                   main.file = 'Retro2/R5/main', 
+                   params.file = 'Retro2/params.retro.5',
+                   recruitment_step_age	= tibble(stock = 'gssimm', age = 5, step = 1), 
+                   f.age.range = data.frame(stock = c('gssmat', 'gssimm'), age.min = c(6,6), age.max = c(14,14)))
   
-both <- bind.gadget.fit(fit_M010, fit_all)
-tmp_both <- plot(both,data='catchdist.fleets')
+  retro.fit <- bind.gadget.fit(R1,R2,R3,R4,R5)
+  
+  save(retro.fit,file='/net/hafkaldi/export/home/haf/pamela/19-gss/exploratory_models/gadget/01-new_ass_no_igfs_mt_s5/retroFit.Rdata')
 
-bothM <- bind.gadget.fit(fit_M010, fit_M015, fit_M020)
-tmp_bothM <- plot(bothM,data='catchdist.fleets')
+#load('~/Documents/Hafro/fishvice/19-gss/exploratory_models/gadget/01-new_ass_no_igfs_mt_s6/retroFit.Rdata')
+retro.igfs <- bind.gadget.fit(retro.fit,fit_no_igfs)
+names(retro.igfs$res.by.year)[1] <- 'model1'
+rm(retro.fit)
 
 
-load('~/Documents/Hafro/fishvice/19-gss/exploratory_models/gadget/01-new_ass_no_igfs_mt_s6_M010/bootfit.Rdata')
-bootfit.igfs <- bootfit
-rm(bootfit)
- 
- load('~/Documents/Hafro/fishvice/19-gss/exploratory_models/gadget/01-new_ass_no_distigfs_mt_s6/bootfit.Rdata')
-bootfit.distigfs <- bootfit
-rm(bootfit)
- 
+
+
 ```
 
 ## Introduction
@@ -173,21 +170,22 @@ optimisation procedure often involves a combination of these three procedures.
 In a typical Gadget model the simulated quantity is the number of
 individuals, $N_{alsyt}$, at age $a=a_{min}\ldots a_{max}$, in a length-group $l$,
 representing lengths ranging between $l_{min}$ and $l_{max}$ cm in $\Delta l$ cm
-length-groups, at year $y$ which is divided into timesteps, usually quarters, $t = 1\ldots T$. The
-length of the time-step is denoted $\Delta t$. 
+length-groups, at year $y$ which is divided into timesteps, usually quarters, $t = 1\ldots T$. The length of the time-step is denoted $\Delta t$. 
 The population is governed by the following equations:
 
-$$
-N_{alsy,t+1} = \sum_{l'}G^{l}_{l'} (N_{al'syt} - \sum_f C_{fal'st})e^{-M_a \Delta t }  + I_{al'lsyt}  {if t < T} 
-$$
-$$
-N_{a,ls,y+1,1} = \sum_{l'}G^{l}_{l'} (N_{a-1,l'sy,T} - \sum_f C_{fa-1,l's,T})e^{-M_{a-1} \Delta t }  + I_{a-1,l'lsy,T}  {if t
-= T and a < a_{max}}
-$$
-$$
-N_{a,ls,y+1,1} =  \sum_{l'}G^{l}_{l'} (N_{al'sy,T} - \sum_f C_{fal'sy,T} + N_{a-1,l'sy,T} - \sum_f C_{f,a-1,l'sy,T})e^{-M_a \Delta t } {if t = T and a = a_{max}}  
-$$
-
+\begin{equation}\label{eq:stock}
+\begin{aligned}
+  N_{alsy,t+1} = &\sum_{l'}G^{l}_{l'} \left[(N_{al'syt} -
+    \sum_f C_{fal'st})e^{-M_a \Delta t }  + I_{al'lsyt}\right] &\textup{if $t < T$}\\ 
+  N_{a,ls,y+1,1} = &\sum_{l'}G^{l}_{l'} \left[(N_{a-1,l'sy,T} -
+    \sum_f C_{fa-1,l's,T})e^{-M_{a-1} \Delta t }  + I_{a-1,l'lsy,T}\right] &\textup{if $t
+    = T$ and $a < a_{max}$} \\
+  N_{a,ls,y+1,1} = &\sum_{l'}G^{l}_{l'} (N_{al'sy,T} -
+    \sum_f C_{fal'sy,T} + \\
+    &\qquad N_{a-1,l'sy,T} - \sum_f C_{f,a-1,l'sy,T})e^{-M_a \Delta t }
+    & \textup{if $t = T$ and $a = a_{max}$}  
+\end{aligned}
+\end{equation}
 
 where $G^{l}_{l'}$ is the proportion in length-group $l$ that 
 has grown $l - l'$ length-groups in $\Delta t$, $C_{falsyt}$ denotes the
@@ -208,9 +206,9 @@ group for each time step, using a parametric
 growth function. In the current 
 model a simplified form of the Von Bertanlanffy function has been
 employed to calculate this mean length update. 
-$$
+\begin{equation}\label{eq:vonB}
 \Delta l = (l_\infty -l) (1 - e^{-k\Delta t})
-$$
+\end{equation}
 
 where $l_\infty$ is the terminal length and $k$ is the annual growth rate.
 
@@ -220,36 +218,38 @@ the fish to have no growth, a proportion to grow by one length group
 and a proportion two length groups etc.  How these proportions are
 selected affects the spread of the length distributions but these two
 equations must be satisfied:
-$$
+
+\begin{equation}\nonumber
 \sum_i p_{il} = 1
-$$
+\end{equation}
 and
-$$
+\begin{equation}\nonumber
 \sum_i i p_{il} = \Delta l
-$$  
+\end{equation}  
+
 Here $\Delta l$ is the calculated mean growth and $p_{il}$ is the
 proportion of fish in length group $l$ growing $i$ length groups.
 Here the growth is dispersed according to a beta--binomial
 distribution parametrised by the following equation: 
-$$
+\begin{equation}\label{eq:betabinom}
 G^{l'}_l = \frac{\Gamma(n+1)}{\Gamma((l'-l)+1)}
 \frac{\Gamma((l'-l)+\alpha)\Gamma(n-(l'-l)+\beta)}{\Gamma(n-(l'-l)+1)\Gamma(n+\alpha+\beta)}
 \frac{\Gamma(\alpha+\beta)}{\Gamma(\alpha)\Gamma(\beta)} 
-$$
+\end{equation}
+
 where $\alpha$ is subject to
-$$
+\begin{equation}
 \alpha = \frac{\beta \Delta l}{n - \Delta l}
-$$
+\end{equation}
 where $n$ denotes the maximum length group growth and $(l'-l)$ the
 number of length-groups grown. 
 
 
 The weight, $W_{sl}$, at length-group $l$ is calculated according to
 the following stock component specific length -- weight relationship: 
-$$
+\begin{equation}\label{eq:lw}
 W_{sl} = \mu_s l^{\omega_s}
-$$
-
+\end{equation} 
 
 
 #### Recruitment and initial abundance
@@ -259,9 +259,9 @@ model the number of recruits each year, $R_y$, is estimated
 within the model as an estimated parameter. 
 
 Recruitment enters the population according to:
-$$
+\begin{equation}\label{eq:rec}
   N_{a_{min}l0yt'} = R_{y} p_l
-$$
+\end{equation}
 where $t'$ denotes the recruitment time-step and  $p_l$ is the proportion
 in length-group $l$ that is recruited. $p_l$ is determined by a normal
 density with mean length set according to eq. \ref{eq:vonB} where the initial length $l_0$ at age 1 \footnote{$l_0$ as a one to one mapping with $t_0$ used in 
@@ -269,9 +269,9 @@ a typical von Bertalanffy growth model} and variance $\sigma^2_{3}$.
 
 A simple formulation of initial abundance in numbers is used for
 each age group in length-group $l$: 
-$$
+\begin{equation}\label{eq:init}
 N_{als11} = \nu_{as} q_{al}    
-$$
+\end{equation}
 where $\nu_{as}$ is the initial number at age $a$ in the initial
 year of stock $s$ and $q_l$ the proportion at length-group $l$ which is determined
 by a normal density with a mean according to the growth model in
@@ -279,32 +279,36 @@ equation __ and variance $\sigma_a^2$, with a starting length according as $l_0$
 
 #### Maturation
 Two stage maturity is modeled and represented by the two stock
-components. First the movement between the two components is formulated as
+components. Numbers of immature fish are stored in the 'immature' stock component until they mature, at which point they are moved to the 'mature' stock component. Movement from the immature to mature stock component is formulated as
+\begin{equation}\label{eq:mat}
+  I_{al'lsyt} = \left\{ \begin{matrix}
+      N_{al'0y,t-1}\times m_{l'}^{l} & \textup{if s
+      = 1 and t > 1} \\
+    N_{al'0y-1,T}\times m_{l'}^{l} & \textup{if s
+      = 1 and t = 1} \\
+    
+    - N_{al'0y,t-1}\times m_{l'}^{l} & \textup{if s
+      = 0 and t > 1}\\
+    - N_{al'0y-1,T}\times m_{l'}^{l} & \textup{if s
+      = 0 and t = 1}
 
-$$
-  I_{al'lsyt} =
-    N_{al'0y,t-1}\times m_{l'}^{l}  {if s = 1 and t > 1} 
-$$
-$$
-    N_{al'0y-1,T}\times m_{l'}^{l}  {if s = 1 and t = 1} 
-$$
-$$
-    -N_{al'0y,t-1}\times m_{l'}^{l}  {if s = 0 and t > 1}
-$$
-
-$$
-    -N_{al'0y-1,T}\times m_{l'}^{l}  {if s = 0 and t = 1}
-$$
  
+\end{matrix}\right.
+\end{equation}
+
+
 
 where $s=0$, as noted above, denotes the immature stock component.  and
 $m_{l'}^{l}$ is the proportion of immatures that mature between the
 lengths $l$ and $l'$ defined as:
-$$
-m_{l'}^l = \frac{\lambda (l-l')}{1 + e^{-\lambda (l - l_{50,y})}}
-$$
-The second when individuals of the immature stock component reach a 
-certain age those individuals are all moved to the mature stock component. Note that the parameter $l_{50,y}$ varies annually. This was included after initial explorations showed substantial changes in maturity over time (main document, WKGSS 2020, section...).
+
+
+\begin{equation}
+m_{l'}^l = \frac{\lambda (l-l')}{1 + e^{-\lambda (l - l_{50})}}
+\end{equation}
+
+
+However, when individuals of the immature stock component reach the maximal age of the immature stock (in this case age 14) than those individuals are all moved to the mature stock component. Note that the parameter $l_{50,y}$ varies annually. This was included after initial explorations showed substantial changes in maturity over time (main document, WKGSS 2020, section...).
 
 #### Fleet operations
 Catches are simulated based on reported total landings and a length
@@ -313,22 +317,23 @@ fleets and surveys). Total landings are assumed to
 be known and the total biomass is simply offset by the landed
 catch. The catches for length-group $l$ , fleet $f$ at year $y$ and
 time-step $t$ are calculated as  
-$$
+
+\begin{equation}
 C_{falsyt} = E_{ft} \frac{S_{f}(l)N_{alsyt}W_{ls}}{\sum_{s'} \sum_{l'}\sum_{a'} S_{f}(l')N_{al's'yt}W_{l's'}} 
-$$
+\end{equation}
 where $E_{ft}$ is the landed biomass at time $t$ and $S_{f}(l)$ is the suitability of length-group $l$ by fleet $f$ defined as\footnote{Other functional forms for the selection are defined in Gadget}:
 
-$$
+\begin{equation}\label{eq:suit}
 S_f(l) = \frac{1}{1 + e^{(-b_f(l-l_{50,f})}}
-$$
+\end{equation}
 
 The effective fishing mortality at age and at time step $t$ is calculated according to the following equation:
 
-$$
+\begin{equation}\label{eq:Feq}
 F_{asyt} = \frac{-\log(1.0 - \frac{C_{asyt}}{N_{asyt}})}{\Delta t}
-$$
+\end{equation}
 
-where $C_{asyt} =\sum_{fl} C_{falsyt}$ and $N_{asyt} = \sum_l N_{alsyt}$. For greater silver smelt the reported $F_y$ is the average $F_a$ for fully recruited ages, i.e. age 9 and above, for that year. 
+where $C_{asyt} =\sum_{fl} C_{falsyt}$ and $N_{asyt} = \sum_l N_{alsyt}$. For greater silver smelt the reported $F_y$ is the average $F_a$ for ages 6 - 14, for that year. 
 
 <!-- Harvest rate in terms of the reference biomass is calulated as: -->
 <!-- \begin{equation} -->
@@ -344,7 +349,7 @@ that the modeled output can be compared directly against a wide
 variety of different data sources. It is not necessary to convert
 length into age data before comparisons. Gadget can use various types
 of data that can be included in the objective function. Length
-distributions, age length keys/distributions, survey indices by length or age (both abundance or biomass), CPUE
+distributions, age length keys/distributions, survey indices by length or age (fit_no_igfs abundance or biomass), CPUE
 data, mean length and/or weight at age, tagging data and stomach
 content data can all be used. 
 
@@ -362,23 +367,23 @@ fleets and age -- length distribution from from the survey and commercial
 fleets.  
 
 
-In formulations below it is assumed that the compositional data are sampled at random, both from the fishery and surveys, as this is how the sampling protocol is Icelandic waters is set up. Other forms of likelihoods are implemented in Gadget that can be used to address other types of sampling, e.g. length stratified sampling of maturity. 
+In formulations below it is assumed that the compositional data are sampled at random, fit_no_igfs from the fishery and surveys, as this is how the sampling protocol is Icelandic waters is set up. Other forms of likelihoods are implemented in Gadget that can be used to address other types of sampling, e.g. length stratified sampling of maturity. 
 
 #### Survey indices
-For each length range $g$ the survey index is compared to the modeled
+For each length range grouping ('slice', $g$) the survey index is compared to the modeled
 abundance at year $y$ and time-step $t$ using: 
-
-$$  
-l_{g}^{SI} = \sum_{y} \sum_t (\log I_{gy} - (\log q_g + b_g \log \widehat{N_{gyt}}))^2 
-$$
-
+\begin{equation}\label{eq:SSSI}
+  l_{g}^{\textup{SI}} = \sum_{y} \sum_t (\log I_{gy} - (\log q_g + b_g \log \widehat{N_{gyt}}))^2 
+\end{equation}
 where $$\widehat{N_{gyt}} = \sum_{l\in g} \sum_a \sum_s N_{alsyt}$$
+
 
 #### Fleet data
 Length distributions are compared to predictions using
-$$
-  l_f^{{LD}} = \sum_y \sum_t \sum_l (\pi_{flyt} - \hat{\pi}_{flyt})^2
-$$
+\begin{equation}\label{eq:SSldist}
+  l_f^{\textup{LD}} = \sum_y \sum_t \sum_l (\pi_{flyt} - \hat{\pi}_{flyt})^2
+\end{equation}
+
 where $f$ denotes the fleet where data was sampled from and 
 $$\pi_{flyt} = \frac{\sum_a\sum_s O_{falsyt}}{\sum_{a'}  \sum_{l'}\sum_sO_{fa'l'syt}}$$ 
 and 
@@ -387,9 +392,9 @@ $$\hat{\pi}_{lyt} = \frac{\sum_a  \sum_s C_{falsyt}}{\sum_{a'}
 i.e the observed and modeled proportions in length-group $l$ respectively
 at year $y$ and time-step $t$. Similarly age -- length data are
 compared:  
-$$
-  l_f^{{AL}} = \sum_y \sum_t \sum_a \sum_l  (\pi_{falyt} - \hat{\pi}_{falyt})^2
-$$
+\begin{equation}\label{eq:SSalk}
+  l_f^{\textup{AL}} = \sum_y \sum_t \sum_a \sum_l  (\pi_{falyt} - \hat{\pi}_{falyt})^2
+\end{equation}
 where 
 $$\pi_{falyt} = \frac{\sum_s O_{falsyt}}{\sum_a  \sum_{l'}\sum_s O_{fal'syt}}$$ 
 and 
@@ -399,10 +404,10 @@ $$\hat{\pi}_{falyt} = \frac{\sum_s C_{falsyt}}{\sum_{a'}
 Length at maturity comparison uses the number fish of which maturity status has been assigned that are observed in a given fishery or a survey. The observed
 proportions are compared to the modelled proportion using sum of
 squares: 
-$$
-  l^{{M}}_f = \sum_y \sum_t \sum_l  (\pi_{flyt} -
+\begin{equation}\label{eq:SSmat}
+  l^{\textup{M}}_f = \sum_y \sum_t \sum_l  (\pi_{flyt} -
   \hat{\pi}_{flyt})^2 
-$$
+\end{equation}
 where 
 $$\pi_{flyt} = \frac{\sum_a O_{fal1yt}}{\sum_{a'}  \sum_{l'}\sum_sO_{fa'l'syt}}$$ 
 and 
@@ -544,6 +549,7 @@ Jeeves when the 'optimum' was approached and then finally the BFGS was
 run in the end. The settings for the minimizers are listed in annex.
 
 ### Bootstrap
+
 
 ```{r bs1,  echo = FALSE, fig.cap = 'Locations of Greater silver smelt catches in 5a and 14 by commercial and survey fleets in 2019 relative to the spatial subdivision on the Icelandic continental shelf area. '}
 fish.pos <- 
@@ -691,9 +697,9 @@ test <-
   geom_path(data = geo::twohmiles, lty = 2) #+
 #  geom_path(data=icelandrivers,size=0.1,col='blue') +
 #  geom_path(data=glaciers,size=0.5)
-
-
 ```
+
+
 
 
 To estimate the uncertainty in the model parameters and derived quantities a 
@@ -750,7 +756,7 @@ parallel, e.g. on a computer cluster.
 #### Model settings
 Greater silver smelt in 5a and 14 is assumed to be long-lived and the maximum age is set at
 26 with 26 acting also as a plus group,  and simulation goes back to 1980 when IGFS survey indices are included, or 1990 when not. Fish  
-mature at age 14 at the latest. Recruitment to the immature stock component 
+mature at age 15 at the latest. Recruitment to the immature stock component 
 occurs at age 1, in the $1^{st}$ quarter. The length range in the model was between 8 and 60 (all with no mature individuals < 25 cm), in 1 cm length intervals. 
 Recruitment was set to occur at the end of the first time-step. 
 An overview of the data sets and model parameters used in the model
@@ -759,19 +765,17 @@ respectively.
 
 ```{r datatable, echo = FALSE, fig.cap = "Overview of the likelihood data used in the model. Survey indices are calculated from the length distributions and are disaggregated (sliced) into six groups. Number of data-points refer to aggregated data  used as inputs in the Gadget model and represent the original data-set. All data can obtained from the Marine and Freshwater Research Institute, Iceland."}
  wgr <- 
-   fit_no_distigfs$resTable %>% 
+   fit_no_igfs$resTable %>% 
    select(-.id) %>% 
    names() %>%
    set_names(.,.) %>% 
    map(function(x){
-    data_frame(group=grep(paste0('^',x,paste0('|\\.',x)),fit_no_distigfs$resTable$.id,value=TRUE))
+    data_frame(group=grep(paste0('^',x,paste0('|\\.',x)),fit_no_igfs$resTable$.id,value=TRUE))
    }) %>% 
    bind_rows(.id="name") %>% 
-   mutate(group=ifelse(grepl('si.20-50',group),'sind1',
-                       ifelse(grepl('si.70-80',group),'sind2',
-                              ifelse(grepl('gil.ldist',group),'comm',group))))
+   mutate(group=ifelse(grepl('si.',group),'sind',group))
  
- fit_no_distigfs$catchdist.fleets %>%
+ fit_no_igfs$catchdist.fleets %>%
    filter(!is.na(number.x)) %>% 
    group_by(name) %>% 
    dplyr::summarise(quarters=step %>% unique() %>% sort() %>% paste(collapse=','),
@@ -780,7 +784,7 @@ respectively.
    mutate(type = ifelse(grepl('aldist',name),'Age--length distributions','Length distributions'),
           origin = gsub('[a-z]+\\.([a-z]+)','\\1',name),
           lik.ref = ifelse(grepl('aldist',name),'eq:SSalk','eq:SSldist')) %>% 
-   bind_rows(fit_no_distigfs$stockdist %>% 
+   bind_rows(fit_no_igfs$stockdist %>% 
                group_by(name) %>% 
                dplyr::summarise(quarters=step %>% unique() %>% sort() %>% paste(collapse=','),
                          year.range=paste(min(year),max(year),sep='--'),n=n(),
@@ -788,7 +792,7 @@ respectively.
                mutate(type = 'Ratio of immature:mature by length group',
                       origin = gsub('[a-z]+\\.([a-z]+)','\\1',name),
                       lik.ref = 'eq:SSmat'),
-             fit_no_distigfs$sidat %>% 
+             fit_no_igfs$sidat %>% 
                group_by(name) %>% 
                dplyr::summarise(quarters=step %>% unique() %>% sort() %>% paste(collapse=','),
                          year.range=paste(min(year),max(year),sep='--'),n=n(),
@@ -933,7 +937,7 @@ length distributions obtained in the autumn survey.
 #### Natural mortality
 Choice of natural mortality ($M$) is problematic as is normally the
 case in stock assessments.   Here $M$ is assumed to be constant with
-age at 0.10.
+age at 0.15.
 
 #### Weight length relationship
 The parameters of the weight--length relationship used in eq.  were estimated through the means of log-linear regression. Fig. shows the observed length-weight relation compared with the fitted values. 
@@ -974,35 +978,26 @@ The parameters of the weight--length relationship used in eq.  were estimated th
 #### Model fits to data
 
 ```{r siplot, echo=FALSE, fig.width = 9, fig.height= 6, fig.cap = 'Greater silver smelt in 5.a and 14. Comparison of survey index fits between models that included the spring survey index (IGFS) or not.'}
-si_plot <-
-  plot(both) + geom_line(aes(x = year, y = predict, color = model)) +
-  scale_color_discrete(name = "model", labels = c("with IGFS", "no IGFS"))
-si_plot
-
-si_plotM <-
-  plot(bothM) + geom_line(aes(x = year, y = predict, color = model)) +
-  scale_color_discrete(name = "model", labels = c("M=0.10", "M=0.15", "M=0.20"))
-si_plotM
-
+plot(fit_no_igfs)
 ```
 
 ```{r aldisthistaut, echo = FALSE, fig.width = 9, fig.height= 6, fig.cap = 'Greater silver smelt in 5.a and 14. Comparison of autumn survey age-length distribution fits between models that included the spring survey index (IGFS) or not.'}
-both$catchdist.fleets %>% 
+fit_no_igfs$catchdist.fleets %>% 
   filter(name=='aldist.aut') %>% 
-  dplyr::group_by(year, step, age, model) %>% 
+  dplyr::group_by(year, step, age) %>% 
   dplyr::summarise(predicted = sum(predicted), 
                    observed = sum(observed, na.rm = TRUE)) %>% 
   dplyr::ungroup() %>% 
   dplyr::mutate(age = as.numeric(gsub("age", 
                                       "", age)))  %>% 
   ggplot(aes(age, 
-             predicted, color = model)) + 
+             predicted)) + 
   geom_line(aes(age, observed), color = 'grey') + 
   facet_wrap(~year + step, 
              drop = FALSE, ncol = max(2 * 1, 
                                       4)) + 
   geom_line() + 
-  geom_text(data = both$catchdist.fleets %>% 
+  geom_text(data = fit_no_igfs$catchdist.fleets %>% 
               filter(name=='aldist.aut') %>% 
               dplyr::ungroup() %>% dplyr::mutate(age = as.numeric(gsub("age", 
                                                                        "", age))) %>% 
@@ -1010,7 +1005,7 @@ both$catchdist.fleets %>%
               dplyr::mutate(y = Inf, label = paste(year, 
                                                    step, sep = ",")) %>% 
               dplyr::select(step, 
-                            age, y, year, model, label) %>% 
+                            age, y, year, label) %>% 
               dplyr::distinct(), 
             aes(age, y, label = label), vjust = 1.3, 
             hjust = -0.05, size = 3, inherit.aes = FALSE) + 
@@ -1018,71 +1013,32 @@ both$catchdist.fleets %>%
                                            axis.ticks.y = element_blank(), panel.spacing = unit(0, 
                                                                                                 "cm"), plot.margin = unit(c(0, 0, 0, 0), 
                                                                                                                           "cm"), strip.background = element_blank(), 
-                                           strip.text.x = element_blank())+
-  scale_color_discrete(name = "model", labels = c("with IGFS", "no IGFS"))
-
-
-bothM$catchdist.fleets %>% 
-  filter(name=='aldist.aut') %>% 
-  dplyr::group_by(year, step, age, model) %>% 
-  dplyr::summarise(predicted = sum(predicted), 
-                   observed = sum(observed, na.rm = TRUE)) %>% 
-  dplyr::ungroup() %>% 
-  dplyr::mutate(age = as.numeric(gsub("age", 
-                                      "", age)))  %>% 
-  ggplot(aes(age, 
-             predicted, color = model)) + 
-  geom_line(aes(age, observed), color = 'grey') + 
-  facet_wrap(~year + step, 
-             drop = FALSE, ncol = max(2 * 1, 
-                                      4)) + 
-  geom_line() + 
-  geom_text(data = bothM$catchdist.fleets %>% 
-              filter(name=='aldist.aut') %>% 
-              dplyr::ungroup() %>% dplyr::mutate(age = as.numeric(gsub("age", 
-                                                                       "", age))) %>% 
-              dplyr::filter(age == min(age)) %>% 
-              dplyr::mutate(y = Inf, label = paste(year, 
-                                                   step, sep = ",")) %>% 
-              dplyr::select(step, 
-                            age, y, year, model, label) %>% 
-              dplyr::distinct(), 
-            aes(age, y, label = label), vjust = 1.3, 
-            hjust = -0.05, size = 3, inherit.aes = FALSE) + 
-  ylab("Proportion") + xlab("Age") + theme(axis.text.y = element_blank(), 
-                                           axis.ticks.y = element_blank(), panel.spacing = unit(0, 
-                                                                                                "cm"), plot.margin = unit(c(0, 0, 0, 0), 
-                                                                                                                          "cm"), strip.background = element_blank(), 
-                                           strip.text.x = element_blank())+
-  scale_color_discrete(name = "model", labels = c("M=0.10", "M=0.15","M=0.20"))
+                                           strip.text.x = element_blank())
 
 ```
 
 ```{r ldisthistaut, echo = FALSE, fig.width = 9, fig.height= 6, fig.cap = 'Greater silver smelt in 5.a and 14. Comparison of autumn survey length distribution fits between models that included the spring survey index (IGFS) or not.'}
-tmp_both$ldist.aut + geom_line(aes(x = lower, y = predicted, color = model)) +
-  scale_color_discrete(name = "model", labels = c("with IGFS", "no IGFS"))
-tmp_bothM$ldist.aut + geom_line(aes(x = lower, y = predicted, color = model)) +
-  scale_color_discrete(name = "model", labels = c("M=0.10", "M=0.15","M=0.20"))
+tmp_fit_no_igfs$ldist.aut 
 ```
 
 ```{r aldisthistcomm, echo=FALSE, fig.width = 9, fig.height= 6,fig.cap = 'Greater silver smelt in 5.a and 14. Comparison of commercial sample age-length distribution fits between models that included the spring survey index (IGFS) or not.'}
 
-both$catchdist.fleets %>% 
+fit_no_igfs$catchdist.fleets %>% 
   filter(name=='aldist.comm') %>% 
-  dplyr::group_by(year, step, age, model) %>% 
+  dplyr::group_by(year, step, age) %>% 
   dplyr::summarise(predicted = sum(predicted), 
                    observed = sum(observed, na.rm = TRUE)) %>% 
   dplyr::ungroup() %>% 
   dplyr::mutate(age = as.numeric(gsub("age", 
                                       "", age)))  %>% 
   ggplot(aes(age, 
-             predicted, color = model)) + 
+             predicted)) + 
   geom_line(aes(age, observed), color = 'grey') + 
   facet_wrap(~year + step, 
-             drop = FALSE, ncol = max(2 * length(unique(both$catchdist.fleets$step )), 
+             drop = FALSE, ncol = max(2 * length(unique(fit_no_igfs$catchdist.fleets$step )), 
                                       4)) + 
   geom_line() + 
-  geom_text(data = both$catchdist.fleets %>% 
+  geom_text(data = fit_no_igfs$catchdist.fleets %>% 
               filter(name=='aldist.comm') %>% 
               dplyr::ungroup() %>% dplyr::mutate(age = as.numeric(gsub("age", 
                                                                        "", age))) %>% 
@@ -1090,7 +1046,7 @@ both$catchdist.fleets %>%
               dplyr::mutate(y = Inf, label = paste(year, 
                                                    step, sep = ",")) %>% 
               dplyr::select(step, 
-                            age, y, year, model, label) %>% 
+                            age, y, year, label) %>% 
               dplyr::distinct(), 
             aes(age, y, label = label), vjust = 1.3, 
             hjust = -0.05, size = 3, inherit.aes = FALSE) + 
@@ -1098,287 +1054,71 @@ both$catchdist.fleets %>%
                                            axis.ticks.y = element_blank(), panel.spacing = unit(0, 
                                                                                                 "cm"), plot.margin = unit(c(0, 0, 0, 0), 
                                                                                                                           "cm"), strip.background = element_blank(), 
-                                           strip.text.x = element_blank()) +
-  scale_color_discrete(name = "model", labels = c("with IGFS", "no IGFS"))
+                                           strip.text.x = element_blank()) 
 
-bothM$catchdist.fleets %>% 
-  filter(name=='aldist.comm') %>% 
-  dplyr::group_by(year, step, age, model) %>% 
-  dplyr::summarise(predicted = sum(predicted), 
-                   observed = sum(observed, na.rm = TRUE)) %>% 
-  dplyr::ungroup() %>% 
-  dplyr::mutate(age = as.numeric(gsub("age", 
-                                      "", age)))  %>% 
-  ggplot(aes(age, 
-             predicted, color = model)) + 
-  geom_line(aes(age, observed), color = 'grey') + 
-  facet_wrap(~year + step, 
-             drop = FALSE, ncol = max(2 * length(unique(both$catchdist.fleets$step )), 
-                                      4)) + 
-  geom_line() + 
-  geom_text(data = bothM$catchdist.fleets %>% 
-              filter(name=='aldist.comm') %>% 
-              dplyr::ungroup() %>% dplyr::mutate(age = as.numeric(gsub("age", 
-                                                                       "", age))) %>% 
-              dplyr::filter(age == min(age)) %>% 
-              dplyr::mutate(y = Inf, label = paste(year, 
-                                                   step, sep = ",")) %>% 
-              dplyr::select(step, 
-                            age, y, year, model, label) %>% 
-              dplyr::distinct(), 
-            aes(age, y, label = label), vjust = 1.3, 
-            hjust = -0.05, size = 3, inherit.aes = FALSE) + 
-  ylab("Proportion") + xlab("Age") + theme(axis.text.y = element_blank(), 
-                                           axis.ticks.y = element_blank(), panel.spacing = unit(0, 
-                                                                                                "cm"), plot.margin = unit(c(0, 0, 0, 0), 
-                                                                                                                          "cm"), strip.background = element_blank(), 
-                                           strip.text.x = element_blank()) +
-  scale_color_discrete(name = "model", labels = c("M=0.10", "M=0.15","M=0.20"))
 
 ```
 
 ```{r ldisthistcomm, echo=FALSE, fig.width = 9, fig.height= 6, fig.cap = 'Greater silver smelt in 5.a and 14. Comparison of commercial sample length distribution fits between models that included the spring survey index (IGFS) or not.'}
-tmp_both$ldist.comm + geom_line(aes(x = lower, y = predicted, color = model)) +
-  scale_color_discrete(name = "model", labels = c("with IGFS", "no IGFS"))
-tmp_bothM$ldist.comm + geom_line(aes(x = lower, y = predicted, color = model)) +
-  scale_color_discrete(name = "model", labels = c("M=0.10", "M=0.15","M=0.20"))
+tmp_fit_no_igfs$ldist.comm 
 ```
 
 ```{r aldistbub, echo=FALSE, fig.width = 9, fig.height= 6, fig.cap = 'Greater silver smelt in 5.a and 14. Bubble plots illustrating age-length distribution residuals between models that included the spring survey index (IGFS) or not from either commercial or autumn survey samples. Red bubbles indicate positive residuals (underestimation); blue bubbles indicate negative residuals (overestimation).'}
-tmp_no_igfs_bub <- plot(fit_M010,data='catchdist.fleets', type = 'bubble')
-tmp_no_distigfs_bub <- plot(fit_all,data='catchdist.fleets', type = 'bubble')
+tmp_no_igfs_bub <- plot(fit_no_igfs,data='catchdist.fleets', type = 'bubble')
 
-tmp_no_igfs_bubM015 <- plot(fit_M015,data='catchdist.fleets', type = 'bubble')
-tmp_no_igfs_bubM020 <- plot(fit_M020,data='catchdist.fleets', type = 'bubble')
+  tmp_no_igfs_bub$aldist+ 
+  xlab('Year')+
+    ylab('Age')  
 
-gridExtra::grid.arrange(
-  tmp_no_distigfs_bub$aldist+ 
-    geom_text(aes(x = x, y = y, label = label), data = tibble(x = 2011, y= 25, name = c('aldist.aut', 'aldist.comm'), label = 'with IGFS'), size = 5, color = 'black') +
-    xlab('Year')+
-    ylab('Age'),  
-  tmp_no_igfs_bub$aldist+ 
-    geom_text(aes(x = x, y = y, label = label), data = tibble(x = 2011, y= 25, name = c('aldist.aut', 'aldist.comm'), label = 'no IGFS'), size = 5, color = 'black')+
-  xlab('Year')+
-    ylab('Age')  
-)
-gridExtra::grid.arrange(
-  tmp_no_igfs_bubM015$aldist+ 
-    geom_text(aes(x = x, y = y, label = label), data = tibble(x = 2011, y= 25, name = c('aldist.aut', 'aldist.comm'), label = 'M=0.15'), size = 5, color = 'black') +
-    xlab('Year')+
-    ylab('Age'),  
-  tmp_no_igfs_bub$aldist+ 
-    geom_text(aes(x = x, y = y, label = label), data = tibble(x = 2011, y= 25, name = c('aldist.aut', 'aldist.comm'), label = 'M=0.10'), size = 5, color = 'black')+
-  xlab('Year')+
-    ylab('Age')  
-)
-gridExtra::grid.arrange(
-  tmp_no_igfs_bubM020$aldist+ 
-    geom_text(aes(x = x, y = y, label = label), data = tibble(x = 2011, y= 25, name = c('aldist.aut', 'aldist.comm'), label = 'M=0.20'), size = 5, color = 'black') +
-    xlab('Year')+
-    ylab('Age'),  
-  tmp_no_igfs_bubM015$aldist+ 
-    geom_text(aes(x = x, y = y, label = label), data = tibble(x = 2011, y= 25, name = c('aldist.aut', 'aldist.comm'), label = 'M=0.15'), size = 5, color = 'black')+
-  xlab('Year')+
-    ylab('Age')  
-)
 ```
 
 ```{r ldistbub, echo=FALSE, fig.width = 9, fig.height= 6, fig.cap = 'Greater silver smelt in 5.a and 14. Bubble plots illustrating length distribution residuals between models that included the spring survey index (IGFS) or not from either commercial or autumn survey samples. Red bubbles indicate positive residuals (underestimation); blue bubbles indicate negative residuals (overestimation).'}
-tmp_no_igfs_bub <- plot(fit_M010,data='catchdist.fleets', type = 'bubble')
-tmp_no_distigfs_bub <- plot(fit_all,data='catchdist.fleets', type = 'bubble')
-
-tmp_no_igfs_bubM015 <- plot(fit_M015,data='catchdist.fleets', type = 'bubble')
-tmp_no_igfs_bubM020 <- plot(fit_M020,data='catchdist.fleets', type = 'bubble')
-
-gridExtra::grid.arrange(
-  tmp_no_distigfs_bub$ldist+ 
-    geom_text(aes(x = x, y = y, label = label), data = tibble(x = 2011, y= 25, name = c('ldist.aut', 'ldist.comm'), label = 'with IGFS'), size = 5, color = 'black') +
-    xlab('Year')+
-    ylab('Age'),  
+tmp_no_igfs_bub <- plot(fit_no_igfs,data='catchdist.fleets', type = 'bubble')
   tmp_no_igfs_bub$ldist+ 
-    geom_text(aes(x = x, y = y, label = label), data = tibble(x = 2011, y= 25, name = c('ldist.aut', 'ldist.comm'), label = 'no IGFS'), size = 5, color = 'black')+
-  xlab('Year')+
-    ylab('Age')  
-)
-gridExtra::grid.arrange(
-  tmp_no_igfs_bubM015$ldist+ 
-    geom_text(aes(x = x, y = y, label = label), data = tibble(x = 2011, y= 25, name = c('ldist.aut', 'ldist.comm'), label = 'M=0.15'), size = 5, color = 'black') +
     xlab('Year')+
-    ylab('Age'),  
-  tmp_no_igfs_bub$ldist+ 
-    geom_text(aes(x = x, y = y, label = label), data = tibble(x = 2011, y= 25, name = c('ldist.aut', 'ldist.comm'), label = 'M=0.10'), size = 5, color = 'black')+
-  xlab('Year')+
-    ylab('Age')  
-)
-gridExtra::grid.arrange(
-  tmp_no_igfs_bubM020$ldist+ 
-    geom_text(aes(x = x, y = y, label = label), data = tibble(x = 2011, y= 25, name = c('ldist.aut', 'ldist.comm'), label = 'M=0.20'), size = 5, color = 'black') +
-    xlab('Year')+
-    ylab('Age'),  
-  tmp_no_igfs_bubM015$ldist+ 
-    geom_text(aes(x = x, y = y, label = label), data = tibble(x = 2011, y= 25, name = c('ldist.aut', 'ldist.comm'), label = 'M=0.15'), size = 5, color = 'black')+
-  xlab('Year')+
-    ylab('Age')  
-)
+    ylab('Length (cm)')  
 ```
 
 
 
 #### Retrospective plots
 
-```{r retrosdistigfs, echo=FALSE, fig.width = 8, fig.height= 8, fig.cap = "Greater silver smelt in 5.a and 14. Retrospective plots illustrating stability in model estimates over a 5-year 'peel' in data for the model that included the spring survey index (IGFS). Results of spawning stock biomass, fishing mortality F, and recruitment (age 1) are shown."}
-  
-  retro_distigfs_bio <-
-    retro.distigfs$res.by.year %>% 
-    mutate(model = ifelse(is.na(model), 'original', model)) %>% 
-    filter(stock=='gssmat') %>% 
-    mutate(`Biomass 000s tonnes` = total.biomass/1000000, Year = year) %>% 
-    ggplot()+
-    geom_line(aes(x = Year, y = `Biomass 000s tonnes`, color = model)) + 
-    ylim(0,55) +
-    xlim(1980,2020)+
-    theme_bw()
-  
-  retro_distigfs_F <-
-    retro.distigfs$res.by.year %>% 
-    mutate(model = ifelse(is.na(model), 'original', model)) %>% 
-    filter(stock=='gssmat') %>% 
-    mutate( Year = year) %>% 
-    ggplot()+
-    geom_line(aes(x = Year, y = F, color = model)) + 
-    ylim(0,0.9) +
-    xlim(1980,2020)+
-    theme_bw()
-  
-  
-  retro_distigfs_rec <-
-    retro.distigfs$res.by.year %>% 
-    mutate(model = ifelse(is.na(model), 'original', model)) %>% 
-    filter(stock=='gssimm', year > 1995) %>% 
-    mutate(`Recruitment 000000s` = recruitment/1000000, Year = year) %>% 
-    ggplot()+
-    geom_line(aes(x = Year, y = `Recruitment 000000s`, color = model)) + 
-    #ylim(0,2.1) +
-    xlim(1995,2020)+
-    theme_bw()
-  
-  gridExtra::grid.arrange(retro_distigfs_bio, retro_distigfs_F, retro_distigfs_rec, nrow = 3)
-
-```
-
 ```{r retrosigfs, echo=FALSE, fig.width = 8, fig.height= 8, fig.cap = "Greater silver smelt in 5.a and 14. Retrospective plots illustrating stability in model estimates over a 5-year 'peel' in data for the model that did not include the spring survey index (IGFS). Results of spawning stock biomass, fishing mortality F, and recruitment (age 1) are shown."}
 retro_igfs_bio <-
   retro.igfs$res.by.year %>% 
   mutate(model = ifelse(is.na(model), 'original', model)) %>% 
-  filter(stock=='gssmat') %>% 
-  mutate(`Biomass 000s tonnes` = total.biomass/1000000, Year = year) %>% 
+  filter(stock=='gssmat', year > 1999) %>% 
+  mutate(`Spawning stock biomass 000s tonnes` = total.biomass/1000000, Year = year) %>% 
   ggplot()+
-  geom_line(aes(x = Year, y = `Biomass 000s tonnes`, color = model)) + 
-  ylim(0,55) +
-  xlim(1980,2020)+
+  geom_line(aes(x = Year, y = `Spawning stock biomass 000s tonnes`, color = model)) + 
+  #ylim(0,55) +
+  xlim(1999,2020)+
   theme_bw()
 
 retro_igfs_F <-
   retro.igfs$res.by.year %>% 
   mutate(model = ifelse(is.na(model), 'original', model)) %>% 
-  filter(stock=='gssmat') %>% 
+  filter(stock=='gssmat', year > 1999) %>% 
   mutate( Year = year) %>% 
   ggplot()+
   geom_line(aes(x = Year, y = F, color = model)) + 
-  ylim(0,0.9) +
-  xlim(1980,2020)+
+  #ylim(0,0.5) +
+  xlim(1999,2020)+
+  ylab('Fbar (ages 6 - 14)') +
   theme_bw()
 
 retro_igfs_rec <-
   retro.igfs$res.by.year %>% 
   mutate(model = ifelse(is.na(model), 'original', model)) %>% 
-  filter(stock=='gssimm', year > 1995) %>% 
-  mutate(`Recruitment 000000s` = recruitment/1000000, Year = year) %>% 
+  filter(stock=='gssimm', year > 1999) %>% 
+  mutate(`Recruitment in millions (Age 5)` = recruitment, Year = year) %>% 
   ggplot()+
-  geom_line(aes(x = Year, y = `Recruitment 000000s`, color = model)) + 
+  geom_line(aes(x = Year, y = `Recruitment in millions (age 5)`, color = model)) + 
   #ylim(0,2.1) +
-  xlim(1995,2020)+
+  xlim(1999,2020)+
   theme_bw()
 
 gridExtra::grid.arrange(retro_igfs_bio, retro_igfs_F, retro_igfs_rec, nrow = 3)
-
-```
-
-
-```{r retrosM015, eval = FALSE, echo=FALSE, fig.width = 8, fig.height= 8, fig.cap = "Greater silver smelt in 5.a and 14. Retrospective plots illustrating stability in model estimates over a 5-year 'peel' in data for the model that did not include the spring survey index (IGFS). Results of spawning stock biomass, fishing mortality F, and recruitment (age 1) are shown."}
-retro_igfs_bio_M015 <-
-  retro.igfs_M015$res.by.year %>% 
-  mutate(model = ifelse(is.na(model), 'original', model)) %>% 
-  filter(stock=='gssmat') %>% 
-  mutate(`Biomass 000s tonnes` = total.biomass/1000000, Year = year) %>% 
-  ggplot()+
-  geom_line(aes(x = Year, y = `Biomass 000s tonnes`, color = model)) + 
-  ylim(0,55) +
-  xlim(1980,2020)+
-  theme_bw()
-
-retro_igfs_F_M015 <-
-  retro.igfs_M015$res.by.year %>% 
-  mutate(model = ifelse(is.na(model), 'original', model)) %>% 
-  filter(stock=='gssmat') %>% 
-  mutate( Year = year) %>% 
-  ggplot()+
-  geom_line(aes(x = Year, y = F, color = model)) + 
-  ylim(0,0.9) +
-  xlim(1980,2020)+
-  theme_bw()
-
-retro_igfs_rec_M015 <-
-  retro.igfs_M015$res.by.year %>% 
-  mutate(model = ifelse(is.na(model), 'original', model)) %>% 
-  filter(stock=='gssmat', year > 1992) %>% 
-  mutate(`Recruitment 000000s` = recruitment/1000000, Year = year) %>% 
-  ggplot()+
-  geom_line(aes(x = Year, y = `Recruitment 000000s`, color = model)) + 
-  ylim(0,2.1) +
-  xlim(1992,2020)+
-  theme_bw()
-
-gridExtra::grid.arrange(retro_igfs_bio_M015, retro_igfs_F_M015, retro_igfs_rec_M015, nrow = 3)
-
-```
-
-
-```{r retrosM020, eval = FALSE, echo=FALSE, fig.width = 8, fig.height= 8, fig.cap = "Greater silver smelt in 5.a and 14. Retrospective plots illustrating stability in model estimates over a 5-year 'peel' in data for the model that did not include the spring survey index (IGFS). Results of spawning stock biomass, fishing mortality F, and recruitment (age 1) are shown."}
-retro_igfs_bio_M020 <-
-  retro.igfs_M020$res.by.year %>% 
-  mutate(model = ifelse(is.na(model), 'original', model)) %>% 
-  filter(stock=='gssmat') %>% 
-  mutate(`Biomass 000s tonnes` = total.biomass/1000000, Year = year) %>% 
-  ggplot()+
-  geom_line(aes(x = Year, y = `Biomass 000s tonnes`, color = model)) + 
-  ylim(0,55) +
-  xlim(1980,2020)+
-  theme_bw()
-
-retro_igfs_F_M020 <-
-  retro.igfs_M020$res.by.year %>% 
-  mutate(model = ifelse(is.na(model), 'original', model)) %>% 
-  filter(stock=='gssmat') %>% 
-  mutate( Year = year) %>% 
-  ggplot()+
-  geom_line(aes(x = Year, y = F, color = model)) + 
-  ylim(0,0.9) +
-  xlim(1980,2020)+
-  theme_bw()
-
-retro_igfs_rec_M020 <-
-  retro.igfs_M020$res.by.year %>% 
-  mutate(model = ifelse(is.na(model), 'original', model)) %>% 
-  filter(stock=='gssmat', year > 1992) %>% 
-  mutate(`Recruitment 000000s` = recruitment/1000000, Year = year) %>% 
-  ggplot()+
-  geom_line(aes(x = Year, y = `Recruitment 000000s`, color = model)) + 
-  ylim(0,2.1) +
-  xlim(1992,2020)+
-  theme_bw()
-
-gridExtra::grid.arrange(retro_igfs_bio_M020, retro_igfs_F_M020, retro_igfs_rec_M020, nrow = 3)
 
 ```
 
@@ -1387,22 +1127,11 @@ gridExtra::grid.arrange(retro_igfs_bio_M020, retro_igfs_F_M020, retro_igfs_rec_M
 
 ```{r suitabplot, echo=FALSE, fig.width = 9, fig.height= 6, fig.cap = 'Greater silver smelt in 5.a and 14. Selectivity estimates by fleet from the models that included the spring survey index (IGFS) or did not.'}
 suitab_plot <-
-  both$suitability %>% 
-  filter(stock=='gssmat',(fleet %in% c('aut', 'comm') & year == 2016 & step == 4) ) %>% #| (fleet=='igfs' & year==2016 & step==2)) %>% 
-  ggplot(aes(length, suit,lty = model, color = fleet)) +
+  fit_no_igfs$suitability %>% 
+  filter(stock=='gssmat',(fleet %in% c('aut', 'comm') & year == 2016 & step == 4) ) %>% #| (fleet=='igfs' & year==2016 & step==2)) %>%
+  mutate(suit = ifelse(length > 57 & fleet=='aut',1,suit)) %>% 
+  ggplot(aes(length, suit, color = fleet)) +
   geom_line() +
-  scale_linetype_discrete(name = "model", labels = c("with IGFS", "no IGFS"))+ 
-  xlab('Length (cm)') +
-  ylab('Suitability (a.k.a. Selectivity)') +
-  theme_bw()
-suitab_plot
-
-suitab_plotM <-
-  bothM$suitability %>% 
-  filter(stock=='gssmat',(fleet %in% c('aut', 'comm') & year == 2016 & step == 4) ) %>% #| (fleet=='igfs' & year==2016 & step==2)) %>% 
-  ggplot(aes(length, suit,lty = model, color = fleet)) +
-  geom_line() +
-  scale_linetype_discrete(name = "model", labels = c("M=0.10", "M=0.15", "M=0.20"))+ 
   xlab('Length (cm)') +
   ylab('Suitability (a.k.a. Selectivity)') +
   theme_bw()
@@ -1411,39 +1140,23 @@ suitab_plot
 
 ```{r catchabplot, echo=FALSE, fig.width = 9, fig.height= 6, fig.cap = 'Greater silver smelt in 5.a and 14. Catchability estimates by survey fleet from the models that included the spring survey index (IGFS) or did not.'}
 catchab_plot <-
-  both$sidat %>% 
+  fit_no_igfs$sidat %>% 
   filter(year == 2016) %>% 
   ungroup %>% 
-  select(model, name, label, intercept, slope) %>% 
+  select(name, label, intercept, slope) %>% 
   distinct() %>% 
   mutate(Catchability = exp(intercept), `Min. SI Length (cm)` = as.numeric(substr(label, 4,5)), fleet = substr(name,10,13)) %>% 
-  ggplot(aes(`Min. SI Length (cm)`, Catchability, lty = model,  color = fleet)) +
+  ggplot(aes(`Min. SI Length (cm)`, Catchability,color = fleet)) +
   geom_line() +
-  scale_linetype_discrete(name = "model", labels = c("with IGFS", "no IGFS"))+ 
   #xlab('Length (cm)') +
   #ylab('Suitability (a.k.a. Selectivity)') +
   theme_bw()
-catchab_plot
 
-catchab_plot <-
-  bothM$sidat %>% 
-  filter(year == 2016) %>% 
-  ungroup %>% 
-  select(model, name, label, intercept, slope) %>% 
-  distinct() %>% 
-  mutate(Catchability = exp(intercept), `Min. SI Length (cm)` = as.numeric(substr(label, 4,5)), fleet = substr(name,10,13)) %>% 
-  ggplot(aes(`Min. SI Length (cm)`, Catchability, lty = model,  color = fleet)) +
-  geom_line() +
-  scale_linetype_discrete(name = "model", labels = c("M=0.10", "M=0.15", "M=0.20"))+ 
-  #xlab('Length (cm)') +
-  #ylab('Suitability (a.k.a. Selectivity)') +
-  theme_bw()
-catchab_plot
-
+print(catchab_plot)
 ```
 
 ```{r tmpgro, echo=FALSE, fig.width = 9, fig.height= 11, fig.cap = 'Greater silver smelt in 5.a and 14. Growth estimates by fleet from the models that included the spring survey index (IGFS) or did not. Yellow bands and the black line show where the mean and 95% confidence intervals of the of model predictions, whereas the points and error bars show the mean and 95% confidence intervals of the data.'}
-tmp <- fit_M010$catchdist.fleets %>% dplyr::ungroup() %>% 
+tmp <- fit_no_igfs$catchdist.fleets %>% dplyr::ungroup() %>% 
   tidyr::nest(-name) %>% 
   dplyr::mutate(plots = purrr::map(data, 
                                        function(x) {
@@ -1479,173 +1192,23 @@ tmp <- fit_M010$catchdist.fleets %>% dplyr::ungroup() %>%
   select(name, plots)
 tmp_no_igfs_gro <- tmp$plots %>% purrr::set_names(., tmp$name)
 
-
-tmp <- fit_all$catchdist.fleets %>% dplyr::ungroup() %>% 
-  tidyr::nest(-name) %>% 
-  dplyr::mutate(plots = purrr::map(data, 
-                                   function(x) {
-                                     if (length(unique(x$age)) > 1) 
-                                       x %>% group_by(year, step, age) %>% mutate(o = observed/sum(observed, 
-                                                                                                   na.rm = TRUE), p = predicted/max(sum(predicted), 
-                                                                                                                                    1e-12)) %>% select(year, step, age, length = avg.length, 
-                                                                                                                                                       observed, o, predicted, p) %>% ungroup() %>% 
-                                       mutate(age = as.numeric(gsub("age", "", 
-                                                                    age))) %>% group_by(year, step, age) %>% 
-                                       summarise(o.ml = sum(o * length, na.rm = TRUE), 
-                                                 o.sl = sqrt(sum(o * (length - o.ml)^2, 
-                                                                 na.rm = TRUE)), p.ml = sum(p * length), 
-                                                 p.sl = sqrt(sum(p * (length - p.ml)^2))) %>% 
-                                       mutate(o.ml = ifelse(o.ml == 0, NA, o.ml), 
-                                              o.sl = ifelse(o.sl == 0, NA, o.sl), upper = p.ml + 
-                                                1.96 * p.sl, lower = p.ml - 1.96 * 
-                                                p.sl, o.upper = o.ml + 1.96 * o.sl, 
-                                              o.lower = o.ml - 1.96 * o.sl) %>% ggplot(aes(age, 
-                                                                                           o.ml)) + geom_ribbon(fill = "gold", aes(ymax = upper, 
-                                                                                                                                   ymin = lower)) + geom_point(size = 0.5) + 
-                                       geom_line(aes(y = p.ml)) + geom_linerange(aes(ymax = o.upper, 
-                                                                                     ymin = o.lower)) + facet_wrap(~year + step, 
-                                                                                                                   drop = FALSE, ncol = max(2 * length(unique(x$step)), 
-                                                                                                                                            4)) + theme_bw() + xlab("Age") + ylab("Average length (cm) ") + 
-                                       geom_text(x = -Inf, y = Inf, aes(label = paste(year, 
-                                                                                      step, sep = ",")), size = 5, data = x %>% 
-                                                   dplyr::select(year, step) %>% dplyr::distinct(), 
-                                                 vjust = 1.5, hjust = -0.1, inherit.aes = FALSE) + 
-                                       theme(strip.background = element_blank(), 
-                                             strip.text = element_blank())
-                                   })) %>% filter(map(plots, ~!is.null(.)) %>% unlist()) %>% 
-  select(name, plots)
-tmp_no_distigfs_gro <- tmp$plots %>% purrr::set_names(., tmp$name)
-
-  gridExtra::grid.arrange(
-  tmp_no_distigfs_gro$aldist.aut+ 
-    geom_text(aes(x = x, y = y, label = label), data = tibble(year = 2000, step = 4, x = 15, y= 15, label = 'with IGFS'), size = 5, color = 'red'),  
-  tmp_no_igfs_gro$aldist.aut+ 
-    geom_text(aes(x = x, y = y, label = label), data = tibble(year = 2000, step = 4, x = 15, y= 15, label = 'no IGFS'), size = 5, color = 'red')
-)
-
-  
-tmp <- fit_M015$catchdist.fleets %>% dplyr::ungroup() %>% 
-  tidyr::nest(-name) %>% 
-  dplyr::mutate(plots = purrr::map(data, 
-                                       function(x) {
-                                     if (length(unique(x$age)) > 1) 
-                                       x %>% group_by(year, step, age) %>% mutate(o = observed/sum(observed, 
-                                                                                                   na.rm = TRUE), p = predicted/max(sum(predicted), 
-                                                                                                                                    1e-12)) %>% select(year, step, age, length = avg.length, 
-                                                                                                                                                       observed, o, predicted, p) %>% ungroup() %>% 
-                                       mutate(age = as.numeric(gsub("age", "", 
-                                                                    age))) %>% group_by(year, step, age) %>% 
-                                       summarise(o.ml = sum(o * length, na.rm = TRUE), 
-                                                 o.sl = sqrt(sum(o * (length - o.ml)^2, 
-                                                                 na.rm = TRUE)), p.ml = sum(p * length), 
-                                                 p.sl = sqrt(sum(p * (length - p.ml)^2))) %>% 
-                                       mutate(o.ml = ifelse(o.ml == 0, NA, o.ml), 
-                                              o.sl = ifelse(o.sl == 0, NA, o.sl), upper = p.ml + 
-                                                1.96 * p.sl, lower = p.ml - 1.96 * 
-                                                p.sl, o.upper = o.ml + 1.96 * o.sl, 
-                                              o.lower = o.ml - 1.96 * o.sl) %>% ggplot(aes(age, 
-                                                                                           o.ml)) + geom_ribbon(fill = "gold", aes(ymax = upper, 
-                                                                                                                                   ymin = lower)) + geom_point(size = 0.5) + 
-                                       geom_line(aes(y = p.ml)) + geom_linerange(aes(ymax = o.upper, 
-                                                                                     ymin = o.lower)) + facet_wrap(~year + step, 
-                                                                                                                   drop = FALSE, ncol = max(2 * length(unique(x$step)), 
-                                                                                                                                            4)) + theme_bw() + xlab("Age") + ylab("Average length (cm) ") + 
-                                       geom_text(x = -Inf, y = Inf, aes(label = paste(year, 
-                                                                                      step, sep = ",")), size = 5, data = x %>% 
-                                                   dplyr::select(year, step) %>% dplyr::distinct(), 
-                                                 vjust = 1.5, hjust = -0.1, inherit.aes = FALSE) + 
-                                       theme(strip.background = element_blank(), 
-                                             strip.text = element_blank())
-                                   })) %>% filter(map(plots, ~!is.null(.)) %>% unlist()) %>% 
-  select(name, plots)
-tmp_M015_gro <- tmp$plots %>% purrr::set_names(., tmp$name)
-
-tmp <- fit_M020$catchdist.fleets %>% dplyr::ungroup() %>% 
-  tidyr::nest(-name) %>% 
-  dplyr::mutate(plots = purrr::map(data, 
-                                       function(x) {
-                                     if (length(unique(x$age)) > 1) 
-                                       x %>% group_by(year, step, age) %>% mutate(o = observed/sum(observed, 
-                                                                                                   na.rm = TRUE), p = predicted/max(sum(predicted), 
-                                                                                                                                    1e-12)) %>% select(year, step, age, length = avg.length, 
-                                                                                                                                                       observed, o, predicted, p) %>% ungroup() %>% 
-                                       mutate(age = as.numeric(gsub("age", "", 
-                                                                    age))) %>% group_by(year, step, age) %>% 
-                                       summarise(o.ml = sum(o * length, na.rm = TRUE), 
-                                                 o.sl = sqrt(sum(o * (length - o.ml)^2, 
-                                                                 na.rm = TRUE)), p.ml = sum(p * length), 
-                                                 p.sl = sqrt(sum(p * (length - p.ml)^2))) %>% 
-                                       mutate(o.ml = ifelse(o.ml == 0, NA, o.ml), 
-                                              o.sl = ifelse(o.sl == 0, NA, o.sl), upper = p.ml + 
-                                                1.96 * p.sl, lower = p.ml - 1.96 * 
-                                                p.sl, o.upper = o.ml + 1.96 * o.sl, 
-                                              o.lower = o.ml - 1.96 * o.sl) %>% ggplot(aes(age, 
-                                                                                           o.ml)) + geom_ribbon(fill = "gold", aes(ymax = upper, 
-                                                                                                                                   ymin = lower)) + geom_point(size = 0.5) + 
-                                       geom_line(aes(y = p.ml)) + geom_linerange(aes(ymax = o.upper, 
-                                                                                     ymin = o.lower)) + facet_wrap(~year + step, 
-                                                                                                                   drop = FALSE, ncol = max(2 * length(unique(x$step)), 
-                                                                                                                                            4)) + theme_bw() + xlab("Age") + ylab("Average length (cm) ") + 
-                                       geom_text(x = -Inf, y = Inf, aes(label = paste(year, 
-                                                                                      step, sep = ",")), size = 5, data = x %>% 
-                                                   dplyr::select(year, step) %>% dplyr::distinct(), 
-                                                 vjust = 1.5, hjust = -0.1, inherit.aes = FALSE) + 
-                                       theme(strip.background = element_blank(), 
-                                             strip.text = element_blank())
-                                   })) %>% filter(map(plots, ~!is.null(.)) %>% unlist()) %>% 
-  select(name, plots)
-tmp_M020_gro <- tmp$plots %>% purrr::set_names(., tmp$name)
-
-  gridExtra::grid.arrange(
-  tmp_M015_gro$aldist.aut+ 
-    geom_text(aes(x = x, y = y, label = label), data = tibble(year = 2000, step = 4, x = 15, y= 15, label = 'M = 0.15'), size = 5, color = 'red'),  
-  tmp_M020_gro$aldist.aut+ 
-    geom_text(aes(x = x, y = y, label = label), data = tibble(year = 2000, step = 4, x = 15, y= 15, label = 'M = 0.20'), size = 5, color = 'red')
-)
-
+  tmp_no_igfs_gro$aldist.aut
 
 ```
 
 ```{r matplot, echo=FALSE, fig.width = 9, fig.height= 6, fig.cap = 'Greater silver smelt in 5.a and 14. Annual maturity estimates (lines) compared to data (points) from the models that included the spring survey index (IGFS) or did not.'}
 matplot <- 
 #  all$stockdist %>%
-  both$stockdist %>%
+  fit_no_igfs$stockdist %>%
   filter(stock=='gssmat',name == 'matp.aut', !is.na(obs.ratio)) %>% 
-  mutate(model2 = model,
-        model = ifelse(model2 %in% c(1,3), 'with IGFS', 
-                        ifelse(model2 %in% c(2,4), 'no IGFS', model2))) %>% #,
-#         L50t = ifelse(model2 %in% c(3,4), 'included', 'not included'))%>%
-#  group_by(model, L50t) %>%
-  group_by(model) %>%
-  ggplot(aes(length,obs.ratio, color = model)) + 
+  ggplot(aes(length,obs.ratio)) + 
 #  ggplot(aes(length,obs.ratio, color = model, lty = L50t)) + 
   geom_point() + 
   geom_line(aes(length, pred.ratio), alpha = 0.7)+
 #  scale_color_discrete(c('red', 'green', 'red', 'green')) + 
-  scale_color_discrete(c('red', 'green')) + 
   facet_wrap(~year) + theme_minimal() + 
   labs(y='Proportion mature',x='Length')
-matplot
-
-matplotM <- 
-#  all$stockdist %>%
-  bothM$stockdist %>%
-  filter(stock=='gssmat',name == 'matp.aut', !is.na(obs.ratio)) %>% 
-  mutate(model2 = model,
-        model = ifelse(model2 %in% c(1,3), 'with IGFS', 
-                        ifelse(model2 %in% c(2,4), 'no IGFS', model2))) %>% #,
-#         L50t = ifelse(model2 %in% c(3,4), 'included', 'not included'))%>%
-#  group_by(model, L50t) %>%
-  group_by(model) %>%
-  ggplot(aes(length,obs.ratio, color = model)) + 
-#  ggplot(aes(length,obs.ratio, color = model, lty = L50t)) + 
-  geom_point() + 
-  geom_line(aes(length, pred.ratio), alpha = 0.7)+
-#  scale_color_discrete(c('red', 'green', 'red', 'green')) + 
-  scale_color_discrete(c('red', 'green')) + 
-  facet_wrap(~year) + theme_minimal() + 
-  labs(y='Proportion mature',x='Length')
-matplotM
+print(matplot)
 ```
 
 
@@ -1654,165 +1217,81 @@ matplotM
 
 ```{r totbioplot, echo=FALSE, fig.width = 9, fig.height= 6, fig.cap = "Greater silver smelt in 5.a and 14. Estimates of total biomass by by stock from the models that included the spring survey index (IGFS) or did not. The stock 'gssmat' reflects the mature portion (spawning stock biomass), whereas 'gssimm' reflects the immature portion of the stock."}
 tot_bio_plot <-
-  plot(both, data='res.by.year',type='total') + 
-  geom_line(aes(lty = model))+ 
-  scale_linetype_discrete(name = "model", labels = c("with IGFS", "no IGFS")) + theme_bw()
-tot_bio_plot
-
-tot_bio_plotM <-
-  plot(bothM, data='res.by.year',type='total') + 
-  geom_line(aes(lty = model))+ 
-  scale_linetype_discrete(name = "model", labels = c("M = 0.10", "M = 0.15", "M = 0.20")) + theme_bw()
-tot_bio_plotM
-
+  plot(fit_no_igfs, data='res.by.year',type='total') + theme_bw()
+print(tot_bio_plot)
 ```
 
 ```{r Fplot, echo=FALSE, fig.width = 9, fig.height= 6, fig.cap = "Greater silver smelt in 5.a and 14. Estimates of fishing mortality F of fully selected ages from the models that included the spring survey index (IGFS) or did not."}
 F_plot <-
-  plot(both, data='res.by.year',type='F') + geom_line(aes(lty = model)) + 
-  scale_linetype_discrete(name = "model", labels = c("with IGFS", "no IGFS"))+ theme_bw()
-F_plot
-
-F_plotM <-
-  plot(bothM, data='res.by.year',type='F') + geom_line(aes(lty = model)) + 
-  scale_linetype_discrete(name = "model", labels = c("M = 0.10", "M = 0.15", "M = 0.20"))+ theme_bw()
-F_plotM
-
+  plot(fit_no_igfs, data='res.by.year',type='F') + theme_bw() +
+  ylab('Fbar (ages 6 - 14)')
+print(F_plot)
 ```
 
 ```{r recplot, echo=FALSE, fig.width = 9, fig.height= 6, fig.cap = "Greater silver smelt in 5.a and 14. Estimates of recruitment by by stock from the models that included the spring survey index (IGFS) or did not."}
 rec_plot <-
-  both$res.by.year %>% 
-  filter(stock=='gssimm') %>% 
+  fit_no_igfs$res.by.year %>% 
+  filter(stock=='gssimm', year > 1999) %>% 
   ggplot()+ 
   geom_line(aes(year, recruitment/1000000, color = stock)) +
-  geom_line(aes(year, recruitment/1000000, color = stock, lty = model)) +
-  ylab('Recruitment (millions)')+
-  xlab('Year')+ 
-  scale_linetype_discrete(name = "model", labels = c("with IGFS", "no IGFS"))+ 
-  theme_bw()
-rec_plot
-
-rec_plotM <-
-  bothM$res.by.year %>% 
-  filter(stock=='gssimm') %>% 
-  ggplot()+ 
   geom_line(aes(year, recruitment/1000000, color = stock)) +
-  geom_line(aes(year, recruitment/1000000, color = stock, lty = model)) +
-  ylab('Recruitment (millions)')+
+  ylab('Recruitment in millions (age 5)')+
   xlab('Year')+ 
-  scale_linetype_discrete(name = "model", labels = c("M = 0.10", "M = 0.15", "M = 0.20"))+ 
   theme_bw()
-rec_plotM
-
+print(rec_plot)
 ```
 
 
 ```{r SRplot, echo=FALSE, fig.width = 9, fig.height= 9, fig.cap = "Greater silver smelt in 5.a and 14. Plots of the estimated recruitment age age 1 versus spawning stock biomass (lagged by 1 year) from the models that included the spring survey index (IGFS) or did not. Vertical lines indicate the minimum observed spawning stock biomass value."}
 #ssb - rec
 SR_plot <-
-  both$res.by.year %>% 
+  fit_no_igfs$res.by.year %>% 
   ungroup() %>% 
   filter(stock=='gssmat') %>%
-  select(model, year, total.biomass) %>% 
+  select(year, total.biomass) %>% 
+  filter(year > 1999) %>% 
   mutate(`Spawning stock biomass (1000s tonnes)` = lag(total.biomass/1000000)) %>% 
-  left_join(both$res.by.year %>% 
+  left_join(fit_no_igfs$res.by.year %>% 
               ungroup() %>% 
               filter(stock=='gssimm') %>%
-              select(model, year, recruitment) %>% 
-              mutate(`Recruitment (millions)` = recruitment/1000000)) %>% 
-  mutate(model = ifelse(model==1, 'with IGFS', 
-                        ifelse(model==2, 'no IGFS', 'with IGFS, time-variable maturity'))) %>% 
+              select(year, recruitment) %>% 
+              mutate(`Recruitment in millions (age 5)` = recruitment/1000000)) %>% 
   arrange(year) %>% 
   ggplot() + 
   #geom_point(aes(x = `Spawning stock biomass (1000s tonnes)`, y = `Recruitment (millions)`, color = model)) +
-  geom_text(aes(x = `Spawning stock biomass (1000s tonnes)`, y = `Recruitment (millions)`, label = year, color = model)) +
-  geom_path(aes(x = `Spawning stock biomass (1000s tonnes)`, y = `Recruitment (millions)`), alpha = 0.3) +
-  geom_vline(aes(xintercept = minssb), lty = 2, data = both$res.by.year %>% 
+  geom_text(aes(x = `Spawning stock biomass (1000s tonnes)`, y = `Recruitment in millions (age 5)`, label = year)) +
+  geom_path(aes(x = `Spawning stock biomass (1000s tonnes)`, y = `Recruitment in millions (age 5)`), alpha = 0.3) +
+  geom_vline(aes(xintercept = minssb), lty = 2, data = fit_no_igfs$res.by.year %>% 
                ungroup() %>% 
                filter(stock=='gssmat') %>%
-               select(model, year, total.biomass) %>% 
-               mutate(model = ifelse(model==1, 'with IGFS', 
-                                     ifelse(model==2, 'no IGFS', 'with IGFS, time-variable maturity'))) %>% 
-               group_by(model) %>% 
+               select(year, total.biomass) %>% 
+               filter(year > 1999) %>% 
                mutate(`Spawning stock biomass (1000s tonnes)` = lag(total.biomass/1000000)) %>%
                summarize(minssb = min(`Spawning stock biomass (1000s tonnes)`, na.rm = T))) + 
   geom_text(aes(x = x, y = y, label = label), data = 
-              both$res.by.year %>% 
+              fit_no_igfs$res.by.year %>% 
               ungroup() %>% 
               filter(stock=='gssmat') %>%
-              select(model, year, total.biomass) %>% 
-              mutate(model = ifelse(model==1, 'with IGFS', 
-                                    ifelse(model==2, 'no IGFS', 'with IGFS, time-variable maturity'))) %>% 
-              group_by(model) %>% 
+              select(year, total.biomass) %>%
+              filter(year > 1999) %>% 
               mutate(`Spawning stock biomass (1000s tonnes)` = lag(total.biomass/1000000)) %>%
               summarize(minssb = min(`Spawning stock biomass (1000s tonnes)`, na.rm = T)) %>%
-              left_join(both$res.by.year %>% 
+              left_join(fit_no_igfs$res.by.year %>% 
                           ungroup() %>% 
                           filter(stock=='gssmat') %>%
                           select(year, total.biomass) %>% 
+                          filter(year > 1999) %>% 
                           mutate(minssb = lag(total.biomass/1000000))) %>% 
               mutate(x = 25, y = 75, label = paste0('Min. SSB = ', round(minssb,3), ' (in ', year, ')'))) + 
-  theme_bw() +
-  xlim(0,55)+
-  facet_wrap(~model, ncol = 1)
+  xlim(0,60)+
+  theme_bw() 
 
-SR_plot
-
-
-SR_plotM <-
-  bothM$res.by.year %>% 
-  ungroup() %>% 
-  filter(stock=='gssmat') %>%
-  select(model, year, total.biomass) %>% 
-  mutate(`Spawning stock biomass (1000s tonnes)` = lag(total.biomass/1000000)) %>% 
-  left_join(bothM$res.by.year %>% 
-              ungroup() %>% 
-              filter(stock=='gssimm') %>%
-              select(model, year, recruitment) %>% 
-              mutate(`Recruitment (millions)` = recruitment/1000000)) %>% 
-  mutate(model = ifelse(model==1, 'M = 0.10', 
-                        ifelse(model==2, 'M = 0.15', 'M = 0.20'))) %>% 
-  arrange(year) %>% 
-  ggplot() + 
-  #geom_point(aes(x = `Spawning stock biomass (1000s tonnes)`, y = `Recruitment (millions)`, color = model)) +
-  geom_text(aes(x = `Spawning stock biomass (1000s tonnes)`, y = `Recruitment (millions)`, label = year, color = model)) +
-  geom_path(aes(x = `Spawning stock biomass (1000s tonnes)`, y = `Recruitment (millions)`), alpha = 0.3) +
-  geom_vline(aes(xintercept = minssb), lty = 2, data = bothM$res.by.year %>% 
-               ungroup() %>% 
-               filter(stock=='gssmat') %>%
-               select(model, year, total.biomass) %>% 
-               mutate(model = ifelse(model==1, 'M = 0.10', 
-                        ifelse(model==2, 'M = 0.15', 'M = 0.20'))) %>% 
-               group_by(model) %>% 
-               mutate(`Spawning stock biomass (1000s tonnes)` = lag(total.biomass/1000000)) %>%
-               summarize(minssb = min(`Spawning stock biomass (1000s tonnes)`, na.rm = T))) + 
-  geom_text(aes(x = x, y = y, label = label), data = 
-              bothM$res.by.year %>% 
-              ungroup() %>% 
-              filter(stock=='gssmat') %>%
-              select(model, year, total.biomass) %>% 
-              mutate(model = ifelse(model==1, 'M = 0.10', 
-                        ifelse(model==2, 'M = 0.15', 'M = 0.20'))) %>% 
-              group_by(model) %>% 
-              mutate(`Spawning stock biomass (1000s tonnes)` = lag(total.biomass/1000000)) %>%
-              summarize(minssb = min(`Spawning stock biomass (1000s tonnes)`, na.rm = T)) %>%
-              left_join(bothM$res.by.year %>% 
-                          ungroup() %>% 
-                          filter(stock=='gssmat') %>%
-                          select(year, total.biomass) %>% 
-                          mutate(minssb = lag(total.biomass/1000000))) %>% 
-              mutate(x = 25, y = 75, label = paste0('Min. SSB = ', round(minssb,3), ' (in ', year, ')'))) + 
-  theme_bw() +
-  xlim(0,55)+
-  facet_wrap(~model, ncol = 1)
-
-SR_plotM
+print(SR_plot)
 
 ```
 
 
-
-
 ## Annex
 ### Optimization settings
+
+Optimizations were performed simulated annealing followed by a Hooke and Jeeves algorithm. Simulated annealing was run using 2 000 000 maximum simulated annealing iterations with 1e-03 as the minimum epsilon (halt criteria), 30 000 000 as the initial temperature 0.85 as the temperature reduction factor, 2 loops before temperature adjusted, 5 loops before step length adjusted, 1  as the initial value for the maximum step length, 2 as the step length adjustment factor, 0.3   and 0.7 as the lower and upper limits for ratio when adjusting step length respectively,  and 4  temperature loop checks.The Hooke and Jeeves algorithm was run with 100 000 maximum iterations, 1e-07 as the minimum epsilon (halt criteria), 0.5 as the resizing multiplier and 0 as the initial value for the step length. In practice, most of the optimization was completed by simulated annealing and both steps always converged. The BFGS algorithm was attempted as a third step in the optimization routine but was did not improve the fit appreciably so was removed.

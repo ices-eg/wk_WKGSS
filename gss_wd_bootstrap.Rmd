@@ -1,0 +1,903 @@
+---
+title: "Greater Silver Smelt in 5a and 14 bootstraps"
+author: "Pamela J. Woods"
+date: "05/02/2020"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include==FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, cache = TRUE)
+library(tidyverse)
+library(mfdb)
+mdb<-mfdb('Iceland')
+library(Rgadget)
+#setwd('~/Documents/Hafro/fishvice/19-gss/exploratory_models/gadget/01-new_ass_no_distigfs_mt_s6')
+
+fit_M010<- gadget.fit( gd = '~/Documents/Hafro/fishvice/19-gss/exploratory_models/gadget/01-new_ass_no_igfs_mt_s6_M010',recruitment_step_age	= tibble(stock = 'gssimm', age = 5, step = 1))
+
+fit_no_distigfs<- gadget.fit( gd = '~/Documents/Hafro/fishvice/19-gss/exploratory_models/gadget/01-new_ass_no_distigfs_mt_s6',recruitment_step_age	= tibble(stock = 'gssimm', age = 5, step = 1))
+
+load('~/Documents/Hafro/fishvice/19-gss/exploratory_models/gadget/01-new_ass_no_igfs_mt_s6_M010/bootfit.Rdata')
+bootfit.igfs <- bootfit
+rm(bootfit)
+ 
+ load('~/Documents/Hafro/fishvice/19-gss/exploratory_models/gadget/01-new_ass_no_distigfs_mt_s6/bootfit.Rdata')
+bootfit.distigfs <- bootfit
+rm(bootfit)
+ 
+```
+
+#### Bootstrap-estimated uncertainty
+
+```{r BSpars, echo=FALSE, fig.width = 9, fig.height= 9, fig.cap = "Greater silver smelt in 5.a and 14. Histogram of parameter estimates from __ bootstrap samples, the red line indicates the estimate from the base run"}
+
+bootfit.igfs$params %>%
+  #filter(!(model %in% c(22,70,73,24,56,64)))%>%
+  filter(optimise==1,
+         !grepl('rec\\.[0-9]',switch),
+         !grepl('init\\.[0-9]',switch),
+         !grepl('scalar',switch)) %>%
+  mutate(switch = gsub('^[A-Za-z]+\\.','',switch),
+         value = ifelse(grepl('k$|mat1$',switch),0.001*value,value),
+         label = forcats::fct_recode(switch,
+                                     'beta' = "bbin",
+                                     'alpha[g]' = 'gil.alpha',
+                                     'l[50][g]' ='gil.l50',
+                                     'alpha[l]' = 'lln.alpha',
+                                     'l[50][l]' ='lln.l50',
+                                     'alpha[t]' = 'bmt.alpha',
+                                     'l[50][t]' ='bmt.l50',
+                                     'alpha[s]' = 'igfs.alpha',
+                                     'l[50][s]'='igfs.l50',
+                                     'F[0]'='init.F',
+                                     'L[infinity]'='Linf',
+                                     'lambda'='mat1',
+                                     'l[50]'='mat2',
+                                     'sigma[0]'='rec.sd',
+                                     'l[0]'='recl'  )) %>%
+  ggplot(aes(value)) + geom_histogram(fill='gray')+
+  facet_wrap(~label,scale='free',labeller = label_parsed) +
+  geom_vline(aes(xintercept=value),
+             col='red',
+             data=fit_M010$params %>%
+               filter(optimise==1,
+                      !grepl('rec\\.[0-9]',switch),
+                      !grepl('init\\.[0-9]',switch),
+                      !grepl('scalar',switch)) %>%
+               mutate(switch = gsub('^[A-Za-z]+\\.','',switch),
+                      value = ifelse(grepl('k$|mat1$',switch),0.001*value,value),
+                      label = forcats::fct_recode(switch,
+                                                  'beta' = "bbin",
+                                                  'alpha[g]' = 'gil.alpha',
+                                                  'l[50][g]' ='gil.l50',
+                                                  'alpha[l]' = 'lln.alpha',
+                                                  'l[50][l]' ='lln.l50',
+                                                  'alpha[t]' = 'bmt.alpha',
+                                                  'l[50][t]' ='bmt.l50',
+                                                  'alpha[s]' = 'igfs.alpha',
+                                                  'l[50][s]'='igfs.l50',
+                                                  'F[0]'='init.F',
+                                                  'L[infinity]'='Linf',
+                                                  'lambda'='mat1',
+                                                  'l[50]'='mat2',
+                                                  'sigma[0]'='rec.sd',
+                                                  'l[0]'='recl' ))) +
+  theme_light() +
+  labs(x='Parameter value',y='% iterations')
+
+bootfit.distigfs$params %>%
+  #filter(!(model %in% c(22,70,73,24,56,64)))%>%
+  filter(optimise==1,
+         !grepl('rec\\.[0-9]',switch),
+         !grepl('init\\.[0-9]',switch),
+         !grepl('scalar',switch)) %>%
+  mutate(switch = gsub('^[A-Za-z]+\\.','',switch),
+         value = ifelse(grepl('k$|mat1$',switch),0.001*value,value),
+         label = forcats::fct_recode(switch,
+                                     'beta' = "bbin",
+                                     'alpha[g]' = 'gil.alpha',
+                                     'l[50][g]' ='gil.l50',
+                                     'alpha[l]' = 'lln.alpha',
+                                     'l[50][l]' ='lln.l50',
+                                     'alpha[t]' = 'bmt.alpha',
+                                     'l[50][t]' ='bmt.l50',
+                                     'alpha[s]' = 'igfs.alpha',
+                                     'l[50][s]'='igfs.l50',
+                                     'F[0]'='init.F',
+                                     'L[infinity]'='Linf',
+                                     'lambda'='mat1',
+                                     'l[50]'='mat2',
+                                     'sigma[0]'='rec.sd',
+                                     'l[0]'='recl'  )) %>%
+  ggplot(aes(value)) + geom_histogram(fill='gray')+
+  facet_wrap(~label,scale='free',labeller = label_parsed) +
+  geom_vline(aes(xintercept=value),
+             col='red',
+             data=fit_no_distigfs$params %>%
+               filter(optimise==1,
+                      !grepl('rec\\.[0-9]',switch),
+                      !grepl('init\\.[0-9]',switch),
+                      !grepl('scalar',switch),
+                      !grepl('lmode',switch),
+                      !grepl('.p',switch)) %>%
+               mutate(switch = gsub('^[A-Za-z]+\\.','',switch),
+                      value = ifelse(grepl('k$|mat1$',switch),0.001*value,value),
+                      label = forcats::fct_recode(switch,
+                                                  'beta' = "bbin",
+                                                  'alpha[g]' = 'gil.alpha',
+                                                  'l[50][g]' ='gil.l50',
+                                                  'alpha[l]' = 'lln.alpha',
+                                                  'l[50][l]' ='lln.l50',
+                                                  'alpha[t]' = 'bmt.alpha',
+                                                  'l[50][t]' ='bmt.l50',
+                                                  'alpha[s]' = 'igfs.alpha',
+                                                  'l[50][s]'='igfs.l50',
+                                                  'F[0]'='init.F',
+                                                  'L[infinity]'='Linf',
+                                                  'lambda'='mat1',
+                                                  'l[50]'='mat2',
+                                                  'sigma[0]'='rec.sd',
+                                                  'l[0]'='recl' ))) +
+  theme_light() +
+  labs(x='Parameter value',y='% iterations')
+
+```
+
+
+```{r BSVB, echo=FALSE, fig.width = 9, fig.height= 9, fig.cap = "Greater silver smelt in 5.a and 14. X-Y scatterplot of the bootstrap estimates of Linfty and k. The red cross indicates the base run estimate."}
+
+bootfit.igfs$params%>%
+  #filter(!(model %in% c(22,70,73,24,56,64))) %>%
+  filter(grepl('k$|Linf',switch)) %>%
+  mutate(switch = gsub('^[A-Za-z]+\\.','',switch),
+         value = ifelse(grepl('k$|mat1$',switch),0.001*value,value)) %>%
+  select(model,switch,value) %>%
+  tidyr::spread(switch, value) %>%
+  ggplot(aes(k,Linf)) + geom_point() +
+  geom_point(col='red',
+             data=fit_M010$params %>%
+               filter(grepl('k$|Linf',switch)) %>%
+               mutate(switch = gsub('^[A-Za-z]+\\.','',switch),
+                      value = ifelse(grepl('k$|mat1$',switch),0.001*value,value)) %>%
+               select(switch,value) %>%
+               tidyr::spread(switch, value),
+             pch='+',size=10) +
+  theme_light() +
+  labs(x='k',y=expression(L[infinity]))
+
+bootfit.distigfs$params%>%
+  #filter(!(model %in% c(22,70,73,24,56,64))) %>%
+  filter(grepl('k$|Linf',switch)) %>%
+  mutate(switch = gsub('^[A-Za-z]+\\.','',switch),
+         value = ifelse(grepl('k$|mat1$',switch),0.001*value,value)) %>%
+  select(model,switch,value) %>%
+  tidyr::spread(switch, value) %>%
+  ggplot(aes(k,Linf)) + geom_point() +
+  geom_point(col='red',
+             data=fit_no_distigfs$params %>%
+               filter(grepl('k$|Linf',switch)) %>%
+               mutate(switch = gsub('^[A-Za-z]+\\.','',switch),
+                      value = ifelse(grepl('k$|mat1$',switch),0.001*value,value)) %>%
+               select(switch,value) %>%
+               tidyr::spread(switch, value),
+             pch='+',size=10) +
+  theme_light() +
+  labs(x='k',y=expression(L[infinity]))
+
+```
+
+
+```{r BSpairs, echo=FALSE, message = FALSE, fig.width = 9, fig.height= 9, fig.cap = "Greater silver smelt in 5a and 14. Pairs-plot of all parameters except those related to the number of recruits and initial number at age."}
+bootfit.igfs$params %>%
+  filter(optimise==1,
+         !grepl('rec\\.[0-9]',switch),
+         !grepl('init\\.[0-9]',switch),
+         !grepl('scalar',switch),
+         !grepl('mat.l50',switch)) %>%
+  mutate(switch = gsub('^[A-Za-z]+\\.','',switch),
+         value = ifelse(grepl('k$|mat1$',switch),0.001*value,value),
+         label = forcats::fct_recode(switch,
+                                     'beta' = "bbin",
+                                     'alpha[c]' = 'comm.alpha',
+                                     'l[50][c]' ='comm.l50',
+                                     'alpha[s]' = 'igfs.alpha',
+                                     'l[50][s]'='igfs.l50',
+                                     'F[0]'='init.F',
+                                     'L[infinity]'='Linf',
+                                     'lambda'='mat1',
+                                     'l[50]'='mat2',
+                                     'sigma[0]'='rec.sd',
+                                     'l[0]'='recl' )) %>%
+  select(model,switch,value) %>% spread(switch,value) %>% select(-model) %>%
+  GGally::ggpairs() +
+  theme_light()
+
+bootfit.distigfs$params %>%
+  filter(optimise==1,
+         !grepl('rec\\.[0-9]',switch),
+         !grepl('init\\.[0-9]',switch),
+         !grepl('scalar',switch),
+         !grepl('mat.l50',switch),
+         !grepl('lmode',switch),
+         !grepl('.p',switch)) %>%
+  mutate(switch = gsub('^[A-Za-z]+\\.','',switch),
+         value = ifelse(grepl('k$|mat1$',switch),0.001*value,value),
+         label = forcats::fct_recode(switch,
+                                     'beta' = "bbin",
+                                     'alpha[c]' = 'comm.alpha',
+                                     'l[50][c]' ='comm.l50',
+                                     'alpha[s]' = 'igfs.alpha',
+                                     'l[50][s]'='igfs.l50',
+                                     'F[0]'='init.F',
+                                     'L[infinity]'='Linf',
+                                     'lambda'='mat1',
+                                     'l[50]'='mat2',
+                                     'sigma[0]'='rec.sd',
+                                     'l[0]'='recl' )) %>%
+  select(model,switch,value) %>% spread(switch,value) %>% select(-model) %>%
+  GGally::ggpairs() +
+  theme_light()
+
+```
+
+
+```{r BSrec, echo=FALSE, fig.width = 9, fig.height= 9, fig.cap = "Greater silver smelt in 5a and 14. Boxplots of annual recruitment (age 5) bootstrap estimates, the red line indicates the estimate from the base run."}
+
+bootfit.igfs$res.by.year %>%
+  #filter(!(model %in% c(22,70,73,24,56,64))) %>%
+  filter(grepl('imm',stock)) %>%
+  mutate(recruitment = recruitment/1e6) %>%
+  ggplot(aes(year,recruitment,group=round(year))) + geom_boxplot()+#geom_ribbon(aes(ymin=l,ymax=u),fill="gold") + geom_line() +
+  geom_line(data=fit_M010$res.by.year %>% filter(stock=='gssimm'),aes(y=recruitment/1e6,group=1),col='red') +
+  labs(y='Recruitment (in millions)',x='Year') +
+  theme_light()
+
+bootfit.distigfs$res.by.year %>%
+  #filter(!(model %in% c(22,70,73,24,56,64))) %>%
+  filter(grepl('imm',stock)) %>%
+  mutate(recruitment = recruitment/1e6) %>%
+  ggplot(aes(year,recruitment,group=round(year))) + geom_boxplot()+#geom_ribbon(aes(ymin=l,ymax=u),fill="gold") + geom_line() +
+  geom_line(data=fit_no_distigfs$res.by.year %>% filter(stock=='gssimm'),aes(y=recruitment/1e6,group=1),col='red') +
+  labs(y='Recruitment (in millions)',x='Year') +
+  theme_light() +
+  ylim(0,60)
+
+```
+
+
+```{r BSageparest, echo=FALSE, fig.width = 9, fig.height= 9, fig.cap = "Greater silver smelt in 5a and 14. Boxplots of initial age structure bootstrap estimates, the red line indicates the estimate from the base"}
+
+bootfit.igfs$stock.std%>%
+  #filter(!(model %in% c(22,70,73,24,56,64))) %>%
+  filter(year == 1990) %>%
+  group_by(model,age) %>%
+  summarise(number=sum(number)) %>%
+  ggplot(aes(age,number/1e6,group=round(age))) + geom_boxplot() +
+  geom_line(data=fit_M010$stock.std %>%
+              filter(year == 1990)%>%
+              group_by(age) %>%
+              summarise(number=sum(number)),aes(group=1),col='red') +
+  labs(y='Initial age structure (in millions)',x='Age') +
+  theme_light()
+
+bootfit.distigfs$stock.std%>%
+  #filter(!(model %in% c(22,70,73,24,56,64))) %>%
+  filter(year == 1980) %>%
+  group_by(model,age) %>%
+  summarise(number=sum(number)) %>%
+  ggplot(aes(age,number/1e6,group=round(age))) + geom_boxplot() +
+  geom_line(data=fit_no_distigfs$stock.std %>%
+              filter(year == 1980)%>%
+              group_by(age) %>%
+              summarise(number=sum(number)),aes(group=1),col='red') +
+  labs(y='Initial age structure (in millions)',x='Age') +
+  theme_light()
+```
+
+
+```{r BSqest, echo=FALSE, fig.width = 9, fig.height= 6, fig.cap = "Boxplot of estimated catchability parameters, $q_g$, as a function of the survey index length group."}
+
+bootfit.igfs$sidat %>%
+  select(model,name,intercept) %>%
+  filter(!(name %in% c('si.50-60.aut', 'si.50-60.igfs'))) %>% 
+  distinct() %>%
+  ggplot(aes(name,exp(intercept))) + geom_boxplot() +
+  geom_line(aes(group=1),col='red',
+            data=fit_M010$sidat %>%
+              select(name,intercept) %>%
+              distinct()) +
+  theme_light() +
+  labs(x='Survey index',y=expression(q[g])) + 
+  ylim(0,0.0005)
+
+bootfit.distigfs$sidat %>%
+  select(model,name,intercept) %>%
+    filter(!(name %in% c('si.50-60.aut', 'si.50-60.igfs'))) %>% 
+  distinct() %>%
+  ggplot(aes(name,exp(intercept))) + geom_boxplot() +
+  geom_line(aes(group=1),col='red',
+            data=fit_no_distigfs$sidat %>%
+              select(name,intercept) %>%
+              distinct()) +
+  theme_light() +
+  labs(x='Survey index',y=expression(q[g]))+ 
+  ylim(0,0.0005)
+```
+
+
+```{r BSSI, echo=FALSE, fig.width = 9, fig.height= 6, fig.cap = "Bootstrap distribution of the length aggregated abundance indices from the autumn survey compared with the predicted survey indices. The black line is the bootstrap median and the yellow area is the 5 and 95% percentiles of the bootstrapped indices, while the black points indicate the survey index.  The blue solid line is the median of the predicted indices from the  bootstrap runs and the blue dotted line the 5 and 95% percentile.  The red line is the predicted indices from the base model. "}
+
+#fit to individual data sets
+#
+bootfit.igfs$sidat %>%
+#filter(!(model %in% c(22,70,73,24,56,64)))%>%
+filter(name != 'si.50-60.aut') %>% 
+group_by(year,name) %>%
+  summarise(om=median(observed,na.rm=TRUE),
+            ou=quantile(observed,0.975,na.rm=TRUE),
+            ol=quantile(observed,0.025,na.rm=TRUE),
+            pm=median(predict,na.rm=TRUE),
+            pu=quantile(predict,0.975,na.rm=TRUE),
+            pl=quantile(predict,0.025,na.rm=TRUE)) %>%
+  ggplot(aes(year,om)) + geom_ribbon(aes(ymin=ol,ymax=ou),fill="gold") + geom_line() +
+  geom_line(aes(y=pm),col='blue') +
+  geom_line(aes(y=pu),col='blue',lty=2) +
+  geom_line(aes(y=pl),col='blue',lty=2) +
+  geom_line(aes(y=predict),col='red',data=fit_M010$sidat) +
+  geom_point(aes(y=observed),data=fit_M010$sidat) +
+  facet_wrap(~name,scale='free_y',ncol=2) + theme_light() +
+  labs(y='Survey index',x='Year')+
+  geom_label(data=fit_M010$sidat %>%
+               select(name,slope,sse) %>%
+               distinct() %>%
+               mutate(label=paste(name,paste0('sse:',sse),sep='\n')),
+             aes(label=label),x=-Inf,y=Inf,size=3, vjust = 1.1,hjust=-0.1) +
+  theme(strip.background = element_blank(),strip.text=element_blank())
+
+bootfit.distigfs$sidat %>%
+#filter(!(model %in% c(22,70,73,24,56,64)))%>%
+filter(!(name %in% c('si.50-60.aut', 'si.50-60.igfs'))) %>% 
+group_by(year,name) %>%
+  summarise(om=median(observed,na.rm=TRUE),
+            ou=quantile(observed,0.975,na.rm=TRUE),
+            ol=quantile(observed,0.025,na.rm=TRUE),
+            pm=median(predict,na.rm=TRUE),
+            pu=quantile(predict,0.975,na.rm=TRUE),
+            pl=quantile(predict,0.025,na.rm=TRUE)) %>%
+  ggplot(aes(year,om)) + geom_ribbon(aes(ymin=ol,ymax=ou),fill="gold") + geom_line() +
+  geom_line(aes(y=pm),col='blue') +
+  geom_line(aes(y=pu),col='blue',lty=2) +
+  geom_line(aes(y=pl),col='blue',lty=2) +
+  geom_line(aes(y=predict),col='red',data=fit_no_distigfs$sidat) +
+  geom_point(aes(y=observed),data=fit_no_distigfs$sidat) +
+  facet_wrap(~name,scale='free_y',ncol=2) + theme_light() +
+  labs(y='Survey index',x='Year')+
+  geom_label(data=fit_no_distigfs$sidat %>%
+               select(name,slope,sse) %>%
+               distinct() %>%
+               mutate(label=paste(name,paste0('sse:',sse),sep='\n')),
+             aes(label=label),x=-Inf,y=Inf,size=3, vjust = 1.1,hjust=-0.1) +
+  theme(strip.background = element_blank(),strip.text=element_blank())
+
+```
+
+
+```{r BSSIpred, echo=FALSE, fig.width = 9, fig.height= 6, fig.cap = "Predicted survey index as a function of the observed values on the log-scale. The panels indicate the index length group, the dashed line denotes a line with slope 1 and the labels denote the year. "}
+
+fit_M010$sidat %>%
+  ggplot(aes(log(predict),log(observed))) +
+  geom_line(aes(log(observed),log(observed)),lty=2) +
+  geom_line(aes(log(predict),log(predict)),lty=2) +
+  facet_wrap(~name, scale='free') +
+  geom_text(aes(label=year),size=3) +
+  #scale_x_log10() +
+  #scale_y_log10() +
+  theme_light() +
+  labs(y='log(Observed)',x='log(Predicted)')+
+  geom_label(data=fit_M010$sidat %>%
+               select(name,slope,sse) %>%
+               distinct() %>%
+               mutate(label=paste(name,paste0('sse:',sse),paste0("slope:",slope),sep='\n')),
+             aes(label=label),x=Inf,y=-Inf,size=3, vjust = -0.1,hjust=1.1) +
+  theme(strip.background = element_blank(),strip.text=element_blank())
+
+fit_no_distigfs$sidat %>%
+  ggplot(aes(log(predict),log(observed))) +
+  geom_line(aes(log(observed),log(observed)),lty=2) +
+  geom_line(aes(log(predict),log(predict)),lty=2) +
+  facet_wrap(~name, scale='free') +
+  geom_text(aes(label=year),size=3) +
+  #scale_x_log10() +
+  #scale_y_log10() +
+  theme_light() +
+  labs(y='log(Observed)',x='log(Predicted)')+
+  geom_label(data=fit_no_distigfs$sidat %>%
+               select(name,slope,sse) %>%
+               distinct() %>%
+               mutate(label=paste(name,paste0('sse:',sse),paste0("slope:",slope),sep='\n')),
+             aes(label=label),x=Inf,y=-Inf,size=3, vjust = -0.1,hjust=1.1) +
+  theme(strip.background = element_blank(),strip.text=element_blank())
+
+```
+
+
+```{r BSldist, echo=FALSE, fig.width = 9, fig.height= 6, fig.cap = "Bootstrap length distribution from both survey and commercial samples compared with model estimates. Green points and vertical bars denote the median and 90% interval of the bootsrap distribution of observed values, while the solid lines and golden ribbon the median and 90% intevals of the bootstrapped estimates by the model. The solid red line indicates the fit from the baseline model."}
+bootfit.igfs$catchdist.fleets%>%
+  #filter(!(model %in% c(22,70,73,24,56,64))) %>%
+  filter(year==2015,step==4) %>%
+  mutate(groupy=ifelse(grepl('aldist',name),age,as.character(lower))) %>%
+  group_by(name,groupy,model) %>%
+  dplyr::summarise(o=sum(observed,na.rm=TRUE),
+                   p=sum(predicted)) %>%
+  group_by(name,groupy) %>%
+  dplyr::summarise(om=median(o),
+                   pm=median(p),
+                   ou=quantile(o,0.975),
+                   pu=quantile(p,0.975),
+                   ol=quantile(o,0.025),
+                   pl=quantile(p,0.025)) %>%
+  ungroup() %>%
+  mutate(groupy=gsub('age','',groupy) %>% as.numeric()) %>%
+  ggplot(aes(groupy,om)) +
+  geom_ribbon(aes(ymin=pl,ymax=pu),fill='gold') +
+  geom_point(col='darkgreen') +
+  geom_segment(aes(xend=groupy,yend=ou,y=ol),col='darkgreen') +
+  facet_wrap(~name,scale='free') + theme_light() +
+  geom_line(aes(y=pm)) + #xlim(c(25,55)) +
+  #  geom_label(x=70,y=0.065,aes(label=year),size=3) +
+  #  geom_text(x=95,y=0.04,angle=90,aes(label=paste0('n = ',round(total.catch))),size=3) +
+  theme(strip.background = element_blank(),strip.text=element_blank()) +
+  xlab('Length') + ylab('Proportion') +
+  #theme(axis.text.y = element_blank()) +
+  geom_label(data=fit_M010$catchdist.fleets %>% select(name) %>% distinct(),
+             aes(label=name),x=-Inf,y=Inf,size=3, vjust = 2,hjust=-0.1)
+
+
+bootfit.igfs$catchdist.fleets%>%
+  #filter(!(model %in% c(22,70,73,24,56,64))) %>%
+  filter(year %in% c(2000,2015),step==4,
+         grepl('^ldist',name)) %>%
+  #mutate(groupy=ifelse(grepl('aldist',name),age,lower)) %>%
+  group_by(name,lower,model,year) %>%
+  dplyr::summarise(o=sum(observed,na.rm=TRUE),
+                   p=sum(predicted)) %>%
+  group_by(name,lower,year) %>%
+  dplyr::summarise(om=median(o),
+                   pm=median(p),
+                   ou=quantile(o,0.975),
+                   pu=quantile(p,0.975),
+                   ol=quantile(o,0.025),
+                   pl=quantile(p,0.025)) %>%
+  ungroup() %>%
+  #  mutate(groupy=gsub('age','',groupy) %>% as.numeric()) %>%
+  ggplot(aes(lower,om)) +
+  geom_ribbon(aes(ymin=pl,ymax=pu),fill='gold') +
+  geom_point(col='darkgreen') +
+  geom_segment(aes(xend=lower,yend=ou,y=ol),col='darkgreen') +
+  facet_wrap(~name+year,scale='free') + theme_light() +
+  geom_line(aes(y=pm)) +
+  geom_line(aes(y=predicted),col='red',
+            data= fit_M010$catchdist.fleets %>%
+              filter(year %in% c(2000,2015),step==4,
+                     grepl('^ldist',name)))  +
+
+  #xlim(c(25,55)) +
+  #  geom_label(x=70,y=0.065,aes(label=year),size=3) +
+  #  geom_text(x=95,y=0.04,angle=90,aes(label=paste0('n = ',round(total.catch))),size=3) +
+  theme(strip.background = element_blank(),strip.text=element_blank()) +
+  xlab('Length') + ylab('Proportion') +
+  #theme(axis.text.y = element_blank()) +
+  geom_label(data=fit_M010$catchdist.fleets %>%
+               filter(year %in% c(2000,2015),step==4,
+                      grepl('^ldist',name)) %>%
+               select(name,year) %>% distinct() %>%
+               mutate(label = paste(name,year,sep=' - ')),
+             aes(label=label),x=-Inf,y=Inf,size=3, vjust = 2,hjust=-0.1)
+```
+
+
+```{r BSresnoigfs, echo=FALSE, fig.width = 9, fig.height= 6, fig.cap = "Bootstrap model results wtih NO IGFS INCLUDED. The solid red lines and golden ribbons show the median, 50%, and 90% intervals of the bootstrapped estimates by the model. The solid red black indicates the fit from the baseline model."}
+
+
+bootres.igfs <- 
+  bootfit.igfs$res.by.year %>% 
+  group_by(year,model) %>%
+  summarise(total.biomass = sum(total.biomass),
+            catch = sum(catch),
+            #harv.biomass = sum(harv.biomass),
+            recruitment = sum(recruitment,na.rm=TRUE)) %>% 
+  # left_join(bootfit.igfs$stock.full %>%
+  #             filter(length>ref.cm) %>% 
+  #             group_by(year,model) %>%
+  #             summarise(harv.biomass=sum(number*mean.weight))) %>% 
+  group_by(year) %>% 
+  summarise(mtb=median(total.biomass),
+            utb=quantile(total.biomass,0.95),
+            ltb=quantile(total.biomass,0.05),
+            uutb=quantile(total.biomass,0.75),
+            lltb=quantile(total.biomass,0.25),
+            cvtb=sd(total.biomass)/mean(total.biomass),
+            mr=median(recruitment,na.rm=TRUE),
+            ur=quantile(recruitment,na.rm=TRUE,0.95),
+            lr=quantile(recruitment,na.rm=TRUE,0.05),
+            uur=quantile(recruitment,na.rm=TRUE,0.75),
+            llr=quantile(recruitment,na.rm=TRUE,0.25),
+            cvr=sd(recruitment,na.rm=TRUE)/mean(recruitment,na.rm=TRUE),
+            # mhb=median(harv.biomass),
+            # uhb=quantile(harv.biomass,0.95),
+            # lhb=quantile(harv.biomass,0.05),
+            # uuhb=quantile(harv.biomass,0.75),
+            # llhb=quantile(harv.biomass,0.25),
+            # cvhb=sd(harv.biomass)/mean(harv.biomass),
+            # mhr=median(catch/harv.biomass),
+            # uhr=quantile(catch/harv.biomass,0.95),
+            # lhr=quantile(catch/harv.biomass,0.05),
+            # uuhr=quantile(catch/harv.biomass,0.75),
+            # llhr=quantile(catch/harv.biomass,0.25),
+            # cvhr=sd(catch/harv.biomass)/mean(catch/harv.biomass)
+            ) %>% 
+  left_join(bootfit.igfs$res.by.year %>% 
+              filter(grepl('mat',stock)) %>% 
+              group_by(year) %>% 
+              summarise(mssb=median(total.biomass),
+                        ussb=quantile(total.biomass,0.95),
+                        lssb=quantile(total.biomass,0.05),
+                        uussb=quantile(total.biomass,0.75),
+                        llssb=quantile(total.biomass,0.25),
+                        cvssb=sd(total.biomass)/mean(total.biomass),
+                        mF=median(F),
+                        uF=quantile(F,0.95),
+                        lF=quantile(F,0.05),
+                        uuF=quantile(F,0.75),
+                        llF=quantile(F,0.25),
+                        cvF=sd(F)/mean(F))) %>% 
+  left_join(fit_M010$res.by.year %>% 
+              group_by(year) %>% 
+              summarise(ftb = sum(total.biomass),
+                        catch = sum(catch),
+                        fssb = sum(total.biomass[grepl('mat',stock)]),
+                        fr = sum(recruitment,na.rm=TRUE),
+                        fF = max(F))) #%>% 
+  # left_join(fit_M010$stock.full %>%
+  #             filter(length>ref.cm) %>% 
+  #             group_by(year) %>%
+  #             summarise(fhb=sum(number*mean.weight))) %>%
+  #mutate(fhr=catch/fhb)
+
+finres.igfs <- bootres.igfs; rm(bootres.igfs)
+
+bio.plot <-
+  finres.igfs %>% #was bootres
+  rename(yea=year) %>%
+  select(-matches('cv|r|ssb')) %>%
+  rename(year=yea) %>%
+  gather(col,value,-year) %>%
+  dplyr::mutate(stat=gsub('(^u+|^l+|^m|^f).*',("\\1"),col),
+                col = str_sub(col,-2),
+                value=value/1e6) %>%
+  #filter((col %in% c('hb','tb'))) %>%
+  filter((col %in% c('tb'))) %>%
+  spread(stat,value) %>%
+  dplyr::mutate(col=ifelse(col=='hb','Ref. biomass','Total biomass')) %>%
+  ggplot(aes(year,m,group=col, color = col)) + 
+  geom_ribbon(aes(ymax=u,ymin=l,fill=col),alpha=0.5) +
+  geom_ribbon(aes(ymax=uu,ymin=ll,fill=col),alpha=0.5) +
+  geom_line() +
+  geom_line(aes(y=f),col='black')+
+  theme_light() +
+  expand_limits(y=0) +
+  scale_fill_manual(name=NULL,values=c('gold','lightblue')) +
+  #scale_color_manual(name=NULL,values=c('gold','lightblue')) +
+  labs(y='Biomass (in kt)',x='Year') +
+  theme(legend.position = c(0.1,0.9))
+
+ssb.plot <-
+  finres.igfs %>%
+  select(c(year,matches('ssb'))) %>%
+  gather(col,value,-year) %>%
+  dplyr::mutate(stat=gsub('(^u+|^l+|^m|^f).*',("\\1"),col),
+                col = "ssb",
+                value=value/1e6) %>%
+  spread(stat,value) %>%
+  #filter(year > 1990) %>% 
+  ggplot(aes(year,m,group=col, color = col)) +
+  geom_ribbon(aes(ymax=u,ymin=l,fill=col),alpha=0.5) +
+  geom_ribbon(aes(ymax=uu,ymin=ll,fill=col),alpha=0.5) +
+  geom_line() +
+  geom_line(aes(y=f),col='black')+
+  theme_light() +
+  scale_fill_manual(name=NULL,values=c('gold','lightblue')) +
+  expand_limits(y=0) +
+  labs(y='SSB (in kt)',x='Year') +
+  theme(legend.position = 'none')
+
+
+F.plot <-
+  finres.igfs %>%
+#  select(year,matches('[a-z]F|[a-z]hr')) %>%
+  select(year,matches('[a-z]F')) %>%
+  select(-matches('cv')) %>%
+  gather(col,value,-year) %>%
+  dplyr::mutate(stat=gsub('(^u+|^l+|^m|^f).*',("\\1"),col),
+                col = ifelse(grepl('hr',col),'Harvest rate','Fishing mortality')) %>%
+  spread(stat,value) %>%
+  #filter(year < thisyear) %>% 
+  ggplot(aes(year,m,group=col, color = col)) +
+  geom_ribbon(aes(ymax=u,ymin=l,fill=col),alpha=0.5) +
+  geom_ribbon(aes(ymax=uu,ymin=ll,fill=col),alpha=0.5) +
+  geom_line() +
+  geom_line(aes(y=f),col='black')+
+  theme_light() +
+  expand_limits(y=0) +
+  scale_fill_manual(name=NULL,values=c('gold','lightblue')) +
+  #labs(y='Fishing mortality & Harvest rate',x="Year")+
+  labs(y='Fishing mortality ',x="Year")+
+  theme(legend.position = c(0.15,0.9))
+
+rec.plot <-
+  finres.igfs %>%
+  select(year,matches('[a-z]r')) %>%
+  select(-matches('hr')) %>%
+  gather(col,value,-year) %>%
+  dplyr::mutate(stat=gsub('(^u+|^l+|^m|^f).*',("\\1"),col),
+                col = str_sub(col,-1),
+                value = value/1e6) %>%
+  filter(stat!='c') %>%
+  spread(stat,value) %>%
+  ggplot(aes(year,m,group=col, color = col)) +
+  geom_ribbon(aes(ymax=u,ymin=l),alpha=0.5,fill='gold') +
+  geom_ribbon(aes(ymax=uu,ymin=ll),alpha=0.5,fill='gold') +
+  geom_line() +
+  geom_line(aes(y=f),col='black')+
+  theme_light() +
+  expand_limits(y=0) +
+  labs(y='Recruitment age 5 (in millions)',x="Year")
+
+catch.plot <-
+  fit_M010$res.by.year %>%
+  dplyr::mutate(stock=ifelse(grepl('mat',stock),'Mature','Immature')) %>%
+  #filter(year < thisyear) %>% 
+  ggplot(aes(year,catch/1e6,fill=stock)) +
+  geom_bar(stat='identity') +
+  theme_light() +
+  scale_fill_manual(name = NULL, values=c('gold','lightblue')) +
+  labs(y='Landings (in kt)',x="Year") +
+  theme(legend.position = c(0.1,0.9))
+
+# cv.plot <-
+#   finres %>%
+#   select(year,matches('cv')) %>%
+#   gather(col,value,-year) %>%
+#   dplyr::mutate(stat=str_sub(col,0,2),
+#          col = str_sub(col,3,5)) %>%
+#   filter(col %in% c('hb','ssb','r','F')) %>%
+#   spread(stat,value) %>%
+#   dplyr::mutate(col=case_when(.$col=='hb'~'Harv. biomass',
+#                        .$col=='ssb'~'SSB',
+#                        .$col=='r'~'Recruitment',
+#                        .$col=='F'~'F')) %>%
+#   ggplot(aes(year,cv,lty=col)) +
+#   geom_line() +
+#   scale_linetype_manual(name=NULL,values=1:4) +
+#   theme_light() +
+#   expand_limits(y=0) +
+#   labs(y='CV',x='Year') +
+#   theme(legend.position = c(0.2,0.8))
+
+gridExtra::grid.arrange(bio.plot,
+                        ssb.plot,# +   
+#                          geom_hline(data=data_frame(y=bloss),aes(yintercept=y),col='black',lty=2),
+                        F.plot,# +   
+#                          geom_hline(data=data_frame(y=c(0.12,0.28)),aes(yintercept=y),col='black',lty=2)+
+#                          geom_hline(data=data_frame(y=0.18),aes(yintercept=y),col='black'),
+                        rec.plot,
+                        catch.plot,ncol=3)
+
+
+```
+
+
+```{r BSresnodistigfs, echo=FALSE, fig.width = 9, fig.height= 6, fig.cap = "Bootstrap model results wtih NO IGFS INCLUDED. The solid red lines and golden ribbons show the median, 50%, and 90% intervals of the bootstrapped estimates by the model. The solid red black indicates the fit from the baseline model."}
+
+
+bootres.distigfs <- 
+  bootfit.distigfs$res.by.year %>% 
+  group_by(year,model) %>%
+  summarise(total.biomass = sum(total.biomass),
+            catch = sum(catch),
+            #harv.biomass = sum(harv.biomass),
+            recruitment = sum(recruitment,na.rm=TRUE)) %>% 
+  # left_join(bootfit.igfs$stock.full %>%
+  #             filter(length>ref.cm) %>% 
+  #             group_by(year,model) %>%
+  #             summarise(harv.biomass=sum(number*mean.weight))) %>% 
+  group_by(year) %>% 
+  summarise(mtb=median(total.biomass),
+            utb=quantile(total.biomass,0.95),
+            ltb=quantile(total.biomass,0.05),
+            uutb=quantile(total.biomass,0.75),
+            lltb=quantile(total.biomass,0.25),
+            cvtb=sd(total.biomass)/mean(total.biomass),
+            mr=median(recruitment,na.rm=TRUE),
+            ur=quantile(recruitment,na.rm=TRUE,0.95),
+            lr=quantile(recruitment,na.rm=TRUE,0.05),
+            uur=quantile(recruitment,na.rm=TRUE,0.75),
+            llr=quantile(recruitment,na.rm=TRUE,0.25),
+            cvr=sd(recruitment,na.rm=TRUE)/mean(recruitment,na.rm=TRUE),
+            # mhb=median(harv.biomass),
+            # uhb=quantile(harv.biomass,0.95),
+            # lhb=quantile(harv.biomass,0.05),
+            # uuhb=quantile(harv.biomass,0.75),
+            # llhb=quantile(harv.biomass,0.25),
+            # cvhb=sd(harv.biomass)/mean(harv.biomass),
+            # mhr=median(catch/harv.biomass),
+            # uhr=quantile(catch/harv.biomass,0.95),
+            # lhr=quantile(catch/harv.biomass,0.05),
+            # uuhr=quantile(catch/harv.biomass,0.75),
+            # llhr=quantile(catch/harv.biomass,0.25),
+            # cvhr=sd(catch/harv.biomass)/mean(catch/harv.biomass)
+            ) %>% 
+  left_join(bootfit.distigfs$res.by.year %>% 
+              filter(grepl('mat',stock)) %>% 
+              group_by(year) %>% 
+              summarise(mssb=median(total.biomass),
+                        ussb=quantile(total.biomass,0.95),
+                        lssb=quantile(total.biomass,0.05),
+                        uussb=quantile(total.biomass,0.75),
+                        llssb=quantile(total.biomass,0.25),
+                        cvssb=sd(total.biomass)/mean(total.biomass),
+                        mF=median(F),
+                        uF=quantile(F,0.95),
+                        lF=quantile(F,0.05),
+                        uuF=quantile(F,0.75),
+                        llF=quantile(F,0.25),
+                        cvF=sd(F)/mean(F))) %>% 
+  left_join(fit_no_distigfs$res.by.year %>% 
+              group_by(year) %>% 
+              summarise(ftb = sum(total.biomass),
+                        catch = sum(catch),
+                        fssb = sum(total.biomass[grepl('mat',stock)]),
+                        fr = sum(recruitment,na.rm=TRUE),
+                        fF = max(F))) #%>% 
+  # left_join(fit_M010$stock.full %>%
+  #             filter(length>ref.cm) %>% 
+  #             group_by(year) %>%
+  #             summarise(fhb=sum(number*mean.weight))) %>%
+  #mutate(fhr=catch/fhb)
+
+finres.distigfs <- bootres.distigfs; rm(bootres.distigfs)
+
+bio.plot <-
+  finres.distigfs %>% #was bootres
+  rename(yea=year) %>%
+  select(-matches('cv|r|ssb')) %>%
+  rename(year=yea) %>%
+  gather(col,value,-year) %>%
+  dplyr::mutate(stat=gsub('(^u+|^l+|^m|^f).*',("\\1"),col),
+                col = str_sub(col,-2),
+                value=value/1e6) %>%
+  #filter((col %in% c('hb','tb'))) %>%
+  filter((col %in% c('tb'))) %>%
+  spread(stat,value) %>%
+  dplyr::mutate(col=ifelse(col=='hb','Ref. biomass','Total biomass')) %>%
+  ggplot(aes(year,m,group=col, color = col)) + 
+  geom_ribbon(aes(ymax=u,ymin=l,fill=col),alpha=0.5) +
+  geom_ribbon(aes(ymax=uu,ymin=ll,fill=col),alpha=0.5) +
+  geom_line() +
+  geom_line(aes(y=f),col='black')+
+  theme_light() +
+  expand_limits(y=0) +
+  scale_fill_manual(name=NULL,values=c('gold','lightblue')) +
+  #scale_color_manual(name=NULL,values=c('gold','lightblue')) +
+  labs(y='Biomass (in kt)',x='Year') +
+  theme(legend.position = c(0.1,0.9))
+
+rm(ssb.plot)
+ssb.plot <-
+  finres.distigfs %>%
+  select(c(year,matches('ssb'))) %>%
+  gather(col,value,-year) %>%
+  dplyr::mutate(stat=gsub('(^u+|^l+|^m|^f).*',("\\1"),col),
+                col = "ssb",
+                value=value/1e6) %>%
+  spread(stat,value) %>%
+  #filter(year > 1990) %>% 
+  ggplot(aes(year,m,group=col, color = col)) +
+  geom_ribbon(aes(ymax=u,ymin=l,fill=col),alpha=0.5) +
+  geom_ribbon(aes(ymax=uu,ymin=ll,fill=col),alpha=0.5) +
+  geom_line() +
+  geom_line(aes(y=f),col='black')+
+  theme_light() +
+  scale_fill_manual(name=NULL,values=c('gold','lightblue')) +
+  expand_limits(y=0) +
+  labs(y='SSB (in kt)',x='Year') +
+  theme(legend.position = 'none')
+
+
+F.plot <-
+  finres.distigfs %>%
+#  select(year,matches('[a-z]F|[a-z]hr')) %>%
+  select(year,matches('[a-z]F')) %>%
+  select(-matches('cv')) %>%
+  gather(col,value,-year) %>%
+  dplyr::mutate(stat=gsub('(^u+|^l+|^m|^f).*',("\\1"),col),
+                col = ifelse(grepl('hr',col),'Harvest rate','Fishing mortality')) %>%
+  spread(stat,value) %>%
+  #filter(year < thisyear) %>% 
+  ggplot(aes(year,m,group=col, color = col)) +
+  geom_ribbon(aes(ymax=u,ymin=l,fill=col),alpha=0.5) +
+  geom_ribbon(aes(ymax=uu,ymin=ll,fill=col),alpha=0.5) +
+  geom_line() +
+  geom_line(aes(y=f),col='black')+
+  theme_light() +
+  expand_limits(y=0) +
+  scale_fill_manual(name=NULL,values=c('gold','lightblue')) +
+  #labs(y='Fishing mortality & Harvest rate',x="Year")+
+  labs(y='Fishing mortality ',x="Year")+
+  theme(legend.position = c(0.15,0.9))
+
+rec.plot <-
+  finres.distigfs %>%
+  select(year,matches('[a-z]r')) %>%
+  select(-matches('hr')) %>%
+  gather(col,value,-year) %>%
+  dplyr::mutate(stat=gsub('(^u+|^l+|^m|^f).*',("\\1"),col),
+                col = str_sub(col,-1),
+                value = value/1e6) %>%
+  filter(stat!='c') %>%
+  spread(stat,value) %>%
+  ggplot(aes(year,m,group=col, color = col)) +
+  geom_ribbon(aes(ymax=u,ymin=l),alpha=0.5,fill='gold') +
+  geom_ribbon(aes(ymax=uu,ymin=ll),alpha=0.5,fill='gold') +
+  geom_line() +
+  geom_line(aes(y=f),col='black')+
+  theme_light() +
+  expand_limits(y=0) +
+  labs(y='Recruitment age 5 (in millions)',x="Year")
+
+catch.plot <-
+  fit_no_distigfs$res.by.year %>%
+  dplyr::mutate(stock=ifelse(grepl('mat',stock),'Mature','Immature')) %>%
+  #filter(year < thisyear) %>% 
+  ggplot(aes(year,catch/1e6,fill=stock)) +
+  geom_bar(stat='identity') +
+  theme_light() +
+  scale_fill_manual(name = NULL, values=c('gold','lightblue')) +
+  labs(y='Landings (in kt)',x="Year") +
+  theme(legend.position = c(0.1,0.9))
+
+# cv.plot <-
+#   finres %>%
+#   select(year,matches('cv')) %>%
+#   gather(col,value,-year) %>%
+#   dplyr::mutate(stat=str_sub(col,0,2),
+#          col = str_sub(col,3,5)) %>%
+#   filter(col %in% c('hb','ssb','r','F')) %>%
+#   spread(stat,value) %>%
+#   dplyr::mutate(col=case_when(.$col=='hb'~'Harv. biomass',
+#                        .$col=='ssb'~'SSB',
+#                        .$col=='r'~'Recruitment',
+#                        .$col=='F'~'F')) %>%
+#   ggplot(aes(year,cv,lty=col)) +
+#   geom_line() +
+#   scale_linetype_manual(name=NULL,values=1:4) +
+#   theme_light() +
+#   expand_limits(y=0) +
+#   labs(y='CV',x='Year') +
+#   theme(legend.position = c(0.2,0.8))
+
+gridExtra::grid.arrange(bio.plot,
+                        ssb.plot,# +   
+#                          geom_hline(data=data_frame(y=bloss),aes(yintercept=y),col='black',lty=2),
+                        F.plot,# +   
+#                          geom_hline(data=data_frame(y=c(0.12,0.28)),aes(yintercept=y),col='black',lty=2)+
+#                          geom_hline(data=data_frame(y=0.18),aes(yintercept=y),col='black'),
+                        rec.plot,
+                        catch.plot,ncol=3)
+
+
+```
+
+
