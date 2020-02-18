@@ -1,14 +1,18 @@
 ---
 title: |
-       | SPiCT scenarios for the Greater silver smelt (_Argentina silus_)
-       | in Subareas 1, 2, and 4, and Division 3.a (Northeast Arctic, North Sea, Skagerrak and Kattegat)
+  | SPiCT scenarios for the Greater silver smelt (_Argentina silus_)
+  | in Subareas 1, 2, and 4, and Division 3.a (Northeast Arctic, North Sea, Skagerrak and Kattegat)
 author: "Alexandros Kokkalis, Elvar Halldor Hallfredsson, Lise Heggebakken"
 date: "05/02/2020"
-output: pdf_document
-bibliography: bib.bib
-tables: true
-editor_options: 
+output:
+  pdf_document: default
+  word_document: default
+  html_document:
+    df_print: paged
+editor_options:
   chunk_output_type: console
+tables: yes
+bibliography: bib.bib
 ---
 
 ```{r setup, include=FALSE}
@@ -27,9 +31,10 @@ library(spict)
 
 ## Read in the data
 dat <- readxl::read_xlsx("../data/GSS_indices270120_AK.xlsx")
+#plot(dat$year,dat$catchTOT,type = "l",ylim = c(0,max(na.omit(dat$catchTOT))))
 ## Sum up the catches from each area to get the total catch
 dat$catchTOT <- dat$catch1and2 + dat$catch3 + dat$catch4
-
+#plot(dat$year,dat$catchTOT,type = "l", ylim = c(0,max(na.omit(dat$catchTOT))))
 ## run retro or not 
 runretro <- FALSE
 ```
@@ -56,6 +61,7 @@ runretro <- FALSE
 w <- !is.na(dat$northsea_month) & dat$northsea_month == 10
 ## Choose only the years where the survey was in January or February 
 v <- !is.na(dat$northsea_month) & dat$northsea_month %in% c(1, 2)
+
 
 ## Make the input list
 inp_NS <- list(timeC = dat$year,                                      ## Timing of catch
@@ -118,11 +124,362 @@ if (converged) {
 
 
 ## Scenario 2
+: Input data for Scenario 1
+
++-----------------+----------------+------------+----------------------------+
+| Input data      | Name           | Range      |  Notes                     |
++=================+================+============+============================+
+| Catch           | Total catch    | 1988-2018  |                            |
++-----------------+----------------+------------+----------------------------+
+| Biomass indices | Shrimp survey  | 1984--2002 |  Only october period     |
++-----------------+----------------+------------+----------------------------+
+| Biomass indices | Acoustic survey  | 2009--2018 |  Matlab     |
++-----------------+----------------+------------+----------------------------+
+|                 |                |            |  Default priors            |
++-----------------+----------------+------------+----------------------------+
+
+```{r fit_scenario2}
+## Choose only the years where the survey was in October 
+w <- !is.na(dat$northsea_month) & dat$northsea_month == 10
+## Choose only the years where the survey was in January or February 
+##v <- !is.na(dat$northsea_month) & dat$northsea_month %in% c(1, 2)
+
+
+## Make the input list
+inp_NS <- list(timeC = dat$year,                                      ## Timing of catch
+               obsC = dat$catchTOT,                                   ## Observed catches
+               timeI = list(dat$year[w] + dat$northsea_month[w] / 12, ## Timing of survey index
+                            dat$year+3.5/12),
+               obsI = list(dat$northsea_SA[w],                        ## Observed indices
+                          dat$norwegian_seaAC),
+               optimiser.control = list(iter.max = 1e5,               ## Optimiser options 
+                                        eval.max = 1e5),              ## sometimes help converge
+               priors = list(                                         ## List of priors (empty, i.e. default priors)
+ logn=c(log(2),.5,1),
+ logbkfrac=c(log(.5),1,1)
+## see possible priors with list.possible.priors()
+                 ))
+## Check input time series, remove missing and zero observations
+inp_NS <- check.inp(inp_NS)
+
+## Plot input data
+plotspict.data(inp_NS)
+
+## Fit spict
+fit_NS <- fit.spict(inp_NS)
+
+## Summary of the fit - in the vignette there is a line-by-line description of that summary
+fit_NS
+
+## If the model converged, it reports convergence as 0
+## Continue with plotting and diagnostics only if convergence was reached
+converged <- fit_NS$opt$convergence == 0
+if (converged) {
+  ## Calculate the One Step Ahead (osa) residuals  
+  fit_NS <- calc.osa.resid((fit_NS))
+  
+  ## Make a plot showing relative F, relative B, Kobe plot catch 
+  par(mfrow = c(2,2),  ## 2x2 subplots
+      mar = c(4.1, 4.1, 0.5, 0.5)) ## Change default margins for the plots 
+  plotspict.catch(fit_NS)
+  plotspict.ffmsy(fit_NS)
+  plotspict.bbmsy(fit_NS)
+  plotspict.fb(fit_NS)
+}
+
+
+```
+
+```{r diagnostics_scenario_2, fig.height=8}
+if (converged) {
+  plotspict.diagnostic(fit_NS)
+  plotspict.production(fit_NS)
+}
+```
+
+
+```{r retro_scenario_2}
+  ## If runretro is TRUE, run and plot the retrospective analysis
+  if (runretro & converged) {
+    fit_NS <- retro(fit_NS)
+    plotspict.retro(fit_NS)
+  }
+```
+
 
 ## Scenario 3
+: Input data for Scenario 3
+
++-----------------+----------------+------------+----------------------------+
+| Input data      | Name           | Range      |  Notes                     |
++=================+================+============+============================+
+| Catch           | Total catch    | 1988-2018  |                            |
++-----------------+----------------+------------+----------------------------+
+| Biomass indices | Acoustic survey  | 2009--2018 |  Matlab     |
++-----------------+----------------+------------+----------------------------+
+| Biomass indices | Acoustic survey  | 1990-1993 |  Monstad     |
++-----------------+----------------+------------+----------------------------+
+|                 |                |            |  Default priors            |
++-----------------+----------------+------------+----------------------------+
+
+```{r fit_scenario3}
+## Choose only the years where the survey was in October 
+w <- !is.na(dat$northsea_month) & dat$northsea_month == 10
+## Choose only the years where the survey was in January or February 
+##v <- !is.na(dat$northsea_month) & dat$northsea_month %in% c(1, 2)
+
+
+## Make the input list
+inp_NS <- list(timeC = dat$year,                                      ## Timing of catch
+               obsC = dat$catchTOT,                                   ## Observed catches
+               timeI = list(dat$year+3.5/12,dat$year+3/12),## Timing of survey index
+               obsI = list(dat$norwegian_seaAC,dat$Norwegian_seaAC_Monstad), ## Observed indices
+               optimiser.control = list(iter.max = 1e3,               ## Optimiser options 
+                                        eval.max = 1e3),              ## sometimes help converge
+               priors = list(                                         ## List of priors (empty, i.e. default priors)
+ #logn=c(log(2),.5,1),
+ #logbkfrac=c(log(.5),1,1)
+## see possible priors with list.possible.priors()
+                 ))
+## Check input time series, remove missing and zero observations
+inp_NS <- check.inp(inp_NS)
+
+## Plot input data
+plotspict.data(inp_NS)
+
+## Fit spict
+fit_NS <- fit.spict(inp_NS)
+
+## Summary of the fit - in the vignette there is a line-by-line description of that summary
+fit_NS
+
+## If the model converged, it reports convergence as 0
+## Continue with plotting and diagnostics only if convergence was reached
+converged <- fit_NS$opt$convergence == 0
+if (converged) {
+  ## Calculate the One Step Ahead (osa) residuals  
+  fit_NS <- calc.osa.resid((fit_NS))
+  
+  ## Make a plot showing relative F, relative B, Kobe plot catch 
+  par(mfrow = c(2,2),  ## 2x2 subplots
+      mar = c(4.1, 4.1, 0.5, 0.5)) ## Change default margins for the plots 
+  plotspict.catch(fit_NS)
+  plotspict.ffmsy(fit_NS)
+  plotspict.bbmsy(fit_NS)
+  plotspict.fb(fit_NS)
+}
+
+
+```
+
+```{r diagnostics_scenario_3, fig.height=8}
+if (converged) {
+  plotspict.diagnostic(fit_NS)
+  plotspict.production(fit_NS)
+}
+```
+
+
+```{r retro_scenario_3}
+  ## If runretro is TRUE, run and plot the retrospective analysis
+  #runretro=TRUE
+if (runretro & converged) {
+    fit_NS <- retro(fit_NS)
+    plotspict.retro(fit_NS)
+  }
+```
 
 ## Scenario 4
 
+: Input data for Scenario 4
+
++-----------------+----------------+------------+----------------------------+
+| Input data      | Name           | Range      |  Notes                     |
++=================+================+============+============================+
+| Catch           | Total catch    | 1988-2018  |                            |
++-----------------+----------------+------------+----------------------------+
+| Biomass indices | Acoustic survey  | 2012--2018 |  StoX     |
++-----------------+----------------+------------+----------------------------+
+| Biomass indices | Acoustic survey  | 1990-1993 |  Monstad     |
++-----------------+----------------+------------+----------------------------+
+|                 |                |            |  Default priors            |
++-----------------+----------------+------------+----------------------------+
+
+```{r fit_scenario4}
+## Choose only the years where the survey was in October 
+w <- !is.na(dat$northsea_month) & dat$northsea_month == 10
+w[1:4]<-FALSE
+## Choose only the years where the survey was in January or February 
+##v <- !is.na(dat$northsea_month) & dat$northsea_month %in% c(1, 2)
+
+
+## Make the input list
+inp_NS <- list(timeC = dat$year,                                      ## Timing of catch
+               obsC = dat$catchTOT,                                   ## Observed catches
+               timeI = list(dat$year+3.5/12, dat$year+3/12),
+               obsI = list(dat$norwegian_seaAC,dat$Norwegian_seaAC_Monstad),
+               optimiser.control = list(iter.max = 1e3,               ## Optimiser options 
+                                        eval.max = 1e3),              ## sometimes help converge
+               priors = list(                                         ## List of priors (empty, i.e. default priors)
+ logn=c(log(2),.5,1)
+ #logbkfrac=c(log(.5),1,1)
+## see possible priors with list.possible.priors()
+                 ))
+## Check input time series, remove missing and zero observations
+inp_NS <- check.inp(inp_NS)
+
+## Plot input data
+plotspict.data(inp_NS)
+
+## Fit spict
+fit_AC <- fit.spict(inp_NS)
+
+## Summary of the fit - in the vignette there is a line-by-line description of that summary
+fit_AC
+
+## If the model converged, it reports convergence as 0
+## Continue with plotting and diagnostics only if convergence was reached
+converged <- fit_AC$opt$convergence == 0
+if (converged) {
+  ## Calculate the One Step Ahead (osa) residuals  
+  fit_AC <- calc.osa.resid((fit_AC))
+  
+  ## Make a plot showing relative F, relative B, Kobe plot catch 
+  par(mfrow = c(2,2),  ## 2x2 subplots
+      mar = c(4.1, 4.1, 0.5, 0.5)) ## Change default margins for the plots 
+  plotspict.catch(fit_AC)
+  plotspict.ffmsy(fit_AC)
+  plotspict.bbmsy(fit_AC)
+  plotspict.fb(fit_AC)
+}
+
+
+```
+
+```{r diagnostics_scenario_4, fig.height=8}
+if (converged) {
+  plotspict.diagnostic(fit_AC)
+  plotspict.production(fit_AC)
+}
+```
+
+
+```{r retro_scenario_4}
+  ## If runretro is TRUE, run and plot the retrospective analysis
+  ## runretro=TRUE
+if (runretro & converged) {
+    fit_AC <- retro(fit_AC)
+    plotspict.retro(fit_AC)
+  }
+```
+
+##Scenario 5
+
+: Input data for Scenario 5
+
++-----------------+----------------+------------+----------------------------+
+| Input data      | Name           | Range      |  Notes                     |
++=================+================+============+============================+
+| Catch           | Total catch    | 1988-2018  |                            |
++-----------------+----------------+------------+----------------------------+
+| Biomass indices | Shrimp survey  | 1984--2002 |  Only october period     |
++-----------------+----------------+------------+----------------------------+
+| Biomass indices | Acoustic survey  | 2012--2018 |  StoX     |
++-----------------+----------------+------------+----------------------------+
+| Biomass indices | Acoustic survey  | 1990-1993 |  Monstad     |
++-----------------+----------------+------------+----------------------------+
+|                 |                |            |  Default priors            |
++-----------------+----------------+------------+----------------------------+
+
+```{r fit_scenario5}
+## Choose only the years where the schrimp survey was in October 
+w <- !is.na(dat$northsea_month) & dat$northsea_month == 10
+w[1:4]<-FALSE #remove years before 1988 in schrip survey
+## Choose only the years where the survey was in January or February 
+v <- !is.na(dat$northsea_month) & dat$northsea_month %in% c(1)#c(1, 2)
+## Make the input list
+inp_NS <- list(timeC = dat$year,                                      ## Timing of catch
+               obsC = dat$catchTOT,                                   ## Observed catches dat$year[v] + dat$northsea_month[v] / 12
+               timeI = list(dat$year[w] + dat$northsea_month[w] / 12,dat$year+3.5/12, dat$year+3/12),
+               obsI = list(dat$northsea_SA[w],dat$norwegian_seaAC,dat$Norwegian_seaAC_Monstad),
+               optimiser.control = list(iter.max = 1e3,               ## Optimiser options 
+                                        eval.max = 1e3),              ## sometimes help converge
+               
+               priors = list(                                         ## List of priors (empty, i.e. default priors)
+ logn=c(log(2),.5,1)
+ #logbkfrac=c(log(.5),1,1)
+## see possible priors with list.possible.priors()
+                 ))
+## Check input time series, remove missing and zero observations
+inp_NS <- check.inp(inp_NS)
+
+## Plot input data
+plotspict.data(inp_NS)
+
+## Fit spict
+fit_NS <- fit.spict(inp_NS)
+
+## Summary of the fit - in the vignette there is a line-by-line description of that summary
+fit_NS
+
+## If the model converged, it reports convergence as 0
+## Continue with plotting and diagnostics only if convergence was reached
+converged <- fit_NS$opt$convergence == 0
+if (converged) {
+  ## Calculate the One Step Ahead (osa) residuals  
+  fit_NS <- calc.osa.resid((fit_NS))
+  
+  ## Make a plot showing relative F, relative B, Kobe plot catch 
+  par(mfrow = c(2,2),  ## 2x2 subplots
+      mar = c(4.1, 4.1, 0.5, 0.5)) ## Change default margins for the plots 
+  plotspict.catch(fit_NS)
+  plotspict.ffmsy(fit_NS)
+  plotspict.bbmsy(fit_NS)
+  plotspict.fb(fit_NS)
+}
+
+
+```
+
+```{r diagnostics_scenario_5, fig.height=8}
+if (converged) {
+  plotspict.diagnostic(fit_NS)
+  plotspict.production(fit_NS)
+}
+```
+
+
+```{r retro_scenario_5}
+  ## If runretro is TRUE, run and plot the retrospective analysis
+  #runretro=TRUE
+if (runretro & converged) {
+    fit_NS <- retro(fit_NS)
+    plotspict.retro(fit_NS)
+  }
+```
+
+### Biomass comparsin scenario 4 and 5
+
+```{r}
+bAC <- get.par(parname = "logBBmsy",fit_AC)
+time <- as.numeric(rownames(bAC))
+bNS <- get.par(parname = "logBBmsy",fit_NS)
+
+
+
+meanAC <- mean(bAC[,2][time > 2005 & time < 2019])
+meanNS <- mean(bNS[,2][time > 2005 & time < 2019])
+ylim <- c(0.3, 1.6)
+plot(time, exp(bNS[,2]) / exp(meanNS),col=2,type="l", ylim = ylim, xlim=c(2005,2018))
+lines(time, exp(bAC[,2]) / exp(meanAC))
+legend("bottomright",,c("NS", "AC"), col = 1:2, seg.len = 4, lty = 1)
+points(dat$year, dat$norwegian_sea_AC_stox / mean(dat$norwegian_sea_AC_stox, na.rm = TRUE))
+points(dat$year, dat$norwegian_seaAC / mean(dat$norwegian_seaAC ,na.rm = TRUE), col="red")
+
+
+```
+
 
 ## Referneces
+
 
