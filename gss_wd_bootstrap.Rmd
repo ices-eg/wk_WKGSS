@@ -901,3 +901,832 @@ gridExtra::grid.arrange(bio.plot,
 ```
 
 
+```{r retrossi, echo=FALSE, fig.width = 8, fig.height= 8, fig.cap = "Greater silver smelt in 5.a and 14. Analytical retrospective analysis of the fit to the survey indices."}
+bootfit$sidat %>% 
+  #filter(!(model %in% c(22,70,73,24,56,64)))%>% 
+  group_by(year,name) %>% 
+  summarise(om=median(number.x,na.rm=TRUE),
+            ou=quantile(number.x,0.975,na.rm=TRUE),
+            ol=quantile(number.x,0.025,na.rm=TRUE),
+            pm=median(predict,na.rm=TRUE),
+            pu=quantile(predict,0.975,na.rm=TRUE),
+            pl=quantile(predict,0.025,na.rm=TRUE)) %>% 
+  ggplot(aes(year,om)) + geom_ribbon(aes(ymin=ol,ymax=ou),fill="gold") + geom_line() +
+  geom_line(aes(y=pm),col='blue') +
+  geom_line(aes(y=pu),col='blue',lty=2) +
+  geom_line(aes(y=pl),col='blue',lty=2) +
+  geom_line(aes(y=predict),col='red',data=fit$sidat) +
+  geom_line(aes(y=predict,lty=model),col='red',data=retro.fit$sidat) +
+  
+  facet_wrap(~name,scale='free_y') + theme_light() + 
+  labs(y='Survey index',x='Year')+
+  geom_label(data=fit_no_igfs$sidat %>%
+              select(name,slope,sse) %>%
+              distinct() %>% 
+              mutate(label=name),
+            aes(label=label),x=-Inf,y=Inf,size=3, vjust = 1.1,hjust=-0.1) +
+  theme(strip.background = element_blank(),strip.text=element_blank(),
+        legend.position = 'none')
+
+```
+
+### Reference ponits
+
+According ICES technical guidelines two types of reference points are referred to when giving advice for category 1 stocks: \textit{precautionary approach (PA) reference points and maximum sustainable yield (MSY) reference points. The PA reference points are used when assessing the state of stocks and their exploitation rate relative to the precautionary approach objectives. The MSY reference points are used in the advice rule applied by ICES to give advice consistent with the objective of achieving MSY}. Generally ICES derives these reference points based on fishing mortality, but for some stocks the reference points are determine in terms of harvest rate, i.e. the amount of catches relative to a reference biomass (s.a. spawning stock biomass, or biomass of fish larger than a minimum size or older than a minimum age). For ling in 5a the suggested management plan will be determined in terms of the harvest rate of the total biomass above 75 cm.  
+
+The following sections describe the derivation of the management reference points both in terms of harvest rate ($H$) and fishing mortality ($F$). The model for the stock recruitment and assessment error which in combination with the bootstrap results is used to project the stock status stochastically in order to derive the PA and MSY reference points.  
+
+ 
+ 
+ When considering uncertainty in the estimation of reference points
+ four sources of error need to be considered \citep[eg. in][and
+ references therein]{butterworth1999}. These are:
+ \begin{enumerate}
+ \item \textbf{Process error}, i.e. the natural variation in the stock under
+   managment.  Example process that is beyond the control of the
+   manager/modeller is variation in recruitment.
+ \item \textbf{Observation error} is relatied to uncertainty in the way the
+   stock is sampled.
+ \item \textbf{Implementation error} describes how well the management policies
+   are enforced, i.e. the extent of illegal landings and discards.
+ \item \textbf{Model error} related to the form of the model, such as
+   stock definitions and variations in model parameters  
+ \end{enumerate}
+ 
+ Observation error and to some degree model error are addressed by the
+ bootstrap approach employed in here. Issues related to the
+ stock structure have been discussed in WGDEEP-2007, which suggested 
+ that ling in 5a and 14 should be assessed as single stock unit. Analytical 
+ retrospetive analysis indicates some degree of model mispecification, or 
+ autocorrelation in observation error,  while this is a concern it is caused by
+ inconsistencies in the survey indices. 
+ 
+ Illegal landings and discards by Icelandic fishing vessels are considered to
+ be neglible and it is assumed that foreign vessel catches are a part of the 
+ management plan. It is assumed therefore implementation error would be virtually none. The largest source of error outstanding is the extent of process
+ error, in particular variation in the stock recruitment relationship. 
+ 
+ The following sections describe the model for the stock recruitment and assessment error
+ which in combination with the bootstrap results is used to project the
+ stock status along with rationale for setting biomass reference points.
+
+
+ 
+#### Recruitment
+ The relationship between the estimated spawning stock and recruitment% is shown in figure \ref{fig:ssbrec}. In the Gadget model for Ling in
+ Va the annual recruitment, during the observation period, is estimated
+ as a fixed effect without any consideration of the size of the
+ spawning stock biomass. This means that no formal stock recruit
+ relationship is defined. This is allowed by information on past
+ recruitment such as age and length distributions and survey
+ indices. It can be observed that for time periods where less data is
+ available on recruitment, such as recruitment in the most recent
+ years, have higher levels of uncertainty. 
+ 
+ 
+Greater silver smelt in Va and 14 has experienced an unusual spike in recruitment (2017 - 2018), when
+ compared to years prior to 2003. There could be two different reasons
+ for this observation, impaired recruitment due to over exploitation or
+ environmental changes.  In the following sub-subsections these theories
+ will be explored.
+ 
+ 
+#### Setting Bloss
+The Greater silver smelt stock in Iceland experienced two peaks of heavier fishing pressure: roughly 1998-2000, likely due to a new market and roughly 2009-2011, likely due to a rush to collect fishing history for the species due to its impending entrance into the ITQ system. Therefore, the dip in spawning stock biomass observed roughly 2000 - 2004 is likely to be a result of the first heavy fishing period. Recruitment estimates prior to 2000 are not given as the autumn survey data are only reliable for this species from 2000, and therefore little data are aviable to estimate recruitment prior to this period. 
+
+As both period of high fishing mortality are quite short and recruitment does not observably impaired anywhere in the stock-recruitment relationship (i.e., there is relatively narrow dynamic range of SSB and no evidence of impaired recruitment), this stock is categorized as Type 3 with historically low F. In this situation, according to the ICES technical guidelines, $B_{lim}$ can not be estimated from these data and that the lowest observed SSB during that period (i.e. $B_{loss}$ = SSB(2003) = 17.38 kt), which is the lowest observed biomass from the base--line model, is an appropriate value at which to set either as $B_{pa}$ or $B_{lim}$, depending on the the perception of the historical fishing mortality. As the fishing mortality is perceived to have since mid 1990s varied between 0.05 and 0.6 on fully recruited,  equivalent $F_{6-14}$ of 0.05 to 0.5 it is suggested that $B_{pa}=B_{loss}$. 
+
+In line with ICES technical guidelines, since $B_{pa}$ but not $B_{lim}$ can be estimated, a proxy
+for $B_{lim}$ can be calculated based on the inverse of the standard factor, $e^{\sigma * 1.645}$ where $\sigma$ is 0.2, used for calculating $B_{pa}$ from $B_{lim}$. Therefore, a proxy for $B_{lim}$ could be set at $B_{pa}/e^{1.645*0.2} = 17.38/1.39 = 12.50 kt$. 
+ 
+
+ 
+```{r SR, echo=FALSE, fig.width = 10, fig.height= 6, fig.cap = "Spawing stock biomass recruitment relationship for ling in 5a. Uncertainty in recruitment and SSB is indicated with 95% quantile intervals. The yellow vertical bar represents the distribution of $B_{loss}$."}
+
+bloss <- 
+  bootfit$res.by.year %>% 
+  filter(grepl('mat',stock)) %>%  
+  group_by(model) %>% 
+  summarise(bloss=min(total.biomass)/1e6)
+tmp <- 
+bootfit$res.by.year %>%
+  group_by(year,model) %>% 
+  dplyr::summarise(recruitment=sum(recruitment,na.rm=TRUE)/1e6,
+                   ssb = total.biomass[grepl('mat',stock)]/1e6) %>% 
+  ungroup()
+
+tmp %>% 
+  left_join(tmp %>% 
+              select(model,year,ssb.5=ssb) %>% 
+              dplyr::mutate(year=year+3)) %>% 
+  group_by(year) %>% 
+  summarise(mr=median(recruitment),
+            ur=quantile(recruitment,0.975),
+            lr=quantile(recruitment,0.025),
+            ms=median(ssb.5,na.rm=TRUE),
+            us=quantile(ssb.5,0.975,na.rm=TRUE),
+            ls=quantile(ssb.5,0.025,na.rm=TRUE)) %>% 
+  ggplot(aes(ms,mr)) + 
+    
+    geom_rect(ymin=-Inf,ymax=Inf,xmin=quantile(bloss$bloss,0.975),
+              xmax=quantile(bloss$bloss,0.025),fill='gold')+
+    geom_vline(xintercept = median(bloss$bloss),lty=2)+
+    geom_vline(xintercept = fit$res.by.year %>% 
+                 filter(grepl('mat',stock)) %>%
+                 ungroup() %>% 
+                 summarise(min(total.biomass)/1e6) %>% 
+                 unlist(),col='red', lty = 2)+
+    geom_vline(xintercept = 12.50,col='red')+
+    geom_errorbar(aes(ymax=ur,ymin=lr),col='grey') + 
+    geom_errorbarh(aes(xmax=us,xmin=ls),col='grey') + 
+    geom_path()+
+    geom_point(col='red')+
+    geom_text(aes(label=year-3),vjust=0.15,hjust=0.15) + 
+   xlab('Spawning stock biomass (in \'000 tons) ') + 
+  ylab('Recruitment (in millions)') + theme_light() +
+  expand_limits(x=0,y=0) 
+  
+
+
+```
+
+
+
+
+### Stock recruitment relationship for projections
+A variety of approaches are common when estimating a stock
+recruitment relationship. In the absence of a stock-recruitment signal from the available historical data (Fig. \ref{fig:ssbrec}), 
+the ICES guidelines suggest that the hockey-stick recruitment function is used (stock Type 3), i.e. 
+\begin{equation}
+  R_y = \bar{R}_y \min(1,S_y/B_{loss})
+\end{equation}
+where $R_y$ is annual recruitment, $S_y$ the spawning stock biomass,
+$B_{loss}$ the breakpoint in hockey stick function and $\bar{R_y}$ is the
+recruitment when not impaired due to low levels of SSB. Here $\bar{R}_y$ is considered to be drawn from the historical distribution using a block-bootstrap, randomly drawn block starting years and including 6 consecutive years in the blocks. This is done to account for intra-correlation in the recruitment time--series, as illustrated in fig. \ref{fig:bootacf}. The timing of the recruitment in the model occurs at the end of the $1^{st}$ time-step, using the projected spawning stock biomass at the same time. 
+
+
+
+
+```{r SRacf, echo=FALSE, fig.width = 10, fig.height= 6, fig.cap = "Histogram of the bootstrap distribution of $B_{loss}$ where the red line indicates the base model estimate."}
+
+bootfit$res.by.year%>% 
+  #filter(!(model %in% removals) %>% 
+    filter(grepl('mat',stock)) %>% 
+    group_by(model) %>% 
+    dplyr::summarise(bloss = min(total.biomass)/1e6) %>% 
+    ggplot(aes(bloss)) + geom_histogram() + 
+    labs(x=expression(B[loss]),y='Num. replicates') + 
+    theme_light() + 
+    geom_vline(xintercept = fit$res.by.year %>% 
+                 filter(grepl('mat',stock)) %>% 
+                 ungroup() %>% 
+                 summarise(min=min(total.biomass)/1e6) %>% 
+                 unlist(),
+               col='red')
+```
+
+
+###Management procedure in forward projections
+Observation error and to some degree model error are addressed by the
+bootstrap approach employed in here.
+
+Illegal landings and discards by Icelandic fishing vessels are considered to
+be negligible and it is assumed that foreign vessel catches will be part of the
+management plan when implemented. It is assumed therefore implementation error would be virtually
+none. The largest source of error outstanding is the extent of process
+error, in particular variation in the stock recruitment relationship, and the assessment error.
+
+The management strategy evaluated was harvesting according to a target fishing mortality $F_{target}$. Errors in the assessment
+procedure that relate to harvest advice model are emulated as:
+\begin{equation}\label{eq:asserr}
+\hat{F}_target = e^{E_y} F_{target}
+\end{equation}
+where $E_y = \sigma (\rho \epsilon_{y-1} + \sqrt{1-\rho^2}\epsilon_y)$ is the assessment error and $\sigma$ is CV of the spawning tock biomass in the most recent estimated year(2019), $\rho$ the autocorrelation between assessment years and $\epsilon_y\sim N(0,1)$. The corresponding CV wasset at UPDATE: 0.2 (i.e, the CV of the  biomass. The autocorrelation in assessment error $\rho$ is set to $0.8$ which is perceived as the upper limit to potential correlation. Figure \ref{fig:asscomp} illustrates the deviation of the reference biomass as estimated in the last year of the analytical retrospective compared with the most recent assement.Then the decision which allocates catches to the fleets requires 1) an expected quanitity of catch to be removed that will complete total catch removals for the current fishing season (not implemented currently, but will be for assessment purposes, 2) a 1-year projection to determine the amount of biomass avaible to fish, and 3) application of projected fishing effort according to $F_{target}$ to determine the expected catch from fishing at this level. The expected catch is then obtained by rearranging the fishing mortality equation to form the advised TAC:
+
+$$
+F_{asyt} = \frac{-\log(1.0 - \frac{C_{asyt}}{N_{asyt}})}{\Delta t}
+$$
+$$
+TAC_y = \sum_{ast} C_{y} = \sum_{ast} (exp(F_{asyt}\Delta t) +1) N_{asyt}  = C_{asyt}
+$$
+where the TAC expected catches are summed over all ages $a$, stocks $s$ and tistps $t$. 
+
+
+%\subsection{Residual pattern}
+\begin{figure}
+
+<<echo=FALSE,results='asis',fig.width=10, fig.height=6,cache=TRUE,warning=FALSE,message=FALSE>>=
+  bootacf <- 
+    bootfit$res.by.year %>% 
+  #filter(!(model %in% c(22,70,73,24,56,64)))%>%
+    filter(grepl('imm',stock)) %>% 
+    group_by(model) %>% 
+    do(x=acf(.$recruitment,plot=FALSE)) %>% 
+    broom::tidy(x) %>% 
+    ggplot(aes(lag,acf,group=round(lag))) + geom_boxplot() + 
+    theme_light() + 
+    geom_hline(yintercept = c(-1,1)*qnorm((1 + 0.95)/2)/sqrt(35),lty=2) +
+    labs(x='',y='') + 
+    annotate('label',x=13,y=1,label='ACF') 
+
+  bootpacf <- 
+    bootfit$res.by.year %>%
+    filter(grepl('imm',stock)) %>% 
+    group_by(model) %>% 
+    do(x=pacf(.$recruitment,plot=FALSE)) %>% 
+    broom::tidy(x) %>% 
+    ggplot(aes(lag,acf,group=round(lag))) + geom_boxplot() + 
+    theme_light()+ 
+    geom_hline(yintercept = c(-1,1)*qnorm((1 + 0.95)/2)/sqrt(35),lty=2) +
+    labs(x='',y='') + 
+    ylim(c(-0.5,1))+ 
+    annotate('label',x=13,y=1,label='PACF') 
+  
+  bootacf2005 <- 
+    bootfit$res.by.year %>% 
+    filter(year < 2005) %>%       
+    #filter(!(model %in% c(22,70,73,24,56,64)))%>%
+    filter(grepl('imm',stock)) %>% 
+    group_by(model) %>% 
+    do(x=acf(.$recruitment,plot=FALSE)) %>% 
+    broom::tidy(x) %>% 
+    ggplot(aes(lag,acf,group=round(lag))) + geom_boxplot() + 
+    theme_light() + 
+    geom_hline(yintercept = c(-1,1)*qnorm((1 + 0.95)/2)/sqrt(35),lty=2) +
+    labs(x='',y='') + 
+    annotate('label',x=13,y=1,label='ACF') 
+  
+  bootpacf2005 <- 
+    bootfit$res.by.year %>%
+    filter(year < 2005) %>% 
+    filter(grepl('imm',stock)) %>% 
+    group_by(model) %>% 
+    do(x=pacf(.$recruitment,plot=FALSE)) %>% 
+    broom::tidy(x) %>% 
+    ggplot(aes(lag,acf,group=round(lag))) + geom_boxplot() + 
+    theme_light()+ 
+    geom_hline(yintercept = c(-1,1)*qnorm((1 + 0.95)/2)/sqrt(35),lty=2) +
+    labs(x='',y='') + 
+    ylim(c(-0.5,1))+ 
+    annotate('label',x=13,y=1,label='PACF') 
+
+gridExtra::grid.arrange(bootacf,bootpacf,bootacf2005,bootpacf2005,ncol=2)  
+@
+
+%\includegraphics[width=1.0\linewidth]{../Graphs/bootacf}
+\caption{Estimated autocorrelation (left panels) and partial autocorrelation (right panels) in recruitment. Top panels indicate the correlation including all estimates of recrutitment while the bottom panels recruitment exluding estimates after 2005. The dashed lines illustrate the standard 95\% uncertainty region.}\label{fig:bootacf}
+\end{figure}
+
+<<asscomp,echo=FALSE,results='asis',fig.width=10, fig.height=6,cache=TRUE,warning=FALSE,message=FALSE,fig.lp="fig:",fig.cap='ling in 5a. Current assement of the reference biomass of ling (> 75 cm) compared with assessment from the analytical retrospective estimate of the terminal biomass. The shaded yellow ribbon represents the uncertainty (CV = 0.28) at the terminal year.'>>=
+fit$res.by.year %>% 
+  select(year,stock,tru.bio=total.biomass,tru.F=F,tru.rec=recruitment) %>% 
+  left_join(retro.fit$res.by.year %>% 
+              filter(year+as.numeric(model)==2016) %>% 
+              select(year,stock,
+                     retro.bio = total.biomass,
+                     retro.F = F,
+                     retro.rec = recruitment)) %>%
+  tidyr::gather(type,value,-(year:stock)) %>% 
+  separate(type,c('source','type')) %>% 
+  spread(type,value) %>%
+  group_by(year,source) %>% 
+  summarise(total.bio=sum(bio)/1e6,
+            ssb = sum(bio[grepl('mat',stock)])/1e6,
+            rec = sum(rec,na.rm=TRUE)/1e6) %>% 
+  left_join(fit$stock.full %>% 
+              filter(length>ref.cm) %>% 
+              group_by(year) %>% 
+              summarise(hb=sum(number*mean.weight)/1e6) %>% 
+              mutate(source='tru')) %>% 
+  left_join(retro.fit$stock.full %>% 
+              filter(length>ref.cm,
+                     year+as.numeric(model)==2016) %>% 
+              group_by(year) %>% 
+              summarise(hb.retro=sum(number*mean.weight)/1e6) %>% 
+              mutate(source='retro')) %>% 
+  mutate(hb=ifelse(source=='retro',hb.retro,hb)) %>% 
+  select(-hb.retro) %>% 
+  gather(type,value,-c(year:source)) %>% 
+  filter(type=='hb') %>% 
+  mutate(value=ifelse(year==2016,value[!is.na(value)&year==2016],value),
+         source = ifelse(source=='tru','Current assessment','Analytical retrospective')) %>% 
+  ggplot(aes(year,value,col=source)) + 
+  geom_ribbon(aes(ymin=value*exp(qnorm(0.025)*0.2),
+                  ymax=value*exp(qnorm(0.975)*0.2)),
+              alpha=0.5,
+              fill='gold',col='white',
+              data=. %>% filter(source == 'Current assessment'))+
+  geom_line() + 
+  #facet_wrap(~type) +
+  theme_light() + geom_point() + 
+  theme(legend.position = c(0.5,0.8)) +
+  scale_color_manual(name='Assessment',values=c('red','darkblue')) +
+  labs(y='Reference biomass (in kt)',x ='Year') +
+  expand_limits(y=0)
+  
+@
+
+\cleardoublepage
+
+\subsection{Setting $H_{lim}$ and $H_{pa}$}
+According to the ICES guidelines, the precautionary reference points are set by simulating the stock using the stock-recruitment relationship described in section \ref{subsec:SSBR}, based on a wide range of harvest rates, (see eq. \ref{eq:mp}), 
+ranging from 0 to 1 and setting $H_{lim}$ as the $H$ that, in equilibrium, gives a 50\% probability of SSB $> B_{lim}$ without assessment error, described in eq. \ref{eq:asserr}. 
+From this $F_{lim}$ is set as the equilibrium fishing mortality when $H_{lim}$ is applied. $H_{pa}$ is then set as the harvest rate that would lead to the equilibrium fishing mortality of $F_{pa}$. $F_{pa}$ is defined as the $F_{lim}/e^{1.645\sigma}$ where $\sigma$ is the CV of the estimated fishing mortality in the assessment year. 
+
+The simulation predicted the stock status was 
+projected forward 300 years. For each bootstrap model estimate the stock
+status was projected 10 times, resulting in a total of 1000 samples. 
+The spawning stock biomass was calculated based on model output after 2060.
+This is done to ensure that the stock had reached an equilibrium
+under the new fishing mortality regime. 
+
+The results from the long term simulations are shown in the top panels of fig. \ref{fig:fmsy}; the value of H, $H_{lim}$, resulting in 50\% long--term probability of SSB $>B_{lim}$ was estimated at 0.56 (an equivalent $F$ of 0.70). As the CV of $F$ in 2016 is 0.33, $F_{pa}$ is estimated as 0.71/1.72 = 0.41. The equivalent harvest rate is then $H_{pa}=0.35$. 
+
+
+\subsection{Maximum sustainable yield}
+An additional simulation experiment where, in addition to recruitment and bootstrap variations, assessment error was added the harvest rate that would lead to the maximum sustainable yield, $H_{msy}$, was estimated. From the simulation annual total landings $c_y$ were calculated after 2060. Average annual landings and
+90\% quantiles were used to determine the yield by $H$. Figure
+\ref{fig:ssbfor} shows the evolution of catches, SSB and fishing mortality for select values of $H$ are shown. The equilibrium yield curve is shown in figure
+\ref{fig:fmsy}, where the maximum average yield, under the recruitment
+assumptions, is 7.85 thousand tons with a 95\% interval of for the yield 3.64 and
+15.00 thousand tons. Table \ref{tbl:prognres} shows the equilibrium results by harvest rate for select statistics.
+
+$H_{msy}$ is estimated to be 0.24. The
+evolution of the spawning stock biomass is shown in figure
+\ref{fig:ssbfor}. Equilibrium spawning stock biomass is shown in
+figure \ref{fig:fmsy}. The spawning stock biomass obtained at $H_{msy}$ is
+estimated at 31.20 thousand tons at $H=0.24$ with an upper quantile
+of 58.16 thousand tons and lower quantile of 14.32 thousand tons. 
+
+In-line with ICES technical guidelines the MSY $B_{trigger}$ is set as $B_{pa}$, as the stock 
+has not been managed according to $F_{msy}$, or equivalents thereof, for more than 5 years. 
+
+ \begin{figure}
+<<yield,echo=FALSE,results='asis',fig.width=10, fig.height=10,cache=TRUE,warning=FALSE,message=FALSE>>=
+bpa <- 
+  fit$res.by.year %>% 
+  filter(grepl('mat',stock)) %>% 
+  ungroup() %>% 
+  filter(total.biomass==min(total.biomass)) %>% 
+  transmute(total.biomass=total.biomass/1e6) %>% 
+  unlist()
+
+blim <- bpa/1.4
+bpa <- blim*1.4
+Hmsy <- 
+  res2 %>% 
+  filter(mlnd==max(mlnd)) %>% 
+  select(rate,mF)
+
+Hlim <- 
+  res20 %>% 
+  filter(mssb < blim) %>% 
+  head(1) %>% 
+  bind_rows(  res20 %>% 
+                filter(mssb >= blim) %>% 
+                tail(1)) %>%
+  mutate(rate=as.numeric(rate)) %>% 
+  summarise(rate = rate[2]*(blim-mssb[1])/abs(mssb[1]-mssb[2]) + rate[1]*(mssb[2]-blim)/abs(mssb[1]-mssb[2]),
+            mF = mF[2]*(blim-mssb[1])/abs(mssb[1]-mssb[2]) + mF[1]*(mssb[2]-blim)/abs(mssb[1]-mssb[2]))
+
+upper <- Hlim$mF/exp(1.645*0.33)
+Hpa <- 
+  res20 %>% 
+  filter(mF < upper & mF > Hmsy$mF & rate < 0.7) %>% 
+  tail(1) %>% 
+  bind_rows(  res20 %>% 
+                filter(mF >= upper & rate < 0.7) %>% 
+                head(1)) %>%
+  mutate(rate=as.numeric(rate)) %>% 
+  summarise(rate = rate[2]*(upper-mF[1])/abs(mF[1]-mF[2]) + rate[1]*(mF[2]-upper)/abs(mF[1]-mF[2]),
+            mF = upper)
+
+
+yield.plot <- 
+  res20 %>% 
+  bind_rows(res2,.id='meth') %>% 
+  #filter(!(rate %in%c(0.46,0.52))) %>% 
+  ggplot(aes(as.numeric(rate),mlnd,group=1)) + 
+#  geom_ribbon(aes(ymin=llnd,ymax=ulnd),fill='gold') + 
+  geom_ribbon(aes(ymin=mlndq5,ymax=mlndq95),fill='gold',alpha=0.5) + 
+  geom_line() +
+  #xlim(c(0.01,1)) +
+  geom_vline(xintercept = Hmsy$rate %>% as.numeric())+
+  geom_vline(xintercept = Hpa$rate, lty=2) +
+  geom_vline(xintercept = Hlim$rate, col='red')+
+  theme_light() + 
+  labs(x='Harvest rate (H)', y='',title='Avg. yield (in kt)') +
+  scale_x_continuous(breaks = seq(0,0.5,by=0.1)) + 
+  xlim(c(0,0.7)) + 
+  facet_wrap(~meth,ncol=1) +
+  theme(strip.background = element_blank(),strip.text=element_blank())
+ssbmsy <- 
+  res20 %>% 
+  bind_rows(res2,.id='meth') %>% 
+  #filter(!(rate %in%c(0.46,0.52))) %>% 
+  ggplot(aes(as.numeric(rate),mssb,group=1)) +
+  geom_hline(yintercept =blim,col='red') +
+#  geom_ribbon(aes(ymin=lssb,ymax=ussb),fill='gold') + 
+  geom_ribbon(aes(ymin=mssbq5,ymax=mssbq95),fill='gold',alpha=0.5) +
+  geom_line() +
+  #ylim(c(0,)) +
+  geom_vline(xintercept = Hmsy$rate %>% as.numeric())+
+  geom_vline(xintercept = Hpa$rate, lty=2) +
+  geom_vline(xintercept = Hlim$rate, col='red')+
+  theme_light() + 
+  labs(x='Harvest rate (H)', y='',title='Avg. SSB (in kt)')+
+  scale_x_continuous(breaks = seq(0,1,by=0.1)) +
+  xlim(c(0,0.7)) + 
+  facet_wrap(~meth,ncol=1)  +
+  theme(strip.background = element_blank(),strip.text=element_blank())
+  
+gridExtra::grid.arrange(yield.plot,ssbmsy,ncol=2)
+@
+
+  \caption{Ling in 5a. Equilibrium catch (left) and SSB (right) curves as a function of $H$. Top panels show the results with process error while the bottom panels have furter added assessment uncertainty.  The black solid curves indicate the median projected catch and SSB and the shaded yellow region the 5\% -- 95\% percentiles. Vertical lines indicate $H_{lim}$ (red), $H_{pa}$ (dashed) and $H_{msy}$. The horizontal red line indicates $B_{lim}$.}\label{fig:fmsy}
+\end{figure}
+
+
+
+
+\begin{figure}
+<<echo=FALSE,results='asis',fig.width=10, fig.height=15,cache=TRUE,warning=FALSE,message=FALSE>>=
+rates <- c(0.18,0.2,0.22,0.24,0.3)
+
+ssb_progn.plot <- 
+res_by_year %>% 
+#  bind_rows(.id='rate') %>% 
+  filter(rate %in% rates,year < 2050) %>% 
+  select(c(year,rate,matches("ssb"))) %>% 
+  ggplot(aes(year,mssb/1e6)) + 
+  geom_ribbon(aes(ymin=lssb/1e6,ymax=ussb/1e6),fill='gold',alpha=0.5) + 
+  geom_ribbon(aes(ymin=llssb/1e6,ymax=uussb/1e6),fill='gold',alpha=0.5) + 
+  geom_line() + 
+  geom_line(aes(y=ssb6/1e6),lty=2) +
+  geom_line(aes(y=ssb542/1e6),lty=3) +
+  geom_line(aes(y=ssb931/1e6),lty=4) +
+  geom_vline(xintercept = 2017,lty=2) +
+  facet_wrap(~rate,ncol=1) +
+  theme_light() + 
+  labs(title='SSB (in kt)',x='Year',y='') +
+  geom_hline(yintercept = bpa,lty=2) +
+  geom_hline(yintercept = blim,col='red')+ 
+  expand_limits(y=0)
+
+catch_progn.plot <- 
+res_by_year %>% 
+#  bind_rows(.id='rate') %>% 
+  filter(year>2017,rate %in% rates,year < 2050) %>% 
+  select(c(year,rate,matches("lnd"))) %>% 
+  bind_rows(fit$res.by.year %>% 
+              group_by(year) %>% 
+              summarise(mlnd=sum(catch/4)) %>% 
+              left_join(expand.grid(year=1982:2016,
+                                    rate=as.character(rates))))%>% 
+  ggplot(aes(year,4*mlnd/1e6)) + 
+  geom_ribbon(aes(ymin=4*llnd/1e6,ymax=4*ulnd/1e6),fill='gold',alpha=0.5) + 
+  geom_ribbon(aes(ymin=4*lllnd/1e6,ymax=4*uulnd/1e6),fill='gold',alpha=0.5) + 
+  geom_line() + 
+  geom_line(aes(y=lnd6/1e6),lty=2) +
+  geom_line(aes(y=lnd542/1e6),lty=3) +
+  geom_line(aes(y=lnd931/1e6),lty=4) +
+  geom_vline(xintercept = 2017,lty=2) +
+  facet_wrap(~rate,ncol=1) +
+  theme_light() + 
+  labs(title='Catches (in kt)',x='Year',y='') + 
+  expand_limits(y=0)
+
+f_progn.plot <- 
+  res_by_year %>% 
+  filter(year>2017) %>% 
+  bind_rows(bootfit$res.by.year %>% 
+              filter(grepl('mat',stock)) %>% 
+              group_by(year) %>% 
+              dplyr::summarise(mF=mean(F),
+                        uuF=quantile(F,0.75),
+                        llF=quantile(F,0.25),
+                        uF = quantile(F,0.95),
+                        lF = quantile(F,0,05)) %>% 
+              left_join(expand.grid(year=1982:2016,
+                                    rate=as.character(rates))))%>% 
+#  bind_rows(.id='rate') %>% 
+  filter(rate %in% rates,year < 2050) %>% 
+  #select(c(year,rate,)) %>% 
+  ggplot(aes(year,mF)) + 
+  geom_ribbon(aes(ymin=lF,ymax=uF),fill='gold',alpha=0.5) + 
+  geom_ribbon(aes(ymin=llF,ymax=uuF),fill='gold',alpha=0.5) + 
+  geom_line() + 
+  geom_line(aes(y=F6),lty=2) +
+  geom_line(aes(y=F542),lty=3) +
+  geom_line(aes(y=F931),lty=4) +
+  geom_vline(xintercept = 2017,lty=2) +
+  geom_hline(yintercept = Hlim$mF,col='red')+
+  geom_hline(yintercept = Hpa$mF,lty=2)+
+  facet_wrap(~rate,ncol=1) +
+  theme_light() + 
+  labs(title='Fishing mortality',x='Year',y='') + 
+  expand_limits(y=0)
+
+rec_progn.plot <- 
+res_by_year %>% 
+  filter(rate %in% rates,year < 2050) %>% 
+  select(rate,year,matches('rec')) %>%
+  ggplot(aes(year,mrec/1e6)) + 
+  geom_ribbon(aes(ymin=lrec/1e6,ymax=urec/1e6),fill='gold',alpha=0.5) + 
+  geom_ribbon(aes(ymin=llrec/1e6,ymax=uurec/1e6),fill='gold',alpha=0.5) + 
+  geom_line() + 
+  geom_line(aes(y=rec6/1e6),lty=2) +
+  geom_line(aes(y=rec542/1e6),lty=3) +
+  geom_line(aes(y=rec931/1e6),lty=4) +
+  geom_vline(xintercept = 2017,lty=2) +
+  facet_wrap(~rate,ncol=1) +
+  theme_light() + 
+  labs(title='Recruitment (in millions)',x='Year',y='') + 
+  expand_limits(y=0)
+
+gridExtra::grid.arrange(catch_progn.plot,ssb_progn.plot,f_progn.plot,rec_progn.plot,ncol=4)
+
+@
+
+  \caption{Ling in 5a. Projected catches, spawning stock biomass and fishing mortality for select target harvest rates. Red and black dashed horizontal lines represent the limit and pa reference points respectively for SSB and F. }\label{fig:ssbfor}
+\end{figure}
+
+
+<<Fdist,fig.height=8,fig.width=8,fig.lp='fig:',fig.cap="Ling in 5a. Distribution realised harvest rates as a function target harvest rates",echo=FALSE,warning=FALSE,message=FALSE,cache=TRUE>>=
+res_quick %>% 
+  filter(year>2060) %>% 
+  #filter(rate %in% rates) %>% 
+  ggplot(aes(hr)) + geom_histogram(aes(y=..density..)) +
+  theme_light() + #xlim(c(0.1,0.45)) + 
+  #scale_fill_grey(name='Target harv. rate') +
+  #theme(legend.position = c(0.9,0.7)) +
+  labs(x='Realised harvest rate',y='Density') + 
+  facet_wrap(~rate) +
+  theme(strip.background = element_blank(),
+        strip.text=element_blank()) +
+  geom_label(data=data_frame(rate=rates),
+             aes(label=rate), 
+             x=-Inf,y=Inf,size=3, 
+             vjust = 1.1,hjust=-0.1) +
+  xlim(c(0,.75))
+@
+
+
+\begin{table}[!h]
+\vspace{1mm}
+\caption[]
+{Ling in 5a. Equilibrium averages of yield, fishing mortality (F at age $15^+$) spawning stock biomass (SSB),  recruitment and probility that SSB falls below either $B_{pa}$ or $B_{pa}$ at any point in time from forward projections of the stock status of ling. }\label{tbl:prognres}
+\vspace{2mm}
+\resizebox{\columnwidth}{!}{\centering
+\scriptsize
+\begin{tabular}{l| r r r r r r}
+\toprule
+Harvest rate & Eq. yield & F & SSB & Recruitment & $P(\exists y|SSB_y < B_{pa})$ & $P(\exists y|SSB_y < B_{lim})$ \\ \midrule
+<<echo=FALSE,results='asis',message=FALSE,warning=FALSE>>=
+res2 %>% 
+  left_join(res_by_year %>% 
+              filter(year>2060) %>% 
+              group_by(rate) %>% 
+              summarise(mFq5=mean(lF),
+                        mFq95=mean(uF),
+                        mrecq5=mean(lrec),
+                        mrecq95=mean(urec))) %>% 
+  transmute(harv.rate=as.numeric(rate),
+            yield = sprintf('%.2f (%.2f,%.2f)',mlnd,mlndq5,mlndq95),
+            F = sprintf('%.3f (%.3f,%.3f)',mF,mFq5,mFq95),
+            ssb = sprintf('%.2f (%.2f,%.2f)',mssb,mssbq5,mssbq95),
+            rec = sprintf('%.2f (%.2f,%.2f)',mrec/1e6,mrecq5/1e6,mrecq95/1e6),#) %>% #,
+            ppa = sprintf('%.2f',pBpa),
+            plim = sprintf('%.2f',pBlim)) %>% 
+  filter(harv.rate < 0.6,harv.rate > 0.05) %>% 
+  unite(col,matches("."),sep=' & ') %>% 
+   (function(x){
+     paste(x$col,collapse = '\\\\ \n')
+   }) %>% 
+   paste0('\\\\') %>% 
+   cat() 
+@
+
+\bottomrule
+\end{tabular}
+\par}
+\end{table}
+
+
+
+
+\clearpage
+\subsection{Proposed target harvest rate}
+When considering the candidate harvest rate for ling in 5a on may want to investigate the marginal gain of increasing the harvest rate in terms of equilibrium yields. Even with catch rates as low as 0.13 the equilibrium yields are roughly comparable with that of the $H_{msy}$.  
+In addition short term forward projections illustrated in fig. \ref{fig:ssbfor} indicate that for 
+harvest rates will have adapted (on average) to their equilibrium catch levels within a decade from now. 
+% Second the harvest rates have a non zero chance of exceeding the harvest rate and biomass reference points (as illustrated in fig. \ref{fig:ssbfor} and listed in table \ref{tbl:refpoint}) even at $H_{msy}$, where the probability of SSB going below $B_{lim}$ at any time during the forecast was 0.74, while $H=0.18$ has a probability of 0.05.    
+
+The proposed target havest rate, of 0.18 illustrated in fig. \ref{fig:mp.plot}, is considered safe and precautionary as it is lower than any precautionary reference points listed in the sections above. Furthermore it can be considered consistent with the ICES MSY approach, while lower than the estimated $H_{msy}$ of 0.24, the expected long term yield is less that 2\% lower. The expected 5\% and 95\% percentiles of true harvest rates, when setting catches according 0.18, are 0.12 and 0.28 respectively, as illustrated by figure \ref{fig:Fdist}.
+
+
+
+\begin{table}[!h]
+\vspace{1mm}
+\caption[]
+{Ling in 5a. Summary of reference point proposed for ling in 5a. The fishing mortality is relative to ages $15^+$ and harvest rates correspond to the reference biomass of $B_{75cm^+}$. }\label{tbl:refpoint}
+\vspace{2mm}
+{\centering
+\scriptsize
+\begin{tabular}{p{2.5cm} l r p{5cm} }
+\toprule
+Framework & Reference point & Value & Technical basis \\ \midrule
+MSY approach & MSY $B_{trigger}$ &  9.93 kt & $B_{pa}$ \\
+            & $H_{msy}$ & 0.24 & The harvest rate that maximises the median long-term catch in stochastic simulations with recruitment drawn from a block bootstrap of historical recruitment, with block size 6, scaled according to a hockey stick recruitment function with $B_{lim}$ as defined below.\\
+            & $F_{msy}$ & 0.284 & The median fishing mortality when an harvest rate of $H_{msy}$ is applied. \\
+%            & $H_{p.05}$ & 0.497 & The harvest rate that has an annual probability of 5\% of SSB < $B_lim$.\\
+%            & $F_{p.05}$ & 0.516 &  The median fishing mortality when an harvest rate of $H_{p.05}$ is applied.\\
+\hline
+Precautionary approach & $B_{lim}$ & 7.09 kt & $B_{pa}/e^{1.645\sigma}$ where $\sigma=0.2$ \\
+                      & $B_{pa}$ & 9.93 kt & SSB(1992), corresponding to $B_{loss}$ \\
+                      & $H_{lim}$ & 0.56 & $H$ corresponding to 50\% long-term probability of SSB > $B_{lim}$ \\
+                      & $F_{lim}$ & 0.70 & F corresponding to $H_{lim}$ \\
+                      & $F_{pa}$ &  0.41 & $F_{lim}/e^{1.645\sigma}$ where $\sigma=0.33$\\
+                      & $H_{pa}$ & 0.35 & H corresponding to $F_{pa}$ \\
+\hline 
+Management plan & $H_{mp}$ & 0.18 & $H$ such that $F\leq F_{msy}$, long-term yield is consistent with MSY while leading to high stock biomass \\
+             & $B_{trigger}$ & 9.93 kt & Set as $B_{pa}$ as the stock has not been harvested at $F_{msy}$, or equivalents thereof\\ 
+\bottomrule
+\end{tabular}
+\par}
+\end{table}
+
+<<mp.plot, fig.height=5,fig.width=10,fig.lp='fig:',fig.cap='Ling in 5a. Graphical presention of the proposed managment rule. The black solid line indicates the harvest rate relative to the >75cm biomass as a function of the SSB',echo=FALSE>>=
+Hmp <- 0.18
+ggplot(aes(x,y),
+       data=data_frame(x=c(0,bpa,bpa*5),y=c(0,Hmp,Hmp))) + 
+  geom_path() + 
+  expand_limits(y=Hmp*1.5) +
+  theme_light() + 
+  geom_vline(xintercept = bpa,lty=2) +
+  geom_vline(xintercept = blim,col='red') +
+  annotate('text',label=sprintf('Btrigger = %.2f',bpa),x=bpa*1.1,y=0.05,angle=90) + 
+  labs(y='Harv. rate',x='SSB (in kt)')+
+  annotate('text',label=sprintf('Blim = %.2f',blim),x=blim*0.9,y=0.05,angle=90) +
+  annotate('text',label=sprintf('Hmp = %.2f',Hmp),x=bpa*2,y=1.05*Hmp)
+@
+
+
+\section{Conclusions}
+Overall the gadget model presented here captures the overall trends in
+the data, and in spite of minor mis-fits the model is usable for
+assessing the stock and to base advice to managers.
+
+In a complicated such as the gadget model that has many parameters and
+many data-sets of varying quality it is to be expected that there may
+be problems with some parameters and fit to some data-sets.
+
+The main problem the model has, as would any other models,
+is the rapid increase in the survey indices in recent years and the
+large CV of these indices in that period.  This is more a data problem
+than a model problem and given the decrease in the last 5 years
+in the smaller length
+groups in the tuning series this may resolve it self in coming years. 
+
+Most parameters are well defined except for the ones relating to
+gillnets, the reason being the limited data for this fleet.  Catches
+from gillnets have been decreasing in recent years.  For example
+catches in gillnets were around one third to half of ling catches in
+2000 to 2001 but have now decreased to around 7\% of Icelandic
+commercial catches in 2016.  This is the result of changes in fleet
+dynamics and regulations.  It may even be justifiable to omit the
+gillnet fleet in the future from the model.  Anyway the problems with
+the gillnet fleet in the model are of minor importance in the current
+fishery. 
+
+Another parameter that is poorly defined is the $\sigma_0$ that
+is the standard deviation of recruitment length.  This is also of minor
+importance as ling does not enter the fishery until the age 5 and 6,
+but by then the $\beta$-parameter has created a standard
+deviation in the length at age.
+
+
+
+
+
+
+\cleardoublepage
+
+\bibliography{library}
+
+\cleardoublepage
+\section{Annex}
+\subsection{Initial parameter values and boundaries}\label{Ann:Par.base}
+{\tiny
+\verbatiminput{../08-back2l50/params.in}
+\par}
+
+\cleardoublepage
+\subsection{Settings of optimisation routines}\label{Ann:Optinfo}
+{
+\verbatiminput{../00-setup/optinfofile}
+\par}
+
+
+
+
+\cleardoublepage
+\section{Explaining changes in recruitment}\label{sec:recdisc}
+\subsection{Temporal changes in recruitment}
+The relationship between the estimated spawning stock and recruitment
+is shown in figure \ref{fig:ssbrec}. In the Gadget model for Ling in
+5a the annual recruitment, during the observation period, is estimated
+as a fixed effect without any consideration of the size of the
+spawning stock biomass. This means that no formal stock recruit
+relationship is defined. This is allowed by information on past
+recruitment such as age and length distributions and survey
+indices. It can be observed that for time periods where less data is
+available on recruitment, such as recruitment in the most recent
+years, have higher levels of uncertainty.
+
+
+Ling in 5a has experienced an unusual spike in recruitment, when
+compared to years prior to 2003. There could be two different reasons
+for this observation, impaired recruitment due to over exploitation or
+environmental changes.  In the following sub-subsections these theories
+will be explored.
+
+
+\subsection{Impaired recruitment}
+Catches in 1950 to the mid
+  seventies were around 10 thous. tonnes annually but in the eighties
+  and nineties fell to 3 to 4 thous tonnes.  After 2005 catches
+  increased again to similar levels as before (10 thous tonnes).  So
+  the decrease in recruitment would be the result of
+  over-exploitation.  This may certainly be the case
+when considering historical fishing mortality (Figure
+\ref{fig:catch}).  However there is no information available on
+fishing mortality or harvest rates for ling in 5a before 1982, when
+catch levels were high for over 25 years.
+\subsection{Environmental factors}
+Since 2000 bottom temperature has been increasing on the western and
+north-western part of the shelf (Figure \ref{fig:temp}).  This
+increase in temperature has opened up areas for species that are on
+the northern fringe of their distributional range as can be seen from
+changes in indices of several of such species such as ling, tusk,
+anglerfish and lemon sole (Figure \ref{fig:warmInd}).
+
+There does seem to be a strong correlation between the increase in the
+southern species in figure \ref{fig:warmInd} and the increase in
+temperature in figure \ref{fig:temp}.1, \ref{fig:temp}.2 and
+\ref{fig:temp}.3.  However in \ref{fig:temp}.4 wich is the longest
+time series going back to 1945 and comes from the northern part of the
+shelf there is no increase in temperature around 2000.  However it can
+be seen that there was a significant drop in temperature on the
+northern part of the shelf in the early seventies.  This strongly
+suggests that the waters around Iceland in the fifties and sixties
+ware considerably warmer than in the seventies to nineties.  It is
+therefore not unlikely that the changes in catches observed in figure
+\ref{fig:catch} are to a large extend driven by changes in the environment.
+
+The increase in the biomass shown in figure \ref{fig:warmInd}
+coinsided with a rapid increase in recruitment indices of these
+species as can be seen in figure \ref{fig:JuvInd}.  The striking thing
+from figure  \ref{fig:JuvInd} is that for three of the four species
+the juvenile indices have decreased rapidly from a recod high in
+2005-2009 to very low levels.  This may indicate that the increase in
+temperature may not on its own be sufficient to ensure continued high
+recruitment.  There could be other enviriomental factors at play, such
+as species interactions, predation on juveniles or even density
+dependent factors.  However there is no guarantee for a continued good
+recruitment in coming years.
+
+\begin{figure}
+  \includegraphics[width=0.9\linewidth]{catches1950F}
+  \caption{Ling in Va: Catches in 1950 to 2012 and estimates of
+    fishing mortality from the Gadget model from 1982 to 2012.}\label{fig:catch}
+\end{figure}
+
+\begin{figure}
+  \includegraphics[width=1.0\linewidth]{Temp3}
+  \caption{Changes in bottom temperature in selected areas around Iceland by year.}\label{fig:temp}
+\end{figure}
+
+
+\begin{figure}
+  \includegraphics[width=1.0\linewidth]{WarmBioInd}
+  \caption{Changes in biomass indices for several southern species in
+    5a from the Icelandic spring survey.}\label{fig:warmInd}
+\end{figure}
+
+
+\begin{figure}
+  \includegraphics[width=1.0\linewidth]{WarmJuvInd}
+  \caption{Changes in juvenile abundance indices for several southern species in
+    5a from the Icelandic spring survey.}\label{fig:JuvInd}
+\end{figure}
+
+
+\subsection{Conclusions}
+Given the data presented above it seems plausible that the sudden
+increase in ling and other southern species on the Icelandic shelf is
+driven mainly by changes in the environment and anecdotal evidence
+indicates that the decline in catches in the seventies may be
+similarly driven by decrease in temperature on the Icelandic shelf.
+
+
