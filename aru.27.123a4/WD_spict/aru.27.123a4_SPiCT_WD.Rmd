@@ -1,12 +1,12 @@
 ---
 title: |
   | SPiCT scenarios for the Greater silver smelt (_Argentina silus_)
-  | in Subareas 1, 2, and 4, and Division 3.a (Northeast Arctic, North Sea, Skagerrak and Kattegat)
-author: "Alexandros Kokkalis, Elvar Halldor Hallfredsson, Lise Heggebakken"
+  | in Subareas 1, 2, and 4, and Division 3.a (Norwegian Sea, North Sea and Skagerrak)
+author: "Alexandros Kokkalis, Elvar H. Hallfredsson and Lise Heggebakken"
 date: "05/02/2020"
 output:
-  pdf_document: default
   word_document: default
+  pdf_document: default
   html_document:
     df_print: paged
 editor_options:
@@ -17,12 +17,28 @@ bibliography: bib.bib
 
 ```{r setup, include=FALSE}
 ## Options about the creation of the pdf file
-knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, error = FALSE, cache = TRUE, fig.width = 6, fig.height = 5)
+knitr::opts_chunk$set(
+	error = FALSE,
+	fig.height = 5,
+	fig.width = 6,
+	message = FALSE,
+	warning = FALSE,
+	cache = TRUE
+)
 ```
 
 ## Introduction
 
-This working document present a series of different assessments using the surplus production model in continous time (SPiCT; @Pedersen2016) available as an R package (https://github.com/DTUAqua/spict).
+This working document present a series of different assessments for greater silver smelt in ICES areas 1,2, 3a and 4, using the surplus production model in continous time (SPiCT; @Pedersen2016) available as an R package (https://github.com/DTUAqua/spict). 
+
+## Data
+
+Input data are total catches since 1988 and biomass indices from tree surveys (depending on scenario); 
+  - Acoustic biomass estimates from the Norwegian survey in winter/spring at the eastern slope of the Norwetian Sea. The survey was first concucted in 2009, then 2012, and biennially since then.
+  - Acoustic biomass estimates from surveys at the eastern slope of he Norwegian Sea in 1991-1993 publiched by Monstad and Johannessen (2003)
+  - Swept area biomass estimates from the Norwegian shrimp survey in the North Sea/Skagerrak. The survey was in October 1984-2002, 2004-2005 in May, 2006-2008 in February, and in January sicne then. Time of year apparantly affects the biomass estimates, and the index was thus split in the analysis. Year 2003 and 2016 are missing.
+
+Biomass is in all cases in tonnes.
 
 ## Read in the data
 
@@ -124,7 +140,7 @@ if (converged) {
 
 
 ## Scenario 2
-: Input data for Scenario 1
+: Input data for Scenario 2
 
 +-----------------+----------------+------------+----------------------------+
 | Input data      | Name           | Range      |  Notes                     |
@@ -133,16 +149,18 @@ if (converged) {
 +-----------------+----------------+------------+----------------------------+
 | Biomass indices | Shrimp survey  | 1984--2002 |  Only october period     |
 +-----------------+----------------+------------+----------------------------+
-| Biomass indices | Acoustic survey  | 2009--2018 |  Matlab     |
+| Biomass indices | Acoustic survey  | 2009--2018 |  StoX     |
 +-----------------+----------------+------------+----------------------------+
-|                 |                |            |  Default priors            |
+|                 |                |            |  Priors:logn=c(log(2),.5,1), |
++-----------------+----------------+------------+----------------------------+
+|                 |                |            |  logbkfrac=c(log(.5),1,1)   |
 +-----------------+----------------+------------+----------------------------+
 
 ```{r fit_scenario2}
 ## Choose only the years where the survey was in October 
 w <- !is.na(dat$northsea_month) & dat$northsea_month == 10
 ## Choose only the years where the survey was in January or February 
-##v <- !is.na(dat$northsea_month) & dat$northsea_month %in% c(1, 2)
+##v <- !is.na(dat$northsea_month) & dat$northsea_month %in% c(1, 2)      
 
 
 ## Make the input list
@@ -151,7 +169,7 @@ inp_NS <- list(timeC = dat$year,                                      ## Timing 
                timeI = list(dat$year[w] + dat$northsea_month[w] / 12, ## Timing of survey index
                             dat$year+3.5/12),
                obsI = list(dat$northsea_SA[w],                        ## Observed indices
-                          dat$norwegian_seaAC),
+                          dat$norwegian_sea_AC_stox),
                optimiser.control = list(iter.max = 1e5,               ## Optimiser options 
                                         eval.max = 1e5),              ## sometimes help converge
                priors = list(                                         ## List of priors (empty, i.e. default priors)
@@ -207,7 +225,9 @@ if (converged) {
 ```
 
 
+
 ## Scenario 3
+
 : Input data for Scenario 3
 
 +-----------------+----------------+------------+----------------------------+
@@ -215,7 +235,7 @@ if (converged) {
 +=================+================+============+============================+
 | Catch           | Total catch    | 1988-2018  |                            |
 +-----------------+----------------+------------+----------------------------+
-| Biomass indices | Acoustic survey  | 2009--2018 |  Matlab     |
+| Biomass indices | Acoustic survey  | 2009--2018 |  StoX     |
 +-----------------+----------------+------------+----------------------------+
 | Biomass indices | Acoustic survey  | 1990-1993 |  Monstad     |
 +-----------------+----------------+------------+----------------------------+
@@ -223,89 +243,6 @@ if (converged) {
 +-----------------+----------------+------------+----------------------------+
 
 ```{r fit_scenario3}
-## Choose only the years where the survey was in October 
-w <- !is.na(dat$northsea_month) & dat$northsea_month == 10
-## Choose only the years where the survey was in January or February 
-##v <- !is.na(dat$northsea_month) & dat$northsea_month %in% c(1, 2)
-
-
-## Make the input list
-inp_NS <- list(timeC = dat$year,                                      ## Timing of catch
-               obsC = dat$catchTOT,                                   ## Observed catches
-               timeI = list(dat$year+3.5/12,dat$year+3/12),## Timing of survey index
-               obsI = list(dat$norwegian_seaAC,dat$Norwegian_seaAC_Monstad), ## Observed indices
-               optimiser.control = list(iter.max = 1e3,               ## Optimiser options 
-                                        eval.max = 1e3),              ## sometimes help converge
-               priors = list(                                         ## List of priors (empty, i.e. default priors)
- #logn=c(log(2),.5,1),
- #logbkfrac=c(log(.5),1,1)
-## see possible priors with list.possible.priors()
-                 ))
-## Check input time series, remove missing and zero observations
-inp_NS <- check.inp(inp_NS)
-
-## Plot input data
-plotspict.data(inp_NS)
-
-## Fit spict
-fit_NS <- fit.spict(inp_NS)
-
-## Summary of the fit - in the vignette there is a line-by-line description of that summary
-fit_NS
-
-## If the model converged, it reports convergence as 0
-## Continue with plotting and diagnostics only if convergence was reached
-converged <- fit_NS$opt$convergence == 0
-if (converged) {
-  ## Calculate the One Step Ahead (osa) residuals  
-  fit_NS <- calc.osa.resid((fit_NS))
-  
-  ## Make a plot showing relative F, relative B, Kobe plot catch 
-  par(mfrow = c(2,2),  ## 2x2 subplots
-      mar = c(4.1, 4.1, 0.5, 0.5)) ## Change default margins for the plots 
-  plotspict.catch(fit_NS)
-  plotspict.ffmsy(fit_NS)
-  plotspict.bbmsy(fit_NS)
-  plotspict.fb(fit_NS)
-}
-
-
-```
-
-```{r diagnostics_scenario_3, fig.height=8}
-if (converged) {
-  plotspict.diagnostic(fit_NS)
-  plotspict.production(fit_NS)
-}
-```
-
-
-```{r retro_scenario_3}
-  ## If runretro is TRUE, run and plot the retrospective analysis
-  #runretro=TRUE
-if (runretro & converged) {
-    fit_NS <- retro(fit_NS)
-    plotspict.retro(fit_NS)
-  }
-```
-
-## Scenario 4
-
-: Input data for Scenario 4
-
-+-----------------+----------------+------------+----------------------------+
-| Input data      | Name           | Range      |  Notes                     |
-+=================+================+============+============================+
-| Catch           | Total catch    | 1988-2018  |                            |
-+-----------------+----------------+------------+----------------------------+
-| Biomass indices | Acoustic survey  | 2012--2018 |  StoX     |
-+-----------------+----------------+------------+----------------------------+
-| Biomass indices | Acoustic survey  | 1990-1993 |  Monstad     |
-+-----------------+----------------+------------+----------------------------+
-|                 |                |            |  Default priors            |
-+-----------------+----------------+------------+----------------------------+
-
-```{r fit_scenario4}
 ## Choose only the years where the survey was in October 
 w <- !is.na(dat$northsea_month) & dat$northsea_month == 10
 w[1:4]<-FALSE
@@ -317,7 +254,7 @@ w[1:4]<-FALSE
 inp_NS <- list(timeC = dat$year,                                      ## Timing of catch
                obsC = dat$catchTOT,                                   ## Observed catches
                timeI = list(dat$year+3.5/12, dat$year+3/12),
-               obsI = list(dat$norwegian_seaAC,dat$Norwegian_seaAC_Monstad),
+               obsI = list(dat$norwegian_sea_AC_stox,dat$Norwegian_seaAC_Monstad),
                optimiser.control = list(iter.max = 1e3,               ## Optimiser options 
                                         eval.max = 1e3),              ## sometimes help converge
                priors = list(                                         ## List of priors (empty, i.e. default priors)
@@ -356,7 +293,7 @@ if (converged) {
 
 ```
 
-```{r diagnostics_scenario_4, fig.height=8}
+```{r diagnostics_scenario_3, fig.height=8}
 if (converged) {
   plotspict.diagnostic(fit_AC)
   plotspict.production(fit_AC)
@@ -364,7 +301,7 @@ if (converged) {
 ```
 
 
-```{r retro_scenario_4}
+```{r retro_scenario_3}
   ## If runretro is TRUE, run and plot the retrospective analysis
   ## runretro=TRUE
 if (runretro & converged) {
@@ -373,25 +310,25 @@ if (runretro & converged) {
   }
 ```
 
-##Scenario 5
+##Scenario 4
 
-: Input data for Scenario 5
+: Input data for Scenario 4
 
 +-----------------+----------------+------------+----------------------------+
 | Input data      | Name           | Range      |  Notes                     |
 +=================+================+============+============================+
 | Catch           | Total catch    | 1988-2018  |                            |
 +-----------------+----------------+------------+----------------------------+
-| Biomass indices | Shrimp survey  | 1984--2002 |  Only october period     |
+| Biomass indices | Shrimp survey  | 1988--2002 |  Only october period     |
 +-----------------+----------------+------------+----------------------------+
-| Biomass indices | Acoustic survey  | 2012--2018 |  StoX     |
+| Biomass indices | Acoustic survey  | 2009--2018 |  StoX     |
 +-----------------+----------------+------------+----------------------------+
 | Biomass indices | Acoustic survey  | 1990-1993 |  Monstad     |
 +-----------------+----------------+------------+----------------------------+
 |                 |                |            |  Default priors            |
 +-----------------+----------------+------------+----------------------------+
 
-```{r fit_scenario5}
+```{r fit_scenario4}
 ## Choose only the years where the schrimp survey was in October 
 w <- !is.na(dat$northsea_month) & dat$northsea_month == 10
 w[1:4]<-FALSE #remove years before 1988 in schrip survey
@@ -401,7 +338,7 @@ v <- !is.na(dat$northsea_month) & dat$northsea_month %in% c(1)#c(1, 2)
 inp_NS <- list(timeC = dat$year,                                      ## Timing of catch
                obsC = dat$catchTOT,                                   ## Observed catches dat$year[v] + dat$northsea_month[v] / 12
                timeI = list(dat$year[w] + dat$northsea_month[w] / 12,dat$year+3.5/12, dat$year+3/12),
-               obsI = list(dat$northsea_SA[w],dat$norwegian_seaAC,dat$Norwegian_seaAC_Monstad),
+               obsI = list(dat$northsea_SA[w],dat$norwegian_sea_AC_stox,dat$Norwegian_seaAC_Monstad),
                optimiser.control = list(iter.max = 1e3,               ## Optimiser options 
                                         eval.max = 1e3),              ## sometimes help converge
                
@@ -441,7 +378,7 @@ if (converged) {
 
 ```
 
-```{r diagnostics_scenario_5, fig.height=8}
+```{r diagnostics_scenario_4, fig.height=8}
 if (converged) {
   plotspict.diagnostic(fit_NS)
   plotspict.production(fit_NS)
@@ -449,7 +386,7 @@ if (converged) {
 ```
 
 
-```{r retro_scenario_5}
+```{r retro_scenario_4}
   ## If runretro is TRUE, run and plot the retrospective analysis
   #runretro=TRUE
 if (runretro & converged) {
@@ -458,28 +395,43 @@ if (runretro & converged) {
   }
 ```
 
-### Biomass comparsin scenario 4 and 5
+### Biomass comparison scenario 3 and 4
 
-```{r}
-bAC <- get.par(parname = "logBBmsy",fit_AC)
+```{r fig.cap="Figure XXXX. SPiCT biomass estimates from scenario 3 and 4. AC = SPiCT run with only acoustic indices, AC+SA_Oct = SPiCT run with acoustic incieces and swept area index from North Sea/Skagerrak survy in years when it was conducted in October, AC-StoX = acoustic biomass indx from the Norwegian Sea slope survey."}
+bAC <- get.par(parname = "logBBmsy",fit_AC, exp = TRUE)
 time <- as.numeric(rownames(bAC))
-bNS <- get.par(parname = "logBBmsy",fit_NS)
-
+bNS <- get.par(parname = "logBBmsy",fit_NS, exp = TRUE)
+BmsyAC<- get.par(parname = "Bmsy",fit_AC)
 
 
 meanAC <- mean(bAC[,2][time > 2005 & time < 2019])
 meanNS <- mean(bNS[,2][time > 2005 & time < 2019])
-ylim <- c(0.3, 1.6)
-plot(time, exp(bNS[,2]) / exp(meanNS),col=2,type="l", ylim = ylim, xlim=c(2005,2018))
-lines(time, exp(bAC[,2]) / exp(meanAC))
-legend("bottomright",,c("NS", "AC"), col = 1:2, seg.len = 4, lty = 1)
-points(dat$year, dat$norwegian_sea_AC_stox / mean(dat$norwegian_sea_AC_stox, na.rm = TRUE))
-points(dat$year, dat$norwegian_seaAC / mean(dat$norwegian_seaAC ,na.rm = TRUE), col="red")
+AC_StoX<-data.frame(na.omit(cbind(dat$year,dat$norwegian_sea_AC_stox / mean(dat$norwegian_sea_AC_stox ,na.rm = TRUE))))
+ylim <- c(0.6, 1.4)
+par(mfrow =c(1,1))
+plot(time, bNS[,2] / meanNS,type="l", ylim = ylim, xlim=c(2005,2018),ylab = "Bioamass", xlab = "Year")
+lines(time, bAC[,2] / meanAC,col="red")
+#points(dat$year, dat$norwegian_sea_AC_stox / mean(dat$norwegian_sea_AC_stox, na.rm = TRUE, col="blue"),pch =3 )
+lines(AC_StoX, type = "b", col="red",pch=16,lty=2)
+legend("bottomright",c("AC+SA_Oct", "AC","AC-StoX"), col = c(1,2,2), seg.len = 4, lty = c(1,1,2),pch = c(NA,NA,16),box.lty=0)
 
+
+#plot(time, bAC[,2] / meanAC,xlim=c(2005,2018),type = "l",ylim =c(0.6,1.4), ylab = "Biomass AC")
+
+idx2 <- c(which(floor(time) == 2017)[1], which(floor(time) == 2018)[1])
+#time[idx2]
+idx3 <- c(which(floor(time) == 2014)[1], which(floor(time) == 2015)[1], which(floor(time) == 2016)[1])
+#time[idx3]
+ratio2_3AC <- mean(bAC[idx2,2]) / mean(bAC[idx3,2])
+ratio2_3AC
+ratio2_3ACexp <- mean(BmsyAC[2]*exp(bAC[idx2,2])) / mean(BmsyAC[2]*exp(bAC[idx3,2]))
+ratio2_3ACexp
 
 ```
+
+## Discussion
 
 
 ## Referneces
 
-
+Monstad, T., & Johannessen, A. (2003). Acoustic recordings of greater silver smelt (_Argentina silus_) in Norwegian waters and west of the British Isles, 1989-94. J. Northw. Atl. Fish. Sci., 31, 339-351.
