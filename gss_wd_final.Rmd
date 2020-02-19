@@ -22,6 +22,12 @@ fit_no_igfs<- gadget.fit( gd = '/net/hafkaldi/export/home/haf/pamela/19-gss/expl
                           f.age.range = data.frame(stock = c('gssmat', 'gssimm'), age.min = c(6,6), age.max = c(14,14)),
                     wgts = 'WGTS2')
 
+fit_no_igfs_age1<- gadget.fit( gd = '/net/hafkaldi/export/home/haf/pamela/19-gss/exploratory_models/gadget/01-new_ass_no_igfs_mt_s5',
+                          recruitment_step_age	= tibble(stock = 'gssimm', age = 1, step = 1), 
+                          f.age.range = data.frame(stock = c('gssmat', 'gssimm'), age.min = c(6,6), age.max = c(14,14)),
+                    wgts = 'WGTS2')
+
+
 tmp_fit_no_igfs <- plot(fit_no_igfs,data='catchdist.fleets')
 
   R1 <- gadget.fit( gd = '/net/hafkaldi/export/home/haf/pamela/19-gss/exploratory_models/gadget/01-new_ass_no_igfs_mt_s5', wgts = NULL,
@@ -54,7 +60,7 @@ tmp_fit_no_igfs <- plot(fit_no_igfs,data='catchdist.fleets')
   
   save(retro.fit,file='/net/hafkaldi/export/home/haf/pamela/19-gss/exploratory_models/gadget/01-new_ass_no_igfs_mt_s5/retroFit.Rdata')
 
-#load('~/Documents/Hafro/fishvice/19-gss/exploratory_models/gadget/01-new_ass_no_igfs_mt_s6/retroFit.Rdata')
+#load('/net/hafkaldi/export/home/haf/pamela/19-gss/exploratory_models/gadget/01-new_ass_no_igfs_mt_s5/retroFit.Rdata')
 retro.igfs <- bind.gadget.fit(retro.fit,fit_no_igfs)
 names(retro.igfs$res.by.year)[1] <- 'model1'
 rm(retro.fit)
@@ -435,12 +441,13 @@ The order of calulations is as follows:
 The total objective function used the modeling process combines
 equations to using the following formula:
 
-$$
+
+\begin{equation}\label{eq:loglik}
 l^{{T}} = \sum_g  w_{gf}^{{SI}}
 l_{g,S}^{{SI}} + \sum_{f\in \{S,A,C\}} \left(
   w_{f}^{{LD}}  l_{f}^{{LD}} + w_{f}^{{AL}}
   l_{f}^{{AL}}\right) + w^{{M}}l^{{M}}
-$$
+\end{equation}
 
 where $f=S$, $A$, or $C$ denotes the spring survey, autumn survey and commercial fleets respectively (See subsection )
 and $w$'s are the weights assigned to each likelihood components. 
@@ -1119,9 +1126,20 @@ retro_igfs_rec <-
   theme_bw()
 
 gridExtra::grid.arrange(retro_igfs_bio, retro_igfs_F, retro_igfs_rec, nrow = 3)
-
 ```
 
+In figure \ref{fig:Retro} the results of an analytical retrospective
+analysis are presented.  The analysis indicates that there was an upward revision of biomass over the first 3 years of the 5-year peel followed by a
+downward revision of biomass (SSB) over the last 2 years, and
+and subsequently an downward then upward revision of $F$.  Estimates of
+recruitmentfrom 2015 are not particularly stable, although recruitment are generally not that veriable except for the apparent peak in 2017 - 2018. 
+
+UPDATE:Two things have to be considered when looking at figure
+\ref{fig:Retro}.  First is that these fluctuations are roughly within the 95\% bootstrap interquantile range, although there appears to be a one way correction each consecutive year while 2015 and 2016 models appear roughly inline with one another.  
+
+UPDATE:It is also worth noting that the bulk of the age structured data is in the last 15 years, and the bulk after 2010, and therefore a very informative data is being
+omitted, this specially affects the recruitment estimates. Also the lack of age data back in time, in contrast with traditional age based assessments appears to result in greater variation
+in historical estimates. 
 
 #### Model derived quantities
 
@@ -1215,6 +1233,19 @@ print(matplot)
 
 #### Model results
 
+UPDATE: The model predicts that total biomass is currently starting to decline from its peak level in 2014. Simlarly reference biomass and the spawning stock biomass SSB are starting to decline but still at a level considerably higher that ever observed (Figure\ref{fig:Estimates}).  The SSB reached its lowest point at 9.93 kt in 1991. The bootstrap runs indicate that uncertainty
+about population estimates has been increasing in recent years, in
+accordance with the increase in the variance of the survey indices and fewer datapoints behind those estimates. 
+
+The coefficient of variation (CV) of the population estimates from the
+bootstrap runs is on average around 0.15 for the SSB, 0.15 for the 
+reference biomass (>75 cm), and 0.16 for recruitment.  However in
+the assessment year the CV of SSB and reference biomass is around
+0.25 and 0.28 respectively, the range for these two metrics is between 0.1 to 0.26 and 0.09 to 0.28.  For
+recruitment the range is 0.08 to 0.4.
+
+Catches of immature fish, in terms of total biomass caught, is estimated to have varied between 12.4 \% in 1982 to 26.5\% in 2011 and in 2016 the estimated proportion is 12.6\%. 
+
 ```{r totbioplot, echo=FALSE, fig.width = 9, fig.height= 6, fig.cap = "Greater silver smelt in 5.a and 14. Estimates of total biomass by by stock from the models that included the spring survey index (IGFS) or did not. The stock 'gssmat' reflects the mature portion (spawning stock biomass), whereas 'gssimm' reflects the immature portion of the stock."}
 tot_bio_plot <-
   plot(fit_no_igfs, data='res.by.year',type='total') + theme_bw()
@@ -1245,23 +1276,23 @@ print(rec_plot)
 ```{r SRplot, echo=FALSE, fig.width = 9, fig.height= 9, fig.cap = "Greater silver smelt in 5.a and 14. Plots of the estimated recruitment age age 1 versus spawning stock biomass (lagged by 1 year) from the models that included the spring survey index (IGFS) or did not. Vertical lines indicate the minimum observed spawning stock biomass value."}
 #ssb - rec
 SR_plot <-
-  fit_no_igfs$res.by.year %>% 
+  fit_no_igfs_age1$res.by.year %>% 
   ungroup() %>% 
   filter(stock=='gssmat') %>%
   select(year, total.biomass) %>% 
   filter(year > 1999) %>% 
   mutate(`Spawning stock biomass (1000s tonnes)` = lag(total.biomass/1000000)) %>% 
-  left_join(fit_no_igfs$res.by.year %>% 
+  left_join(fit_no_igfs_age1$res.by.year %>% 
               ungroup() %>% 
               filter(stock=='gssimm') %>%
               select(year, recruitment) %>% 
-              mutate(`Recruitment in millions (age 5)` = recruitment/1000000)) %>% 
+              mutate(`Recruitment in millions (age 1)` = recruitment/1000000)) %>% 
   arrange(year) %>% 
   ggplot() + 
   #geom_point(aes(x = `Spawning stock biomass (1000s tonnes)`, y = `Recruitment (millions)`, color = model)) +
-  geom_text(aes(x = `Spawning stock biomass (1000s tonnes)`, y = `Recruitment in millions (age 5)`, label = year)) +
-  geom_path(aes(x = `Spawning stock biomass (1000s tonnes)`, y = `Recruitment in millions (age 5)`), alpha = 0.3) +
-  geom_vline(aes(xintercept = minssb), lty = 2, data = fit_no_igfs$res.by.year %>% 
+  geom_text(aes(x = `Spawning stock biomass (1000s tonnes)`, y = `Recruitment in millions (age 1)`, label = year)) +
+  geom_path(aes(x = `Spawning stock biomass (1000s tonnes)`, y = `Recruitment in millions (age 1)`), alpha = 0.3) +
+  geom_vline(aes(xintercept = minssb), lty = 2, data = fit_no_igfs_age1$res.by.year %>% 
                ungroup() %>% 
                filter(stock=='gssmat') %>%
                select(year, total.biomass) %>% 
@@ -1269,14 +1300,14 @@ SR_plot <-
                mutate(`Spawning stock biomass (1000s tonnes)` = lag(total.biomass/1000000)) %>%
                summarize(minssb = min(`Spawning stock biomass (1000s tonnes)`, na.rm = T))) + 
   geom_text(aes(x = x, y = y, label = label), data = 
-              fit_no_igfs$res.by.year %>% 
+              fit_no_igfs_age1$res.by.year %>% 
               ungroup() %>% 
               filter(stock=='gssmat') %>%
               select(year, total.biomass) %>%
               filter(year > 1999) %>% 
               mutate(`Spawning stock biomass (1000s tonnes)` = lag(total.biomass/1000000)) %>%
               summarize(minssb = min(`Spawning stock biomass (1000s tonnes)`, na.rm = T)) %>%
-              left_join(fit_no_igfs$res.by.year %>% 
+              left_join(fit_no_igfs_age1$res.by.year %>% 
                           ungroup() %>% 
                           filter(stock=='gssmat') %>%
                           select(year, total.biomass) %>% 
