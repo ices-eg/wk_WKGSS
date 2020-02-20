@@ -29,7 +29,7 @@ rm(list=ls())
 ## Directory info
 #path <- "D:/ICES benchmarks/WKGSS 2020/Ref pts/"   # folder were the code is and where results will be saved (in a subfolder)
 path <- "./aru.27.5b6s/Reference Points/"   # folder were the code is and where results will be saved (in a subfolder)
-runName <- "GSS5b6a_5selbio_allSRRs_TEST4" # (no spaces) Results will be saved in a subfolder with this name (so make it descriptive)
+runName <- "GSS5b6a_5selbio_BlimSegreg_DM-final2" # (no spaces) Results will be saved in a subfolder with this name (so make it descriptive)
 ## Save plots?
 savePlots <- T
 
@@ -39,12 +39,12 @@ stockName <- "aru.27.5b6a"                # Used only in plots (i.e. titles) and
 
 # If using stockassessment.org:
 # if using FLStock object (below), this will be ignored
-SAOAssessment <- "ARU.27.5b6a_WKGSS2020_FINAL"   # = stock name in stockassesssment.org
+SAOAssessment <- "ARU.27.5b6a_WKGSS2020_Final_2"   # = stock name in stockassesssment.org
 user <- 3                           # User 3 = Guest (ALWAYS GETS THE LATEST COMMITTED VERSION); User 2 = Anders
 
 ages <- 5:21
 years <- 1995:2018
-meanFages <- c(9:21)
+meanFages <- c(6:14)
 ## Uncertainty last year
 sigmaF <- NA                        # Gets from last year estimated in the assessment (SAM), unless this is specified as a value i.e. !is.na()
 sigmaSSB <- 0.2   #From SAM=0.12; considered too low                      # Gets from last year estimated in the assessment (SAM), unless this is specified as a value i.e. !is.na()
@@ -60,7 +60,7 @@ refPts <- matrix(NA,nrow=1,ncol=9, dimnames=list("value",c("MSYBtrigger","5thPer
 ##~--------------------------------------------------------------------------
 ## Simulation settings
 # Number of sims
-noSims <- 101                                # Choose a suitable number, final run should use at least 1000, test runs coudl be done with less to save time
+noSims <- 2001                                # Choose a suitable number, final run should use at least 1000, test runs coudl be done with less to save time
 
 # SR models to use
 appModels <- c("SegregBlim")   # SRR models to use  
@@ -154,7 +154,7 @@ if (is.na(sigmaF)) {
 }
 
 ## Enter Bpa value
-refPts[,"Bpa"]  <- 81156  #SSB in 2015 (lowest SSB excluding last couple of years)       # Insert value for Blim, code below will calculate Bpa and MSY Btrigger
+refPts[,"Bpa"]  <- 82999  #SSB in 2015 (lowest SSB excluding last couple of years)       # Insert value for Blim, code below will calculate Bpa and MSY Btrigger
 
 ## Calculate Blim based on sigmaSSB
 refPts[,"Blim"]  <- refPts[,"Bpa"]/exp(sigmaSSB*1.645) # Used as Btrigger
@@ -230,7 +230,7 @@ Fstates <- fit$conf$keyLogFsta[1,]
 Fstates_start <- which(Fstates==0)
 #Fstates_end   <- which(Fstates==max(Fstates)) # doesn't work if variances assigned out of order
 # fix for GSS5b6a:
-harvest(stk)[c(1:7),] <- exp(fit$pl$logF)
+harvest(stk)[c(1:5,7,6),] <- exp(fit$pl$logF)
 harvest(stk)[as.character(12:21),] <- harvest(stk)[as.character(11),]
 
 # year range
@@ -299,18 +299,19 @@ if (savePlots) savePlot(paste("04_",stockName,"_SRautocor.png"),type="png")
 if (savePlots) dev.off()
 
 # Set a max for AC?
+#acfRecLag1 <- max(0.6,acfRecLag1)
 
 ###-------------------------------------------------------------------------------
 ## Fit SRRs
 FIT_segregBlim <- eqsr_fit(stk,nsamp=noSims, models = "SegregBlim", remove.years=rmSRRYrs)
-#FIT_segregBloss <- eqsr_fit(stk,nsamp=noSims, models = "SegregBloss", remove.years=rmSRRYrs)
+FIT_segregBloss <- eqsr_fit(stk,nsamp=noSims, models = "SegregBloss", remove.years=rmSRRYrs)
 FIT_segreg <- eqsr_fit(stk,nsamp=noSims, models = "Segreg", remove.years=rmSRRYrs)
 #FIT_segregAR1 <- eqsr_fit(stk,nsamp=noSims, models = "segregAR1", remove.years=rmSRRYrs)
 FIT_All <- eqsr_fit(stk,nsamp=noSims, models = appModels, remove.years=rmSRRYrs)
 
 # save model proportions and parameters:
 write.csv(FIT_segregBlim$sr.det, paste(stockName,"_FIT_segregBlim_SRpars.csv",sep=""))
-#write.csv(FIT_segregBloss$sr.det, paste(stockName,"_FIT_segregBloss_SRpars.csv",sep=""))
+write.csv(FIT_segregBloss$sr.det, paste(stockName,"_FIT_segregBloss_SRpars.csv",sep=""))
 write.csv(FIT_segreg$sr.det, paste(stockName,"_FIT_segreg_SRpars.csv",sep=""))
 write.csv(FIT_All$sr.det, paste(stockName,"_FIT_All_SRpars.csv",sep=""))
 
@@ -326,6 +327,11 @@ if (savePlots) savePlot(paste("05ai_",stockName,"_segregBlim.png"),type="png")
 if (savePlots) dev.off()
 
 if (savePlots) x11()
+eqsr_plot(FIT_segregBloss,n=2e4)
+if (savePlots) savePlot(paste("05ai_",stockName,"_segregBloss.png"),type="png")
+if (savePlots) dev.off()
+
+if (savePlots) x11()
 eqsr_plot(FIT_All,n=2e4)
 if (savePlots) savePlot(paste("05b_",stockName,"_SRRall.png"),type="png")
 if (savePlots) dev.off()
@@ -334,6 +340,10 @@ if (savePlots) dev.off()
 ###-------------------------------------------------------------------------------
 ## Run simulations
 ###-------------------------------------------------------------------------------
+
+#FsToScan <- seq(0,1.0,len=101)  # normally used in EQSIM
+FsToScan <- c(seq(0,0.2,by=0.001),seq(0.21,1.0,by=0.01))  # accoutns for higher resolution at lower Fs (ala ICES rounding rules)
+#length(FsToScan)
 
 ###-------------------------------------------------------------------------------
 ## Simuation 1 - get Flim
@@ -348,12 +358,12 @@ SIM_segregBlim <- eqsim_run(FIT_segregBlim,  bio.years = c(maxYear-numAvgYrsB+1,
                             Fcv=0, Fphi=0, SSBcv=0,
                             rhologRec=rhoRec,
                             Btrigger = 0, Blim=refPts[,"Blim"],Bpa=refPts[,"Bpa"],
-                            Nrun=200, Fscan = seq(0,1.0,len=101),verbose=T)
+                            Nrun=200, Fscan = FsToScan,verbose=T)
 
 # save MSY and lim values
 tmp1 <- t(SIM_segregBlim$Refs2)
 write.csv(tmp1, paste("EqSim_",stockName,"_SegregBlim_eqRes.csv",sep=""))
-refPts[,"Flim"] <- tmp1["F50","catF"]
+refPts[,"Flim"] <- tmp1["F50","catF"] #note: catch F for Flim
 
 # Fpa is derived from Flim in the reverse of the way Bpa is derived from Blim. i.e.: 
 tmpFpa <- refPts[,"Flim"] * exp(-sigmaF * 1.645)
@@ -373,12 +383,12 @@ SIM_All_noTrig <- eqsim_run(FIT_All,  bio.years = c(maxYear-numAvgYrsB+1, maxYea
                             Fcv=cvF, Fphi=phiF, SSBcv=cvSSB,
                             rhologRec=rhoRec,
                             Btrigger = 0, Blim=refPts[,"Blim"],Bpa=refPts[,"Bpa"],
-                            Nrun=200, Fscan = seq(0,1.0,len=101),verbose=T)
+                            Nrun=200, Fscan = FsToScan,verbose=T)
 
 # save MSY and lim values
 tmp2 <- t(SIM_All_noTrig$Refs2)
 write.csv(tmp2, paste("EqSim_",stockName,"_AllnoTrig_eqRes.csv",sep=""))
-Fmsy_tmp <- tmp2["medianMSY","lanF"]
+Fmsy_tmp <- tmp2["medianMSY","lanF"] #note: landings F for Fmsy
 
 # save Equilibrium plots
 if (savePlots) x11()
@@ -425,17 +435,17 @@ if (sum(as.numeric(fbar(stk)[,ac((maxYear-4):maxYear)])<=refPts[,"Fmsy"])<3) {
 #      stochasticity in population biology and fishery exploitation.
 #      Appropriate SRRs should be specified (here using all 3)
 
-SIM_All_Trig <- eqsim_run(FIT_All,  bio.years = c(maxYear-numAvgYrsB, maxYear-1), bio.const = FALSE,
-                          sel.years = c(maxYear-numAvgYrsS, maxYear-1), sel.const = FALSE,
+SIM_All_Trig <- eqsim_run(FIT_All,  bio.years = c(maxYear-numAvgYrsB+1, maxYear), bio.const = FALSE,
+                          sel.years = c(maxYear-numAvgYrsS+1, maxYear), sel.const = FALSE,
                           Fcv=cvF, Fphi=phiF, SSBcv=cvSSB,
                           rhologRec=rhoRec,
                           Btrigger = refPts[,"MSYBtrigger"], Blim=refPts[,"Blim"],Bpa=refPts[,"Bpa"],
-                          Nrun=200, Fscan = seq(0,1.0,len=101),verbose=T)
+                          Nrun=200, Fscan = FsToScan,verbose=T)
 
 # save MSY and lim values
 tmp3 <- t(SIM_All_Trig$Refs2)
 write.csv(tmp3, paste("EqSim_",stockName,"_AllTrig_eqRes.csv",sep=""))
-refPts[,"Fp05"] <- tmp3["F05","catF"]
+refPts[,"Fp05"] <- tmp3["F05","catF"] #note: catch F for Fp05
 
 # save Equilibrium plots
 if (savePlots) x11()
