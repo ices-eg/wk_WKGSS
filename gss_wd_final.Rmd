@@ -1,13 +1,14 @@
 ---
 title: A comparison of Gadget assessments of Greater silver smelt *Argentina silus*
-  in Icelandic and Greenlandic waters (ICES division 27.5a and 14
+  in Icelandic and Greenlandic waters (ICES division 27.5a and 14)  
 author: "Pamela J. Woods"
 date: "02/02/2020"
 output:
+  pdf_document: default
   html_document:
     df_print: paged
-  pdf_document: default
   word_document: default
+bibliography: library.bib
 ---
 
 ```{r setup, include=FALSE}
@@ -16,7 +17,7 @@ library(tidyverse)
 library(mfdb)
 mdb<-mfdb('Iceland')
 library(Rgadget)
-#setwd('~/Documents/Hafro/fishvice/19-gss/exploratory_models/gadget/01-new_ass_no_distigfs_mt_s6')
+
 fit_no_igfs<- gadget.fit( gd = '/net/hafkaldi/export/home/haf/pamela/19-gss/exploratory_models/gadget/01-new_ass_no_igfs_mt_s5',
                           recruitment_step_age	= tibble(stock = 'gssimm', age = 5, step = 1), 
                           f.age.range = data.frame(stock = c('gssmat', 'gssimm'), age.min = c(6,6), age.max = c(14,14)),
@@ -77,8 +78,8 @@ The purpose of this document is to present the best Gadget models explored as po
 Gadget stands for the "Globally applicable  Area
 Disaggregated  General  Ecosystem  Toolbox", which is a statistical
 model of marine ecosystems (previously known as BORMICON
-\citep{stefansson1997bormicon} and 
-Fleksibest \citet{guldbrandsen2002fleksibest}). Gadget is an length- and age-based, forward-simulation
+[@stefansson1997bormicon] and 
+Fleksibest [@guldbrandsen2002fleksibest]). Gadget is an length- and age-based, forward-simulation
 modeling framework. Models are coupled with an extensive set of data comparisons and
 optimisation routines so that paramters describing processes within the simulation, including ageing, growth, maturation, recruitment, and mortality, can be fit to data. 
 Processes are generally modeled as length-dependent, but age and other characteristics (e.g., maturity, gender, stock) are tracked in the simulation model, enabling data comparisons with observations at length and/or age. The framework is capable of generating
@@ -88,8 +89,8 @@ single-species basis as is done here. Gadget models can be
 computationally intensive, with optimisation in particular taking a
 large amount of time. Worked examples, a detailed manual and further
 information on  Gadget  can be found on at [www.github.com/hafro/gadget] [www.github.com/hafro/gadget]. The structure of the model is described by
-\citet{begley2004overview}, and a formal mathematical description is
-given by \citet{guldbrandsen2002fleksibest}.
+[@begley2004overview], and a formal mathematical description is
+given by [@guldbrandsen2002fleksibest].
 
 
 
@@ -147,10 +148,10 @@ In contrast with Gadget, age-based or stock production type stock
 assessments require data in a fairly processed form. For instance when
 using VPA one requires the total catch in numbers of individuals by
 age. However, apart from catches of fin whales in the North Atlantic
-\citep{iwcistfin2015}, one rarely has all catches by numbers at
+[@iwcistfin2015], one rarely has all catches by numbers at
 age. Therefore the age distribution of catches needs to be
 approximated using some combination of age readings, length
-distributions, total catches in tons and weight at age \citep[as noted
+distributions, total catches in tons and weight at age citep[as noted
 in][]{hirst2005estimating}. In essence using a typical VPA requires a two-step modelling process, whereas Gadget models combines these two steps. 
 
 In addition, the inclusion of multiple data sources in the modeling framework requires weights applied to each data source to prevent the data source with the most number of data points, which may not reflect the highest quality or most important dat source, from dominating the likelihood function. This is a common problem with all assessments incorporating multiple sources of data. A solution to this problem is implemented here through the use of an iterative reweighting algorithm, described below. After weights are determined, the function minimizer can be applied.
@@ -162,11 +163,11 @@ model parameters, runs a full simulation, and calculates a new
 output. This process is repeated until a minimum is obtained. The total objective function to be minimised is a weighted sum of the
 different components.  The estimation could be difficult due to groups
 of correlated parameters or multiple local optima. To address these issues Gadget has three alternative optimising algorithms built in, a wide
-area search simulated annealing \citep{corana1987minimizing},
+area search simulated annealing [@corana1987minimizing],
 a local search Hooke and Jeeves algorithm
-\citep{HookeJeeves1961} and finally one based on the
+[@HookeJeeves1961] and finally one based on the
 Broyden-Fletcher-Goldfarb-Shanno algorithm, hereafter termed
-BFGS, described in \citet{bertsekas1999nonlinear}. The
+BFGS, described in [@bertsekas1999nonlinear]. The
 optimisation procedure often involves a combination of these three procedures.
 
 
@@ -464,8 +465,8 @@ been the most time consuming part of a Gadget model. Commonly this has
 been done using some form of 'expert judgement'. General heuristics
 have recently been developed to estimated these weights
 objectively. Here the iterative re--weighting heuristic introduced by
-\cite{stefansson2003issues}, and subsequently implemented in
-\cite{taylor2007simple}, is used. 
+cite{stefansson2003issues}, and subsequently implemented in
+cite{taylor2007simple}, is used. 
 
 
 The general idea behind the iterative re-weighing is to assign the
@@ -509,8 +510,8 @@ simulated annealing, to make the results less sensitive to the initial
 Jeeves and BFGS) in the neighborhood of the global optima.
 
 The model has three alternative optimising algorithms linked to it, a
-wide area search  \citep{corana1987minimizing}, a local
-search  \citep{HookeJeeves1961} and
+wide area search  [@corana1987minimizing], a local
+search  [@HookeJeeves1961] and
 finally one based on the Boyden-Fletcher-Goldfarb-Shanno algorithm
 hereafter termed BFGS. 
 
@@ -534,7 +535,7 @@ intensive than the Hooke and Jeeves.  However the gradient search in
 BFGS is more accurate than the step-wise search of Hooke and Jeeves and
 may therefore give a more accurate estimation of the optimum.  The
 BFGS algorithm used in Gadget is derived from that presented by
-\citet{bertsekas1999nonlinear}.
+[@bertsekas1999nonlinear].
 
 
 The model is able to use all three algorithms in a single
@@ -712,7 +713,7 @@ test <-
 To estimate the uncertainty in the model parameters and derived quantities a 
 specialised boostrap for disparate datasets is used. The approach is based on 
 spatial subdivisions that can be considered to be i.i.d. Refer to 
-\cite{Elvarsson2014} and \cite{mfdb} for further implementation details. The bootstrapping approach consists of the following:
+cite{Elvarsson2014} and cite{mfdb} for further implementation details. The bootstrapping approach consists of the following:
 
 1.  The base data are stored in a standardized data base:
   + Time aggregation: 3 months
@@ -749,7 +750,7 @@ of the model to be independent and identically distributed. Independence
 is justified by the definition of subdivisions. Furthermore treating them
 as they were from the same distribution, i.e. bootstrap replicates,
 appears to have little negative effect when compared to more
-traditional methods \citep{lornahaddock}. 
+traditional methods [@lornahaddock]. 
 
 
 The entire estimation procedure is repeated for each
@@ -1118,7 +1119,7 @@ retro_igfs_rec <-
   retro.igfs$res.by.year %>% 
   mutate(model = ifelse(is.na(model), 'original', model)) %>% 
   filter(stock=='gssimm', year > 1999) %>% 
-  mutate(`Recruitment in millions (Age 5)` = recruitment, Year = year) %>% 
+  mutate(`Recruitment in millions (age 5)` = recruitment, Year = year) %>% 
   ggplot()+
   geom_line(aes(x = Year, y = `Recruitment in millions (age 5)`, color = model)) + 
   #ylim(0,2.1) +
@@ -1244,7 +1245,7 @@ the assessment year the CV of SSB and reference biomass is around
 0.25 and 0.28 respectively, the range for these two metrics is between 0.1 to 0.26 and 0.09 to 0.28.  For
 recruitment the range is 0.08 to 0.4.
 
-Catches of immature fish, in terms of total biomass caught, is estimated to have varied between 12.4 \% in 1982 to 26.5\% in 2011 and in 2016 the estimated proportion is 12.6\%. 
+Catches of immature fish, in terms of total biomass caught, is estimated to have varied between 12.4 % in 1982 to 26.5% in 2011 and in 2016 the estimated proportion is 12.6%. 
 
 ```{r totbioplot, echo=FALSE, fig.width = 9, fig.height= 6, fig.cap = "Greater silver smelt in 5.a and 14. Estimates of total biomass by by stock from the models that included the spring survey index (IGFS) or did not. The stock 'gssmat' reflects the mature portion (spawning stock biomass), whereas 'gssimm' reflects the immature portion of the stock."}
 tot_bio_plot <-
