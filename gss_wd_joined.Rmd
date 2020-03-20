@@ -1,0 +1,3229 @@
+---
+title: A Gadget assessment of Greater silver smelt *Argentina silus*
+  in Icelandic and Greenlandic waters (ICES division 27.5a and 27.14)
+author: "Pamela J. Woods and Bjarki Þ. Elvarsson"
+date: "Marine and Freshwater Research Institute, Reykjavík, Iceland, 11. March 2020"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+  word_document: default
+bibliography: library.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+
+library(tidyverse)
+library(mfdb)
+library(kableExtra)
+mdb<-mfdb('Iceland',db_params=list(host='hafgeimur.hafro.is'))
+library(Rgadget)
+
+theme_set(theme_bw())
+
+base_dir <- '/net/hafkaldi/export/home/haf/pamela/19-gss/exploratory_models/gadget/01-new_ass_no_igfs_mt_s6'
+
+fit<- gadget.fit( gd = base_dir,
+                          recruitment_step_age	= tibble(stock = 'gssimm', age = 5, step = 1), 
+                          f.age.range = data.frame(stock = c('gssmat', 'gssimm'), age.min = c(6,6), age.max = c(14,14)),
+                    wgts = 'WGTS')
+
+fitage1<- gadget.fit( gd = base_dir,
+                          recruitment_step_age	= tibble(stock = 'gssimm', age = 1, step = 1), 
+                          f.age.range = data.frame(stock = c('gssmat', 'gssimm'), age.min = c(6,6), age.max = c(14,14)),
+                    wgts = 'WGTS')
+
+tmp_fit <- plot(fit,data='catchdist.fleets')
+
+  # R1 <- gadget.fit( gd = base_dir, wgts = NULL,
+  #                  main.file = 'Retro/R1/main', 
+  #                  params.file = 'Retro/params.retro.1',
+  #                  recruitment_step_age	= tibble(stock = 'gssimm', age = 5, step = 1), 
+  #                  f.age.range = data.frame(stock = c('gssmat', 'gssimm'), age.min = c(6,6), age.max = c(14,14)))
+  # R2 <- gadget.fit( gd = base_dir,wgts = NULL,
+  #                  main.file = 'Retro/R2/main', 
+  #                  params.file = 'Retro/params.retro.2',
+  #                  recruitment_step_age	= tibble(stock = 'gssimm', age = 5, step = 1), 
+  #                  f.age.range = data.frame(stock = c('gssmat', 'gssimm'), age.min = c(6,6), age.max = c(14,14)))
+  # R3 <- gadget.fit( gd = base_dir,wgts = NULL,
+  #                  main.file = 'Retro/R3/main', 
+  #                  params.file = 'Retro/params.retro.3',
+  #                  recruitment_step_age	= tibble(stock = 'gssimm', age = 5, step = 1), 
+  #                  f.age.range = data.frame(stock = c('gssmat', 'gssimm'), age.min = c(6,6), age.max = c(14,14)))
+  # R4 <- gadget.fit( gd = base_dir,wgts = NULL,
+  #                  main.file = 'Retro/R4/main', 
+  #                  params.file = 'Retro/params.retro.4',
+  #                  recruitment_step_age	= tibble(stock = 'gssimm', age = 5, step = 1), 
+  #                  f.age.range = data.frame(stock = c('gssmat', 'gssimm'), age.min = c(6,6), age.max = c(14,14)))
+  # R5 <- gadget.fit( gd = base_dir,wgts = NULL,
+  #                  main.file = 'Retro/R5/main', 
+  #                  params.file = 'Retro/params.retro.5',
+  #                  recruitment_step_age	= tibble(stock = 'gssimm', age = 5, step = 1), 
+  #                  f.age.range = data.frame(stock = c('gssmat', 'gssimm'), age.min = c(6,6), age.max = c(14,14)))
+  # 
+  # retro.fit <- bind.gadget.fit(R1,R2,R3,R4,R5)
+  
+ # save(retro.fit,file=paste0(base_dir,'/retroFit.Rdata'))
+
+load(paste0(base_dir, '/retroFit.Rdata'))
+retro.igfs <- bind.gadget.fit(retro.fit,fit)
+names(retro.igfs$res.by.year)[1] <- 'model1'
+rm(retro.fit)
+
+
+
+  #load('~/Documents/Hafro/fishvice/19-gss/exploratory_models/gadget/01-new_ass_no_igfs_mt_s6/bootfit_first.Rdata')
+  load(paste0(base_dir,'/bootfit.Rdata'))
+  bootfit.igfs <- bootfit; rm(bootfit)
+   
+  # bootfit.igfs$params %>%
+  #      filter(switc   h=='gss.mat.l50.2019', value > 45) %>% select(model) %>% unlist-> removals
+  # 
+  # bootfit.igfs$params %>%
+  #      filter(switch=='gss.aut.alpha', value > 0.35) %>% select(model) %>% unlist-> removals
+  # 
+  # tst <- bootfit.igfs %>% purrr::map(function(x){if(is.null(x)){x} else {x %>% filter(model %in% removals[2])}})
+  # class(tst) <- c('gadget.fit',class(tst))
+  # 
+  # tst <- bootfit.igfs %>% purrr::map(function(x){if(is.null(x)){x} else {x %>% filter(model %in% 9)}}) #bad: 43,31, 58, 57, 20, 45, 9, 11, 39,46,19
+  # class(tst) <- c('gadget.fit',class(tst))
+  
+  
+  #good reasons to remove bootsraps
+  removals <- c(0)
+  
+  
+  bootres.igfs <- 
+    bootfit.igfs$res.by.year %>% 
+    filter(!(model %in% removals)) %>% 
+    group_by(year,model) %>%
+    summarise(total.biomass = sum(total.biomass),
+              catch = sum(catch),
+              #harv.biomass = sum(harv.biomass),
+              recruitment = sum(recruitment,na.rm=TRUE)) %>% 
+    # left_join(bootfit.igfs$stock.full %>%
+    #             filter(length>ref.cm) %>% 
+    #             group_by(year,model) %>%
+    #             summarise(harv.biomass=sum(number*mean.weight))) %>% 
+    group_by(year) %>% 
+    summarise(mtb=median(total.biomass),
+              utb=quantile(total.biomass,0.975),
+              ltb=quantile(total.biomass,0.025),
+              uutb=quantile(total.biomass,0.75),
+              lltb=quantile(total.biomass,0.25),
+              cvtb=sd(total.biomass)/mean(total.biomass),
+              mr=median(recruitment,na.rm=TRUE),
+              ur=quantile(recruitment,na.rm=TRUE,0.975),
+              lr=quantile(recruitment,na.rm=TRUE,0.025),
+              uur=quantile(recruitment,na.rm=TRUE,0.75),
+              llr=quantile(recruitment,na.rm=TRUE,0.25),
+              cvr=sd(recruitment,na.rm=TRUE)/mean(recruitment,na.rm=TRUE),
+              # mhb=median(harv.biomass),
+              # uhb=quantile(harv.biomass,0.95),
+              # lhb=quantile(harv.biomass,0.05),
+              # uuhb=quantile(harv.biomass,0.75),
+              # llhb=quantile(harv.biomass,0.25),
+              # cvhb=sd(harv.biomass)/mean(harv.biomass),
+              # mhr=median(catch/harv.biomass),
+              # uhr=quantile(catch/harv.biomass,0.95),
+              # lhr=quantile(catch/harv.biomass,0.05),
+              # uuhr=quantile(catch/harv.biomass,0.75),
+              # llhr=quantile(catch/harv.biomass,0.25),
+              # cvhr=sd(catch/harv.biomass)/mean(catch/harv.biomass)
+              ) %>% 
+    left_join(bootfit.igfs$res.by.year %>% 
+              filter(!(model %in% removals)) %>% 
+                filter(grepl('mat',stock)) %>% 
+                group_by(year) %>% 
+                summarise(mssb=median(total.biomass),
+                          ussb=quantile(total.biomass,0.975),
+                          lssb=quantile(total.biomass,0.025),
+                          uussb=quantile(total.biomass,0.75),
+                          llssb=quantile(total.biomass,0.25),
+                          cvssb=sd(total.biomass)/mean(total.biomass),
+                          mF=median(F),
+                          uF=quantile(F,0.975),
+                          lF=quantile(F,0.025),
+                          uuF=quantile(F,0.75),
+                          llF=quantile(F,0.25),
+                          cvF=sd(F)/mean(F))) %>% 
+    left_join(fitage1$res.by.year %>% 
+                group_by(year) %>% 
+                summarise(ftb = sum(total.biomass),
+                          catch = sum(catch),
+                          fssb = sum(total.biomass[grepl('mat',stock)]),
+                          fr = sum(recruitment,na.rm=TRUE),
+                          fF = max(F))) 
+    #%>% 
+    # left_join(fit$stock.full %>%
+    #             filter(length>ref.cm) %>% 
+    #             group_by(year) %>%
+    #             summarise(fhb=sum(number*mean.weight))) %>%
+    #mutate(fhr=catch/fhb)
+  
+  finres.igfs <- bootres.igfs; rm(bootres.igfs)
+  
+  
+  
+  cols <-
+    bootfit.igfs$res.by.year %>% 
+      filter(!(model %in% removals)) %>% 
+    filter(stock== 'gssmat', year == 2019) %>%
+    mutate(ssb = total.biomass) %>% 
+    select(model, year, ssb) %>% 
+    mutate(bssb = fitage1$res.by.year %>% 
+             filter(stock== 'gssmat', year == 2019) %>% 
+             select(total.biomass) %>% 
+             unlist) %>% 
+    mutate(col = ifelse(ssb > bssb, 'red', 'blue')) %>% 
+    select(model, col) %>% 
+    distinct
+  
+    
+  
+load(paste0(base_dir,'/res_withBtriggerbloss_as_blim.Rdata'))  
+
+  
+# yield_curve <-
+#   res$catch.lw %>%
+#   filter(year>2050, !(trial %in% c(removals))) %>%
+#   group_by(model,trial,harvest_rate,year) %>%
+#   summarise(c=sum(biomass_consumed)/1e6) %>%
+#   group_by(harvest_rate) %>%
+#   summarise(m=median(c),u=quantile(c,0.95),l=quantile(c,0.05), uu = quantile(c,0.85), ll = quantile(c,0.15), uuu = quantile(c,0.75), lll = quantile(c,0.25))
+# 
+# ssb_curve <-
+#   res$mat.ssb %>%
+#   filter(year>2050, !(trial %in% c(removals))) %>%
+#   group_by(model,trial,harvest_rate,year) %>%
+#   summarise(c=median(number*mean_weight)/1e6) %>%
+#   group_by(harvest_rate) %>%
+#   summarise(m=median(c),u=quantile(c,0.95),l=quantile(c,0.05), uu = quantile(c,0.85), ll = quantile(c,0.15), uuu = quantile(c,0.75), lll = quantile(c,0.25))
+# 
+# ssb_res_05 <-
+#   res$mat.ssb %>%
+#   filter(year > 2050,!(trial %in% c(removals))) %>%
+#   group_by(harvest_rate, trial, model) %>%
+#   summarise(percyrsdropped = sum(ifelse(number*mean_weight/1e6 < blim, 1, 0))/n(),
+#             ssb = median(number*mean_weight/1e6)) %>%
+#   group_by(harvest_rate) %>%
+#   summarise(pcrash=sum(ifelse(percyrsdropped>0.05, 1, 0))/n(),
+#             ssb05 = min(ssb*ifelse(percyrsdropped<0.05, 1, NA), na.rm = T)) 
+
+
+f.curve_withBtrigger <-
+  res_withBtrigger$catch.F %>%
+  filter(year>2050, !(trial %in% c(removals))) %>%
+  #group_by(year, step, area, length, trial, harvest_rate) %>%
+  #summarise(mortality = mean(mortality)) %>%
+  group_by(model,trial,harvest_rate,year) %>%
+  summarise(c=median(mortality)) %>%
+  ungroup %>% 
+  group_by(harvest_rate) %>%
+  summarise(m=median(c),u=quantile(c,0.95),l=quantile(c,0.05), uu = quantile(c,0.85), ll = quantile(c,0.15), uuu = quantile(c,0.75), lll = quantile(c,0.25))
+
+frates <-
+  f.curve_withBtrigger %>%
+  mutate(harvest_rate = round(harvest_rate,2)) %>% 
+  mutate(F = round(m,3)) %>% 
+  select(harvest_rate, F) %>% 
+  distinct
+
+# hr_msy <-
+#   yield_curve %>% filter(m==max(m)) %>% .$harvest_rate
+# 
+# f.msy <-
+#   f.curve %>%
+#   filter(harvest_rate == hr_msy) %>%
+#   .$m
+# bpa; hr_msy;f.msy
+
+
+load(paste0(base_dir,'/ref_pointsbloss_as_blim.Rdata'))
+
+
+pagebreak <- function() {
+  if(knitr::is_latex_output())
+    return("\\newpage")
+  else
+    return('<div style="page-break-before: always;" />')
+}
+
+
+
+
+```
+
+## Introduction
+
+The purpose of this document is to present the best Gadget models explored as potential category 1 assessments for the 2020 ICES benchmark for Greater silver smelt *Argentina silus* in Icelandic and Greenlandic waters in ICES divisions 27.5a and 14 (WKGSS2020). Gadget models were explored because although there is relatively plentiful data available for this species (see main document WKGSS 2020), explorations using age-based methods showed very uncertain results, possibly as a result of uncertainty in age-length keys and uncertainty in ageing in combination with slow growth. These features are common in deepwater species and often present a difficulty in that cohorts are not easily followed in length or age distributions. Greater silver smelt in 27.5a and 14 are no exception to this problem and show little cohort structure (main document WKGSS 2020, section 4). The Gadget modeling framework has, however, been successful as a category 1 assessment framework with similarly data-challenged deepwater species (e.g., tusk *Brosme brosme* and ling *Molva molva* in ICES division 27.5a and 14 @wkicemse2017, @elvarsson2018pushing). 
+
+Gadget stands for the "Globally applicable  Area Disaggregated  General  Ecosystem  Toolbox", which is a statistical
+model of marine ecosystems (previously known as BORMICON
+[@stefansson1997bormicon] and 
+Fleksibest [@guldbrandsen2002fleksibest]). Gadget is a length- and age-based, forward-simulation
+modeling framework. Models are coupled with an extensive set of data comparisons and
+optimisation routines so that parameters describing processes within the simulation, including ageing, growth, maturation, recruitment, and mortality, can be fit to various sources of data in an integrated setting [@maunder2013review]. 
+Processes are generally modeled as length-dependent, but age and other characteristics (e.g., maturity, gender, stock) are tracked in the simulation model, enabling data comparisons with observations at length and/or age. The framework is capable of generating
+multi-area and multi-fleet models, including
+predation and mixed fisheries issues; however, it can also be used on a
+single-species basis as is done here. Gadget models can be 
+computationally intensive, with optimisation in particular taking a
+large amount of time. Worked examples, a detailed manual and further
+information on  Gadget  can be found on at www.github.com/hafro/gadget. The structure of the model is described by
+[@begley2004overview], and a formal mathematical description is
+given by [@guldbrandsen2002fleksibest].
+
+
+
+## Methods
+
+### Basic Gadget framework
+
+The Gadget framework is composed of 1) an ecosystem simulator, 2) a
+likelihood function that takes the output from the ecosystem simulator
+and compares it to data, and 3) an objective function minimizer. The simulation
+model runs with defined functional forms and parameter values, and
+produces a modeled population, with modeled surveys and
+catches. Simulated values from these surveys and catches (i.e., quantities, composition proportions) are compared to the available
+data to produce a weighted likelihood score. Optimisation routines
+then attempt to find the best set of parameter values.
+
+#### The ecosystem simulator
+The ecosystem simulator is 
+structured to be highly flexible. Its
+fundamental unit, a "stock" (or more accurately substock),
+represents a group of individuals that is homogenous with respect to
+various processes (e.g., sex, maturity, location, life stage, etc.). 
+The stock unit within Gadget is simply a representation of the total
+number of individuals in a certain age range and length group range 
+within certain areas. In this setup processes such as fleet
+harvest or recruitment can be restricted to take place only in certain (or all)
+areas. Harvesting of the substocks is defined through fleets that fish
+according to harvest rate and (length--based) selection functions.
+
+Processes in the ecosystem simulator include those that determine single-species
+population dynamics (recruitment, growth, maturation, aging, natural mortality, straying)
+as well as multi-species or multi-area process of migration or predation
+(including commercial fisheries). Likewise, these processes are also "stock"-specific. 
+Individuals in different "stocks", or stages of the life history of a particular species, would be
+represented as separate stocks and "moved" between
+stocks when required. The simulation takes place in a set number of
+years and time steps within a year. The time-steps within the year allow for the
+emulation of the subannual cycles of the ecosystem, such as seasonal recruitment
+and stock migrations.
+
+#### Gadget likelihood 
+Gadget's likelihood module processes the output from the ecosystem
+simulation based on user-defined aggregated dimensions. Within the likelihood module
+a number of datasets can be compared to the model output. In addition
+to a suite of functions designed to work with different types of
+survey indices, other types of data, including length distributions, tagging data, age and length
+distributions, and maturity proportions to name a few, can be contrasted to
+the model output. Each data set is included at its own aggregation
+level, with missing data handled in a robust manner. Simulated values can then be grouped 
+arbitrarily in the data comparisons; for example, the length of all individuals greater than a certain age can be compared to the equivalent value in the model. This feature can allow for maximizing the use of the highest quality data used for fitting the model to data. 
+
+In contrast with Gadget, age-based or stock-production-type stock
+assessments require data in a fairly processed form. For instance when
+using VPA, one requires the total catch in numbers of individuals by
+age. However, one rarely has all catches by numbers at
+age. Therefore the age distribution of catches needs to be
+approximated using some combination of age readings, length
+distributions, total catches in tons and weight at age (as noted
+in [@hirst2005estimating]) . In essence using typical age-based methods requires a two-step modelling process, whereas Gadget models combines these two steps as an integrated model.
+
+The inclusion of multiple data sources in the modeling framework requires weights to be applied to each data source to prevent the data source with the most number of data points, which may not reflect the highest quality or most important data source, from dominating the likelihood function. This is a common problem with all integrated assessments incorporating multiple sources of data. A solution to this problem is implemented here through the use of an iterative reweighting algorithm, described below. After weights are determined, the function minimizer can be applied.
+
+#### The objective function minimizer
+
+Gadget's objective function minimizer, based on the negative log--likelihood, varies the
+model parameters, runs a full simulation, calculates a new
+output, and the negative log--likelihood associated with those parameters. The new parameter set is accepted or rejected according to the change in the negative log--likelihood and the implemented algorithm routine. This process is repeated until a minimum is obtained. In practice, however, the estimation can be difficult due to groups
+of correlated parameters or multiple local optima. To address these issues Gadget has three alternative optimising algorithms built in: a wide
+area search simulated annealing [@corana1987minimizing],
+a local search Hooke and Jeeves algorithm
+[@HookeJeeves1961] and finally one based on the
+Broyden-Fletcher-Goldfarb-Shanno algorithm, hereafter termed
+BFGS, described in [@bertsekas1999nonlinear]. The
+optimisation procedure often involves a combination of these three procedures.
+
+
+### Simulation model description
+
+#### Stocks
+In a typical Gadget model the simulated quantity is the number of
+individuals, $N_{alsyt}$, at age $a=a_{min}\ldots a_{max}$, in a length-group $l$,
+representing lengths ranging between $l_{min}$ and $l_{max}$ cm in $\Delta l$ cm
+length-groups, at year $y$ which is divided into timesteps, usually quarters, $t = 1\ldots T$. The length of the time-step is denoted $\Delta t$. 
+The population is governed by the following equations:
+
+\begin{equation}\label{eq:stock}
+\begin{aligned}
+  N_{alsy,t+1} = &\sum_{l'}G^{l}_{l'} \left[(N_{al'syt} -
+    \sum_f C_{fal'st})e^{-M_a \Delta t }  + I_{al'lsyt}\right] &\textup{if $t < T$}\\ 
+  N_{a,ls,y+1,1} = &\sum_{l'}G^{l}_{l'} \left[(N_{a-1,l'sy,T} -
+    \sum_f C_{fa-1,l's,T})e^{-M_{a-1} \Delta t }  + I_{a-1,l'lsy,T}\right] &\textup{if $t
+    = T$ and $a < a_{max}$} \\
+  N_{a,ls,y+1,1} = &\sum_{l'}G^{l}_{l'} (N_{al'sy,T} -
+    \sum_f C_{fal'sy,T} + \\
+    &\qquad N_{a-1,l'sy,T} - \sum_f C_{f,a-1,l'sy,T})e^{-M_a \Delta t }
+    & \textup{if $t = T$ and $a = a_{max}$}  
+\end{aligned}
+\end{equation}
+
+where $G^{l}_{l'}$ is the proportion in length-group $l$ that 
+has grown $l - l'$ length-groups in $\Delta t$, $C_{falsyt}$ denotes the
+catches by fleet $f \in \{A, C\}$, i.e. autumn survey and commercial fleets, $M_a$ the
+natural mortality at age $a$ and $I_{al'lsyt}$ denotes the movement of fish at length $l'$ from
+the immmature to the mature stock component at length $l$ . Here $l$ is used interchangeably as either the length-group or the midpoint of the length interval for that particular length-group,
+depending on the context. The survey 
+fleet catches are given a nominal catch to allow for survey age and
+length distribution predictions.
+
+
+#### Growth
+Growth in length is modeled as a two--stage process, an average length
+update in $\Delta t$ and a growth dispersion around the mean
+update (as described by @stefansson05bbin).
+The average length update is modeled by calculating the mean growth for each length
+group for each time step, using a parametric
+growth function. In the current 
+model a simplified form of the Von Bertanlanffy function has been
+employed to calculate this mean length update. 
+\begin{equation}\label{eq:vonB}
+\Delta l = (l_\infty -l) (1 - e^{-k\Delta t})
+\end{equation}
+
+where $l_\infty$ is the terminal length and $k$ is the annual growth rate.
+
+Then the length distributions are updated
+according to the calculated mean growth by allowing some portion of
+the fish to have no growth, a proportion to grow by one length group
+and a proportion two length groups etc. How these proportions are
+selected affects the spread of the length distributions, but these two
+equations must be satisfied:
+
+\begin{equation}\nonumber
+\sum_i p_{il} = 1
+\end{equation}
+and
+\begin{equation}\nonumber
+\sum_i i p_{il} = \Delta l
+\end{equation}  
+
+Here $\Delta l$ is the calculated mean growth and $p_{il}$ is the
+proportion of fish in length group $l$ growing $i$ length groups. 
+Here the growth is dispersed according to a beta--binomial
+distribution parametrised by the following equation: 
+\begin{equation}\label{eq:betabinom}
+G^{l'}_l = \frac{\Gamma(n+1)}{\Gamma((l'-l)+1)}
+\frac{\Gamma((l'-l)+\alpha)\Gamma(n-(l'-l)+\beta)}{\Gamma(n-(l'-l)+1)\Gamma(n+\alpha+\beta)}
+\frac{\Gamma(\alpha+\beta)}{\Gamma(\alpha)\Gamma(\beta)} 
+\end{equation}
+
+where $\alpha$ is subject to
+\begin{equation}
+\alpha = \frac{\beta \Delta l}{n - \Delta l}
+\end{equation}
+where $n$ denotes the maximum length group growth and $(l'-l)$ the
+number of length-groups grown. 
+
+
+The weight, $W_{sl}$, at length-group $l$ is calculated according to
+the following stock-specific ($s$) length -- weight relationship: 
+\begin{equation}\label{eq:lw}
+W_{sl} = \mu_s l^{\omega_s}
+\end{equation} 
+
+
+#### Recruitment and initial abundance
+Gadget allows for a number of relationships between the size of the spawning stock 
+and generated recruitment to be defined. However in this
+model the number of recruits each year, $R_y$, is estimated
+within the model as an estimated parameter. 
+
+Recruitment enters the population according to:
+\begin{equation}\label{eq:rec}
+  N_{a_{min}l0yt'} = R_{y} p_l R_{c,s}
+\end{equation}
+where $t'$ denotes the recruitment time-step, 0 denotes the immature stock, and $p_l$ is the proportion
+in length-group $l$ that is recruited. $p_l$ is determined by a normal
+density with mean length set according to eq. \ref{eq:vonB} where the initial length $l_0$ at age 1 \footnote{$l_0$ as a one to one mapping with $t_0$ used in 
+a typical von Bertalanffy growth model} and variance $\sigma^2_{0}$.  Because there are several recruitment parameters estimated, they are also multiplied by an estimated stock-specific scalar $R_{c,s}$ to help the estimation process.
+
+A simple formulation of initial abundance in numbers is used for
+each age group in length-group $l$: 
+\begin{equation}\label{eq:init}
+N_{als1y_i} = \nu_{as} q_{al} e^{-(M + F_0)*a} e^{I_{c,s}}
+\end{equation}
+where $\nu_{as}$ is the initial number at age $a$ in the initial
+time step $1$ and intial year $y_i$ of stock $s$ and $q_l$ the proportion at length-group $l$ which is determined
+by a normal density with a mean according to the growth model in
+equation 2 with a starting length according as $l_0$ (length at age 1), and variance $\sigma_a^2$. Because there are several nitial numbers estimated, they are also multiplied by an estimated stock-specific scalar $I_{c,s}$ to help in optimization.
+
+#### Maturation
+Two-stage maturity is modeled and represented by the two stock
+components. Numbers of immature fish are stored in the 'immature' stock component until they mature, at which point they are moved to the 'mature' stock component. Movement from the immature to mature stock component is formulated as
+\begin{equation}\label{eq:mat}
+  I_{al'lsyt} = \left\{ \begin{matrix}
+      N_{al'sy,t-1}\times m_{l'}^{l} & \textup{if s
+      = 1 and t > 1} \\
+    N_{al'sy-1,T}\times m_{l'}^{l} & \textup{if s
+      = 1 and t = 1} \\
+    
+    - N_{al'sy,t-1}\times m_{l'}^{l} & \textup{if s
+      = 0 and t > 1}\\
+    - N_{al'sy-1,T}\times m_{l'}^{l} & \textup{if s
+      = 0 and t = 1}
+
+ 
+\end{matrix}\right.
+\end{equation}
+
+
+
+where $s=0$, as noted above, denotes the immature stock component.  $s=1$ denotes the mature stock component, $T$
+is the final time step in a year, and
+$m_{l'}^{l}$ is the proportion of immatures that mature from $l'$ to $l$ defined as:
+
+
+\begin{equation}
+m_{l'}^l = \frac{\lambda (l-l')}{1 + e^{-\lambda (l - l_{50,y})}}
+\end{equation}
+
+
+In addition, when individuals of the immature stock component reach the maximal age of the immature stock (in this case age 14), then those individuals are all moved to the mature stock component when they age. Therefore, all fish 15+ are mature. Note also that the parameter $l_{50,y}$ varies annually. This was included after initial explorations showed substantial changes in maturity over time (main document, WKGSS 2020, section...).
+
+#### Fleet operations
+Catches are simulated based on reported total landings and a length--based suitability function for each of the fleets (in this case, a single commercial
+fleet and a single survey). Total landings are assumed to
+be known and the total biomass is simply offset by the landed
+catch. The catches for length-group $l$ , fleet $f$ at year $y$ and
+time-step $t$ are calculated as  
+
+\begin{equation}
+C_{falsyt} = E_{ft} \frac{S_{f}(l)N_{alsyt}W_{ls}}{\sum_{s'} \sum_{l'}\sum_{a'} S_{f}(l')N_{al's'yt}W_{l's'}} 
+\end{equation}
+where $E_{ft}$ is the landed biomass at time $t$ and $S_{f}(l)$ is the suitability of length-group $l$ by fleet $f$ defined as\footnote{Other functional forms for the selection are defined in Gadget}:
+
+\begin{equation}\label{eq:suit}
+S_f(l) = \frac{1}{1 + e^{(-b_f(l-l_{50,f})}}
+\end{equation}
+
+The effective fishing mortality at age and at time step $t$ is calculated according to the following equation:
+
+\begin{equation}\label{eq:Feq}
+F_{asyt} = \frac{-\log(1.0 - \frac{C_{asyt}}{N_{asyt}})}{\Delta t}
+\end{equation}
+
+where $C_{asyt} =\sum_{fl} C_{falsyt}$ and $N_{asyt} = \sum_l N_{alsyt}$. For greater silver smelt the reported mean fishing mortality in a given year $y$, $\bar{F_y}$,  is calculated as the average $F_{ay}$, summed over all stocks and time steps,  over ages 6 - 14 for that year.
+
+<!-- Harvest rate in terms of the reference biomass is calulated as: -->
+<!-- \begin{equation} -->
+<!-- H_y = \frac{C_y}{B_{ref,y}} -->
+<!-- \end{equation} -->
+<!-- where $C_y = \sum_{falst} C_{falsyt} W_{s,l}$ and $B_{ref,y} = \sum_{alst} N_{alsyt} W_{s,l}$. For ling the reported reference biomass is the biomass of fish larger than or equal to 75cm, denoted $B_{75cm^+,y}$. -->
+
+
+
+### Observation model
+A significant advantage of using a length- and age-structured models is
+that the modeled output can be compared directly against a wide
+variety of different data sources. It is not necessary to convert
+length into age data before comparisons. Gadget can use various types
+of data that can be included in the objective function. Length
+distributions, age-length keys or distributions, survey indices by length or age (abundance or biomass), CPUE
+data, mean length and/or weight at age, tagging data, and stomach
+content data can all be used. Importantly this ability to handle length data directly means that the model can be used for stocks such
+as greater silver smelt in 5a and 14 where age data is sparse and/or are unreliable. In the greater silver smelt model,, data are assimilated using a weighted log--likelihood
+function. Here four types of data enter the likelihood, length--based
+survey indices, maturity at length from the survey, length distributions from survey and commercial
+fleets and age -- length distributions from from the survey and commercial
+fleets.  
+
+
+In formulations below it is assumed that the compositional data are sampled at random from the fishery and surveys, as this is how the sampling protocol is Icelandic waters is set up. Other forms of likelihoods are implemented in Gadget that can be used to address other types of sampling (e.g. length--stratified sampling). 
+
+#### Survey indices
+For each length-range grouping ('slice', $g$) the survey index is compared to the modeled
+abundance at year $y$ and time-step $t$ using: 
+\begin{equation}\label{eq:SSSI}
+  l_{g}^{\textup{SI}} = \sum_{y} \sum_t (\log I_{gy} - (\log q_g + b_g \log \widehat{N_{gyt}}))^2 
+\end{equation}
+where $$\widehat{N_{gyt}} = \sum_{l\in g} \sum_a \sum_s N_{alsyt}$$
+
+The values for $l_{g}^{\textup{SI}}$ are values for observed survey index in numbers, whereas $\widehat{N_{gyt}}$ represent the simulated population numbers, $q_g$ is the slice--specific catchability, and $b_g$ is the slice-specific slope parameter (often fixed at 1).
+
+#### Fleet data
+Length distributions are compared to predictions using
+\begin{equation}\label{eq:SSldist}
+  l_f^{\textup{LD}} = \sum_y \sum_t \sum_l (\pi_{flyt} - \hat{\pi}_{flyt})^2
+\end{equation}
+
+where $f$ denotes the fleet where data was sampled from and 
+$$\pi_{flyt} = \frac{\sum_a\sum_s O_{falsyt}}{\sum_{a'}  \sum_{l'}\sum_sO_{fa'l'syt}}$$ 
+and 
+$$\hat{\pi}_{lyt} = \frac{\sum_a  \sum_s C_{falsyt}}{\sum_{a'}
+  \sum_{l'}\sum_s C_{fa'l'syt}}$$ 
+represent respectively the observed and modeled proportions in length-group $l$ 
+at year $y$ and time-step $t$. Similarly age -- length data are
+compared:  
+\begin{equation}\label{eq:SSalk}
+  l_f^{\textup{AL}} = \sum_y \sum_t \sum_a \sum_l  (\pi_{falyt} - \hat{\pi}_{falyt})^2
+\end{equation}
+where 
+$$\pi_{falyt} = \frac{\sum_s O_{falsyt}}{\sum_a  \sum_{l'}\sum_s O_{fal'syt}}$$ 
+and 
+$$\hat{\pi}_{falyt} = \frac{\sum_s C_{falsyt}}{\sum_{a'}
+  \sum_{l'}\sum_s C_{fa'l'syt}}$$ 
+  
+A length at maturity comparison uses the number fish mature versus immature that are observed in a given fishery or a survey. The observed
+proportions are compared to the modelled proportion using sum of
+squares: 
+\begin{equation}\label{eq:SSmat}
+  l^{\textup{M}}_f = \sum_y \sum_t \sum_l  (\pi_{flyt} -
+  \hat{\pi}_{flyt})^2 
+\end{equation}
+where 
+$$\pi_{flyt} = \frac{\sum_a O_{fal1yt}}{\sum_{a'}  \sum_{l'}\sum_sO_{fa'l'syt}}$$ 
+and 
+$$\hat{\pi}_{flyt} = \frac{\sum_a  C_{fal1yt}}{\sum_{a'}
+  \sum_{l'}\sum_sC_{fa'l'syt}}$$ 
+  
+represent the observed and modelled proportions of individuals respectively in length group $l$ in year $y$ and timestep $t$, and where the fleet $f$ corresponds to the survey.
+
+  
+### Order of calculations
+
+The order of calulations is as follows:
+
+1. **Printing:** model output at the beginning of the time-step
+
+2. **Consumption:** mainly fleet harvesting
+
+3. **Natural mortality:** Natural mortality is applied after consumption
+
+4. **Growth and maturation:** length update is applied and maturing fish moved from one stock component to the other
+
+5. **Spawning and recruitment:** New individuals enter the immature stock component
+
+6. **Likelihood comparison:** likelihood score is calculated here, note that the comparison is 
+   based on the modeled processes in previous steps
+
+7. **Printing:** model output at the end of the time-step
+
+8. **Ageing:** if this is the end of year, the age is increased
+
+
+### Iterative re--weighting
+
+The total objective function combines the above likelihood 
+equations into the following formula:
+
+
+\begin{equation}\label{eq:loglik}
+l^{{T}} = \sum_g  w_{gf}^{{SI}}
+l_{g,S}^{{SI}} + \sum_{f\in \{A,C\}} \left(
+  w_{f}^{{LD}}  l_{f}^{{LD}} + w_{f}^{{AL}}
+  l_{f}^{{AL}}\right) + w^{{M}}l^{{M}}
+\end{equation}
+
+where $f=A$, or $C$ denotes the autumn survey and commercial fleets respectively
+and $w$'s are the weights assigned to each likelihood components. 
+
+The weights, $w_i$, are necessary for several reasons, including preventing some components from dominating the likelihood
+function and reducing the effect of low quality
+data. Howeer, assigning likelihood weights is not a trivial matter, and has in the past
+been the most time consuming part of a Gadget model. Commonly this has
+been done using some form of 'expert judgement'. General heuristics
+have recently been developed to estimated these weights
+objectively. Here the iterative re--weighting heuristic introduced by
+@stefansson2003issues, and subsequently implemented in
+@taylor2007simple, is used. 
+
+
+The general idea behind the iterative re-weighting is to assign the
+inverse variance of the fitted residuals as component weights. The
+variances, and hence the final weights, are calculated according the
+following algorithm: 
+
+1. Calculate the initial sums of squares (SS) given the initial
+  parameterization for all likelihood components. Assign the inverse SS
+  as the initial weight for all likelihood components, resulting in a total initial score of 1 for each component. 
+2. For each likelihood component, do an optimization run with
+  the initial weighted SS for that component set to 10000. Then estimate the
+  residual variance using the resulting SS of that component divided
+  by the degrees of freedom ($df^*$), i.e. $\hat{\sigma}^2 = \frac{SS}{df^*}$.
+3.  After the optimizations, set the final weight for that all
+  components as the inverse of the estimated variance from the step above.
+  (weight $=1/\hat{\sigma}^2$). 
+
+
+The number of non-zero data-points ($df^{*}$) is used as a proxy
+for the degrees of freedom.
+While this may be a satisfactory proxy for larger data sets, it could be
+a gross overestimate of the degrees of freedom for smaller data sets. 
+In particular, if the survey indices are weighed on their own while the
+yearly recruitment is estimated, they could be over-fitted, because yearly recruitment can simply be set 
+equal to the survey index series of the smallest-sized fish (divided by its catchability), or be back-calculated exactly from an older age class that has been set to equal a survey index representing a larger size class (divided by its catchability). In general,
+problems such as these can be solved with component grouping which assigns the same weight to all components within
+the grouping. That is,
+in step 2 the likelihood components that should behave similarly, such
+as survey indices representing similar age ranges, would after grouping be upweighted and optimized 
+together. In the greater silver smelt model, all survey indices were grouped together to prevent overfitting.
+
+
+
+### Optimisation
+The total objective function to be minimised is a weighted sum of the
+different components, as described in eq. 17.  The estimation could be difficult due to groups
+of correlated parameters, multiple local optima or flat surfaces of the objective function in the search neighbourhood.  Therefore the
+optimisation procedure often involves a combination of the more robust
+simulated annealing, to make the results less sensitive to the initial
+(starting) values, and to the local search algorithms (Hooke and
+Jeeves and BFGS) in the neighborhood of the global optima.
+
+The model has three alternative optimising algorithms linked to it, a
+wide area search  [@corana1987minimizing], a local
+search  [@HookeJeeves1961] and
+finally one based on the Boyden-Fletcher-Goldfarb-Shanno algorithm
+hereafter termed BFGS. 
+
+The simulated annealing and Hooke-Jeeves algorithms are not gradient--based,
+and there is therefore no requirement on the likelihood surface being
+smooth. Consequently neither of the two algorithms returns estimates
+of the Hessian matrix. Simulated annealing is more robust than Hooke
+and Jeeves and can find a global 
+optima where there are multiple optima but needs about 2-3 times the
+order of magnitude number of iterations than the Hooke and Jeeves
+algorithm. To be effective at finding global minima, it accepts worse answers periodically in its search, 
+and therefore answers can appear random in a very flat gradient search.
+
+BFGS is a quasi-Newton optimisation method that
+uses information about the gradient of the function at the current
+point to calculate the best direction to look for a better point.
+Using this information the BFGS algorithm can iteratively calculate a
+better approximation to the inverse Hessian matrix.  In comparison to
+the two other algorithms implemented in Gadget, BFGS is very local
+search compared to simulated annealing and more computationally
+intensive than the Hooke and Jeeves.  However the gradient search in
+BFGS is more accurate than the step-wise search of Hooke and Jeeves and
+may therefore give a better estimation of the optimum.  The
+BFGS algorithm used in Gadget is derived from that presented by
+[@bertsekas1999nonlinear].
+
+
+The model is able to use all three algorithms in a single
+optimisation run, attempting to utilise the strengths of all. Simulated
+annealing is used first to attempt to reach the general area of a
+solution and make the results less sensitive to the initial
+(starting) values, followed by Hooke and Jeeves to rapidly home in on the local
+solution and finally BFGS is used for fine-tuning the optimisation. 
+This procedure is repeated several times to attempt to avoid
+converging to a local optimum.   
+
+Optimizations were performed for greater silver smelt using simulated annealing followed by a Hooke and Jeeves algorithm. Simulated annealing was run using 2 000 000 maximum simulated annealing iterations with 1e-03 as the minimum epsilon (halt criteria), 30 000 000 as the initial temperature 0.85 as the temperature reduction factor, 2 loops before temperature adjusted, 5 loops before step length adjusted, 1  as the initial value for the maximum step length, 2 as the step length adjustment factor, 0.3   and 0.7 as the lower and upper limits for ratio when adjusting step length respectively,  and 4  temperature loop checks.The Hooke and Jeeves algorithm was run with 100 000 maximum iterations, 1e-07 as the minimum epsilon (halt criteria), 0.5 as the resizing multiplier and 0 as the initial value for the step length. In practice, most of the optimization was completed by simulated annealing and both steps always converged. The BFGS algorithm was attempted as a third step in the optimization routine but was did not improve the fit appreciably so was removed.
+
+`r pagebreak()`
+
+### Bootstrap
+
+
+```{r bs1,  echo = FALSE, fig.cap = 'Locations of Greater silver smelt catches in 5a and 14 by commercial and survey fleets in 2019 relative to the spatial subdivision on the Icelandic continental shelf area. '}
+fish.pos <- 
+  mfdb_dplyr_sample(mdb) %>% 
+  filter(species=='GSS',year == 2019,data_source=='iceland-ldist') %>% 
+  left_join(mfdb_dplyr_division(mdb)) %>%
+  left_join(mfdb:::mfdb_dplyr_table(mdb,'tow',"all_cols") %>% 
+              select(tow=name,tow_length=length,tow_depth=depth,
+                     lat=latitude,lon=longitude)) %>% 
+  collect(n=Inf) 
+
+
+
+## read mapping
+
+bcareas <- c(1015, 1014, 1018, 1011, 1012, 1023, 1023, 1021, 1032, 1031,
+             1042, 1041, 1052, 1053, 1051, 1054, 1061, 1071, 1081, 1082)
+
+reitmapping <- 
+  read.table(
+        system.file("demo-data", "reitmapping.tsv", package="mfdb"),
+        header=TRUE,
+        as.is=TRUE) %>%
+  mutate(sr=as.numeric(GRIDCELL)) %>% 
+  mar:::sr2d() %>% 
+  filter(SUBDIVISION %in% c(bcareas,fish.pos$division))
+
+
+
+test <- 
+  plyr::ddply(reitmapping, 'SUBDIVISION',
+        function(x){
+          ##   2
+          ## 1 x 3
+          ##   4
+          sides <- rep(10*x$GRIDCELL,each=4) + 1:4
+          up <- geo::d2sr(x$lat + 0.125, x$lon)
+          down <- geo::d2sr(x$lat - 0.126, x$lon)
+          left <- geo::d2sr(x$lat, x$lon - 0.25)
+          right <- geo::d2sr(x$lat, x$lon + 0.26)
+          
+          for(i in 1:nrow(x)){
+            ## up
+            if(up[i] %in% x$GRIDCELL){
+              sides[4*(i-1)+2] <- NA
+              sides[sides==(10*up[i]+4)] <- NA
+            }
+            ## down
+            if(down[i] %in% x$GRIDCELL){
+              sides[4*(i-1)+4] <- NA
+              sides[sides==(10*down[i]+2)] <- NA
+            }
+            ## left
+            if(left[i] %in% x$GRIDCELL){
+              sides[4*(i-1)+1] <- NA
+              sides[sides==(10*left[i]+3)] <- NA
+            }
+            ## right
+            if(right[i] %in% x$GRIDCELL){
+              sides[4*(i-1)+3] <- NA
+              sides[sides==(10*right[i]+1)] <- NA
+            }
+          }
+          sides <- sides[!is.na(sides)]
+          corners <- plyr::ddply(data.frame(side=rep(sides,each=2)),
+                       'side',
+                       function(x){
+                         loc <- geo::sr2d(floor(x$side[1]/10))
+                         loc <- c(loc$lat,loc$lon)
+                         if((x$side[1] %% 10) == 1){
+                           up.loc <- loc+c(0.125,-0.25)
+                           down.loc <- loc+c(-0.125,-0.25)
+                         }
+                         if((x$side[1] %% 10) == 3){
+                           up.loc <- loc+c(0.125,0.25)
+                           down.loc <- loc+c(-0.125,0.25)
+                         }
+                         if((x$side[1] %% 10) == 2){
+                           up.loc <- loc+c(0.125,-0.25)
+                           down.loc <- loc+c(0.125,0.25)
+                         }
+                         if((x$side[1] %% 10) == 4){
+                           up.loc <- loc+c(-0.125,-0.25)
+                           down.loc <- loc+c(-0.125,0.25)
+                         }
+                         tmp <- as.data.frame(rbind(up.loc,down.loc))
+                         names(tmp) <- c('lat','lon')
+                         return(tmp)                        
+                       })
+          corners$order <- NA
+          corners$order[1:2] <- 1:2
+          counter <- 1:nrow(corners)
+          i <- 2
+          for(order in 3:(length(sides))){
+            tmp <- counter[is.na(corners$order) &
+                           corners$lat == corners$lat[i] &
+                           corners$lon == corners$lon[i]][1]
+            corners$order[corners$side == corners$side[tmp]] <- order
+            corners <- corners[-tmp,]
+            i <- which(corners$order == order)
+            
+          }
+          corners$side <- NULL
+          return(arrange(corners,order))
+          
+        })
+
+
+
+
+ ggplot(data.frame(lat=0,lon=0), aes(lon,lat)) +
+#  ggplot(subset(dat,ar==2011),aes(lon,lat)) +
+#  stat_density2d(aes(fill=..level..),geom='polygon') +
+#  scale_fill_gradient(limits = c(0,0.2), low='yellow',high='red') +
+  geom_point(col='yellow') +  
+  geom_path(data=geo::gbdypi.100,lty=2,size = 0.3) +
+  geom_path(data=geo::gbdypi.800,lty=2,size = 0.3) +
+  #  geom_polygon(alpha=0.5,data=geo::gbdypi.100,fill='gray90') +
+  geom_path(data=geo::gbdypi.200,lty=2,size = 0.3) + #alpha=0.5,fill='gray90',
+  geom_path(data=geo::gbdypi.500,lty=3,size = 0.3) +
+  geom_path(data=geo::gbdypi.1000,lty=4,size = 0.3) +
+  geom_path(aes(lon,lat,group=SUBDIVISION),
+            data=test, #
+            #subset(test,SUBDIVISION %in% bcareas),
+            size = 0.3) +
+  # geom_polygon(aes(lon,lat,group=SUBDIVISION),
+  #           data=test %>% 
+  #             filter(SUBDIVISION %in% c(1061,1143,1142)), #
+  #           #subset(test,SUBDIVISION %in% bcareas),
+  #           size = 0.3,fill='gold',alpha=0.5) +
+
+  geom_polygon(data=geo::island, col = 'black' ,fill = 'gray70',size = 0.3) +
+#  geom_polygon(data=geo::greenland, col = 'black', fill = 'gray70') +
+  geom_polygon(data=geo::eyjar, col = 'black', fill = 'gray70',size = 0.3) +
+  geom_polygon(data=geo::faeroes, col = 'black', fill = 'gray70') +
+  coord_map('mercator', xlim=c(-30,-10),ylim=c(62,68)) +
+#     geom_label(aes(lon,lat,label=SUBDIVISION),
+#            data=ddply(test,~SUBDIVISION, summarise, lat=mean(lat),
+#              lon=mean(lon))) +
+#  coord_map('mercator', xlim=c(-28,-9.5),ylim=c(62.5,68)) +
+  xlab('Longitude') +
+  ylab('Latitude') + 
+  theme_light() +
+  geom_point(data=fish.pos%>% select(tow,lat,lon) %>% distinct()) +
+  geom_path(data = geo::twohmiles, lty = 2) #+
+#  geom_path(data=icelandrivers,size=0.1,col='blue') +
+#  geom_path(data=glaciers,size=0.5)
+```
+
+
+
+
+To estimate the uncertainty in the model parameters and derived quantities, a 
+specialised boostrap for disparate datasets is used. The bootstrapping approach consists of the following:
+
+1.  The base data are stored in a standardized data base:
+  + Time aggregation: 3 months
+  + Spatial aggregation: areal subdivision (angular shapes indicated in Figure 1)
+  + Further disaggregation is based on a range of categories
+  including fishing gear, fishing vessel class, sampling type
+  (e.g. harbour, sea and survey). A full listing of data types used in the
+  case study can be found in table , these data are
+  stored subdivision disaggregated to allow for use in a bootstrap. 
+2. To bootstrap the data, the list of subdivisions, depicted in
+  Figure 1, required for the
+  model is sampled (with replacement) and stored. For a multi--area
+  model one would conduct the re-sampling of subdivisions within each
+  area of the model.  
+3. The list of re-sampled subdivisions is then used to extract
+  data (with replacement so the same data set may be repeated several times
+  in a given bootstrap sample).
+4. For a single bootstrap Gadget model, the same list of re-sampled
+  subdivisions is used to extract each likelihood data set (i.e.,
+  length distributions, survey indices, and age--length frequencies are
+  extracted from the same spatial definition).
+5. A Gadget model is fitted to the extracted bootstrap data set
+  using the estimation procedure described above. The entire estimation procedure 
+  is repeated for each bootstrap sample.  In particular, since the estimation procedure
+  includes an iterative re-weighting scheme, this re-weighting is repeated
+  for every bootstrap sample.  Doing this ensures that the bootstrap
+  procedure is no longer conditional on the weights.  The procedure as a
+  whole is quite computationally intensive but can easily be run in
+  parallel, e.g. on a computer cluster. 
+6. The re-sampling process is repeated until the desired number of bootstrap
+  samples are extracted, which in this case is 100.
+
+When re-sampling, data are forced to remain in the correct year and
+time--step so re-sampling is based on sampling spatially the elementary
+data units within a given modeled unit of time and space.
+Thus, within a modeled spatial unit the bootstrap is a re-sampling of
+subdivisions. This implicitly assumes data contained within each area
+of the model to be independent and identically distributed, and is therefore
+the sample unit. Subdivisions were defined to maximize independence
+in earlier studies @Elvarsson2014. Furthermore treating bootstrap replicates
+as if they were from the same distribution
+appears to have little negative effect when compared to more
+traditional methods [@lornahaddock]. Refer to 
+@Elvarsson2014 and @mfdb for further implementation details. 
+
+
+### Model settings
+Greater silver smelt in 5a and 14 is assumed to be long-lived and the maximum age is set at
+26 as a plus group. Simulations begin in 1990, 6 years before catch data begin and 10 years before survey data begin
+as a 'burn-in' period, to allow for enough flexibility that the model is able to easily fit the earliest data 
+available and is not constrained by initial values. The immature stock mature at age 15 at the latest. Recruitment to the immature stock component 
+occurs at age 1, at the end of the $1^{st}$ quarter. The length range in the model ranged between 8 and 60 (with no mature individuals < 25 cm), in 1 cm length intervals. An overview of the data sets and model parameters used in the model
+study is shown in Table 1 and List 1 respectively. 
+
+```{r datatable, echo = FALSE, fig.cap = "Overview of the likelihood data used in the model. Survey indices are calculated from the length distributions and are disaggregated (sliced) into six groups. Number of data-points refer to aggregated data  used as inputs in the Gadget model and represent the original data-set. All data can obtained from the Marine and Freshwater Research Institute, Iceland."}
+ wgr <- 
+   fit$resTable %>% 
+   select(-.id) %>% 
+   names() %>%
+   set_names(.,.) %>% 
+   map(function(x){
+    data_frame(group=grep(paste0('^',x,paste0('|\\.',x)),fit$resTable$.id,value=TRUE))
+   }) %>% 
+   bind_rows(.id="name") %>% 
+   mutate(group=ifelse(grepl('si.',group),'sind',group))
+ 
+ fit$catchdist.fleets %>%
+   filter(!is.na(number.x)) %>% 
+   group_by(name) %>% 
+   dplyr::summarise(quarters=step %>% unique() %>% sort() %>% paste(collapse=','),
+             year.range=paste(min(year),max(year),sep='--'),n=n(),
+             deltal = paste(median(upper-lower),'cm')) %>% 
+   mutate(type = ifelse(grepl('aldist',name),'Age--length distributions','Length distributions'),
+          origin = gsub('[a-z]+\\.([a-z]+)','\\1',name),
+          lik.ref = ifelse(grepl('aldist',name),'eq:SSalk','eq:SSldist')) %>% 
+   bind_rows(fit$stockdist %>% 
+               group_by(name) %>% 
+               dplyr::summarise(quarters=step %>% unique() %>% sort() %>% paste(collapse=','),
+                         year.range=paste(min(year),max(year),sep='--'),n=n(),
+                         deltal = paste(median(upper-lower),'cm')) %>% 
+               mutate(type = 'Immature : mature by length group',
+                      origin = gsub('[a-z]+\\.([a-z]+)','\\1',name),
+                      lik.ref = 'eq:SSmat'),
+             fit$sidat %>% 
+               group_by(name) %>% 
+               dplyr::summarise(quarters=step %>% unique() %>% sort() %>% paste(collapse=','),
+                         year.range=paste(min(year),max(year),sep='--'),n=n(),
+                         deltal = paste(lower,'--',upper,'cm')[1]) %>% 
+               mutate(type = 'Survey indices',
+                      origin = 'aut',
+                      lik.ref = 'eq:SSSI')) %>% 
+   mutate(origin = ifelse(origin == 'aut','Autumn Survey','Commercial catches'),
+          quarters = ifelse(quarters == '1,2,3,4','All quarters',
+                            #ifelse(quarters == '1','$1^{\\textup{st}}$','$2^{\\textup{nd}}$')))
+                            quarters)) %>%
+   left_join(wgr) %>% 
+   select(-lik.ref) %>% 
+   rename(`Component name` = name, Quarters = quarters, `Year range` = year.range, N = n, `Delta l` = deltal, Type = type, Origin = origin, Grouping = group) %>% 
+   kableExtra::kable(format = 'latex', 
+                     caption = "Overview of the likelihood data used in the model. Survey indices are calculated from the length distributions and are disaggregated (sliced) into six groups. Number of data-points refer to aggregated data  used as inputs in the Gadget model and represent the original data-set. All data can obtained from the Marine and Freshwater Research Institute, Iceland.")%>%
+  kable_styling(full_width = F) %>%
+   row_spec(0, bold=T) %>% 
+  column_spec(1, bold = T, border_right = T) %>%
+  column_spec(6, width = "30em")#, background = "yellow")
+   # split(.$type) %>% 
+   # map(function(x){
+   #   header <-"  & \\multicolumn{3}{l}{\\textbf{%s:}} \\\\" %>% sprintf(x$type[1])
+   #   body <- "%s &  %s, %s & %s & %s  & See eq. \\ref{%s} & %s\\\\" %>% 
+   #     sprintf(x$origin,x$quarters,x$year.range,x$deltal,x$n,x$lik.ref,x$group) %>% 
+   #     paste(collapse='\n')
+   #   paste(header,body,sep='\n')
+   # }) %>% 
+   # unlist() %>% 
+   # paste(collapse='\n') %>% 
+   # cat()
+
+```
+
+`r pagebreak()`
+
+**List 1. Greater silver smelt in 5a and 14. List of parameters in the Gadget
+  model.**
+  
++ Natural mortality, $M_a$, fixed at 0.15. This value was chosen based on preliminary results data-limited methods for estimating M on greater silver smelt in ICES divisions 1,2,3a, and 4 and 5a and 14.
++ Length-based Von Bertalanffy growth function, $k, L_\infty$, informed by age--length
+frequencies 
++ Growth variation implementation as a beta-binomial distribution, $\beta$ estimated while $n$ was fixed at maximum 4 length-groups
++ Logistic fleet selection, $b_f$, $l_{50,f}$; one set for each of the fleets
+(Autumn survey or Commercial)
++ Logistic maturity ogive, $\lambda$, $l_{50,y}$.  $\lambda$ was not well-determined, so it was fixed at a value of 0.2, while $l_{50,y}$ was estimated annually (with the exceptions, due to lack of quality maturity data, that $l_{50,2000}$ was used for all years through 2000 and $l_{50,2012}$ was used for 2011 - 2012)
++ Length at recruitment, $l_0, \sigma_0$: mean length (at age 1) and std. deviation in length at recruitment
++ Number of recruits by year, $R_y$ and $y \in (1990,2019)$. 
++ Initial abundance at ages 1 - 26 in 1990 by $\eta_{sa}$ and $a \in (1,26^+)$. $\sigma_a^2$, i.e. variance in initial length at age $a$ was fixed and based on length distributions obtained in the autumn survey. Initial lengths at age were defined based on the growth function.
++ Survey catchability $q_{lf}$: estimated intercept term in a log-linear relationship with abundance. The slope term, $b_g$ was fixed to 1 for all indices. In certain model variations, slopes were estimated for the two smallest survey index slices, but these led to overfitting of these survey indices.
++ Length-weight relationship, $\mu_s, \omega_s$, fixed based on estimations made outside of the model.
++ Scalars, $R_{c,s}$, $I_{c,s}$, $F_0$: recruiment scalar (multiplied against all $R_y$ to help optimization), initial numbers at age scalars (by stock $s$, multiplied against all $\eta_{sa}$ to help optimization) and initial fishing mortality (applied to all age groups and all years, steepens initial numbers at age distribution to reflect previous effects of fishing.) The subscript $c$ signifies that these are constants.
+
+
+<!-- \begin{table} -->
+<!-- \caption{Greater silver smelt in 5a and 14. An overview of the estimated parameters in the -->
+<!--   model. }\label{tbl:parameters} -->
+<!-- \vspace{0.2cm} -->
+<!-- \resizebox{\columnwidth}{!}{% -->
+<!-- \begin{tabular}{p{5cm}|lp{5cm}p{2.5cm}} -->
+<!-- Description & Notation & Comments & Formula\\ \hline -->
+<!-- Natural mortality & $M_a$ & Fixed at 0.15 for ages 3 to 15 & See eq. \ref{eq:stock}\\ -->
+<!-- Growth function & $k, L_\infty$ & Estimated from age--length -->
+<!-- frequencies & See eq. \ref{eq:vonB}\\ -->
+<!-- Growth implementation & $\beta$ & $n$ is fixed at 15 length-groups & -->
+<!-- See eq. \ref{eq:betabinom}\\ -->
+<!-- Fleet selection & $b_f$, $l_{50,f}$ & One set for each of the fleets -->
+<!-- (Survey, Trawl, Longline, Gillnet and Foreign). The longline and foreign fleets have the same selection&  See eq. \ref{eq:suit} \\ -->
+<!-- Maturity ogive & $\lambda$, $l_{50}$ &  & See eq. \ref{eq:mat}\\ -->
+<!-- Length at recruitment & $l_0, \sigma_3$ &  Mean length (at age 1) and std. deviation in recruitment length. & See eq. \ref{eq:rec}\\ -->
+<!-- Number of recruits by year & $R_y$ & $y \in [1982, -->
+<!-- 2016]$. $\sigma_0$, i.e. std. deviation in recruitment length, based on -->
+<!-- length distributions obtained in the autumn survey. & See eq. \ref{eq:rec}\\ -->
+<!-- Initial abundance at ages 3 -- 15 in 1982 by  & $\eta_{sa}$ & $a \in [3, -->
+<!-- 15^+]$. $\sigma_a^2$, i.e. variance in initial length at age $a$, based on -->
+<!-- length distributions obtained in the autumn survey.  & See eq. \ref{eq:init} and table \ref{tbl:sigmas}\\ -->
+<!-- Survey catch-ability & $q_f$ & Intercept term in a log--linear relationship with -->
+<!-- abundance. The slope term, $b_g$, is estimated for groups si.20-50 and si.50-60. Fixed to 1 for all other indices. & See eq. \ref{eq:SSSI}\\ -->
+<!-- Length--weight relationship & $\mu_s, \omega_s $ & Estimated outside of the model & See eq. \ref{eq:lw}\\ \hdashline -->
+<!-- Scalars & $R_c$, $I_{c,s}$, $F_0$ & Recruiment, initial numbers at age and initial fishing mortality (applied to all age groups) & \\ -->
+<!-- \hline -->
+<!-- \end{tabular} -->
+<!-- } -->
+<!-- \end{table} -->
+
+
+
+```{r tablesigmas, echo = FALSE, fig.cap = "Greater silver smelt in 5a and 14. List of initial standard deviation in length by age (Age:SD in cm), see eq. 6 for further details. "}
+  
+  mfdb_dplyr_sample(mdb) %>%
+  dplyr::filter(species == 'GSS',age >0,age < 27,!is.na(length))  %>%
+  dplyr::select(age,length) %>%
+  dplyr::collect(n=Inf) %>%
+  dplyr::group_by(age) %>%
+  dplyr::summarise(ms=sd(length,na.rm=TRUE)) %>%
+  dplyr::mutate(#ms=ifelse(age>17,24.14,ms),
+                ms=sprintf('%s: %.2f',age,ms),
+                split = (age-1)%/%7,
+                id = (age-1)%%7) %>%
+   dplyr::select(-age) %>%
+   tidyr::spread(split,ms,fill='') %>%
+   dplyr::select(-id) %>% 
+  setNames(., c('','','','')) %>% 
+   kableExtra::kable(format = 'latex', caption = "Greater silver smelt in 5a and 14. List of initial standard deviation in length by age (Age:SD in cm), see eq. 6 for further details. ")
+#  tidyr::unite(col,matches("."),sep=' & ') %>%
+#   (function(x){
+#     paste(x$col,collapse = '\\\\ \n')
+#   }) %>%
+#   paste0('\\\\') %>%
+#   cat()
+#   
+```
+
+
+<!-- \begin{table}[ht] -->
+<!-- \caption{Greater silver smelt in 5a and 14. Initial standard deviation in length by age, see eq. \ref{eq:init} for further details} \label{tbl:sigmas} -->
+<!-- \vspace{0.2cm} -->
+<!-- %\resizebox{\columnwidth}{!}{% -->
+<!-- \begin{tabular}{l|r|l|r|l|r} -->
+<!-- \toprule -->
+<!-- Age &  $\sigma_a$ & Age &  $\sigma_a$ & Age &  $\sigma_a$  \\ \hline -->
+<!-- <<sigmas,echo=FALSE,results='asis',message=FALSE,error=FALSE,warning=FALSE>>= -->
+<!--   mfdb_dplyr_sample(mdb) %>% -->
+<!--   dplyr::filter(species == 'GSS',age >0,age < 27,!is.na(length))  %>% -->
+<!--   dplyr::select(age,length) %>% -->
+<!--   dplyr::collect(n=Inf) %>% -->
+<!--   dplyr::group_by(age) %>% -->
+<!--   dplyr::summarise(ms=sd(length,na.rm=TRUE)) %>% -->
+<!--   dplyr::mutate(ms=ifelse(age>17,24.14,ms), -->
+<!--                 ms=sprintf('%s & %.2f',age,ms), -->
+<!--                 split = (age-3)%/%5, -->
+<!--                 id = (age-3)%%5) %>% -->
+<!--    dplyr::select(-age) %>% -->
+<!--    tidyr::spread(split,ms,fill='') %>% -->
+<!--    dplyr::select(-id) %>% -->
+<!--   tidyr::unite(col,matches("."),sep=' & ') %>% -->
+<!--    (function(x){ -->
+<!--      paste(x$col,collapse = '\\\\ \n') -->
+<!--    }) %>% -->
+<!--    paste0('\\\\') %>% -->
+<!--    cat() -->
+<!-- @ -->
+<!-- \hline -->
+<!-- \end{tabular} -->
+<!-- %} -->
+<!-- \end{table} -->
+
+
+#### Natural mortality
+Choice of natural mortality ($M$) is problematic as is normally the
+case in stock assessments.   Here $M$ is assumed to be constant with
+age at 0.15.
+
+#### Length--weight relationship
+The parameters of the weight--length relationship used in eq.  were estimated through the means of log-linear regression. Figure 2 shows the observed length-weight relation compared with the fitted values. 
+
+```{r lw, echo=FALSE, fig.cap = "Greater silver smelt in 5.a and 14: observed length-weight relationship (boxplots and points) compared with the fitted values (line)."}
+ lw.constants <- 
+  mfdb_dplyr_sample(mdb) %>% 
+  filter(species == 'GSS',
+         sampling_type == 'AUT',
+         !is.na(weight),
+         !is.na(length),
+         weight < 1200,
+         weight > 3,
+         length > 0) %>% 
+   select(length,weight) %>% 
+   collect(n=Inf) 
+ 
+ lw.constants %>% lm(log(weight/1e3)~log(length),.) %>% 
+   broom::tidy() %>% 
+   select(estimate) -> x
+ 
+ x$estimate[1] <- exp(x$estimate[1])
+ 
+ 
+ lw.constants %>% 
+   mutate(p=x$estimate[1]*length^x$estimate[2]) %>% 
+   ggplot(aes(length,weight/1e3,group=round(length,4))) + 
+   geom_boxplot() + geom_line(aes(y=p,group=1)) + 
+   ylim(c(0,1.2)) +
+   theme_light() + labs(y='Weight (kg)', x='Length')
+```
+ 
+`r pagebreak()`
+
+## Results
+
+Model results are only shown from 2000, as survey data are only available from 2000 onwards. Landings data are available from 1990, but the period 1990--1996 is likely to contain unrecorded discards, so landings data are only included from 1997. The period 1990-1996 is therefore only used as a "burn-in" period to allow more flexibility in fitting the data best in the earliest years with survey data. 
+
+### Base model 
+
+#### Diagnostics
+
+As noted in the main document WKGSS 2020, section 4 on Greater silver smelt in Icelandic waters (ICES areas 5a and 14), survey indices can be extremely variable for Greater silver smelt due to its tendency to be influenced by a few very large hauls. The index data used as input here are the total raw numbers of fish caught (within length slices) in the entire autumn survey. Although they are expected to represent the entire stock, they are also expected to be highly variable because no treatment or data pre-processing has been performed to reduce this variability (e.g., stratification or the Winsorization procedure, as performed in the standard procedures for the category 3 assessment). This variability is reflected in the model's fit to the survey index data (Figure 3). It should be noted that because the smallest fish only in the most current years have a few years of observation (i.e., they have not grown large enough yet to be observed in larger indices), these estimates are the most uncertain and will follow the extreme ups and downs of the survey index more closely. As a result, recruitment estimates at the youngest ages will be highly uncertain.
+
+```{r siplot, echo=FALSE, fig.cap = 'Greater silver smelt in 5.a and 14. Autumn survey index number fits (lines) to data (points). The green line indicates the difference between model and data values in the last year.'}
+plot(fit)
+```
+
+In addition, catchability appears to be well-estimated with a log-linear relationship with the slope fixed to 1, as regressions of the observed survey indices against predicted survey indices are informative (Figure 4).
+
+
+```{r BSSIpred, echo=FALSE, fig.width = 7, fig.height= 4, fig.cap = "Predicted survey index as a function of the observed values on the log-scale. The panels indicate the index length group, the dashed line denotes a line with slope 1 and the labels denote the year. "}
+
+fit$sidat %>%
+  ggplot(aes(log(predict),log(observed))) +
+  geom_line(aes(log(observed),log(observed)),lty=2) +
+  geom_line(aes(log(predict),log(predict)),lty=2) +
+  facet_wrap(~name, scale='free') +
+  geom_text(aes(label=year),size=3) +
+  #scale_x_log10() +
+  #scale_y_log10() +
+  theme_light() +
+  labs(y='log(Observed)',x='log(Predicted)')+
+  geom_label(data=fit$sidat %>%
+               select(name,slope,sse) %>%
+               distinct() %>%
+               mutate(label=paste(name,paste0('sse:',sse),paste0("slope:",slope),sep='\n')),
+             aes(label=label),x=Inf,y=-Inf,size=3, vjust = -0.1,hjust=1.1) +
+  theme(strip.background = element_blank(),strip.text=element_blank())
+
+
+```
+
+Model fits to the age-length distribution data from the autumn survey show reasonably close correspondence (Figure 5). The left side of the distributions often overestimate the data, due to a small but consistent peak in the smallest ages (1 - 2) that cannot be directly captured by the model. Therefore, the model underestimates this peak while overestimating the adjacent trough to capture the best fit. This small peak is also reflected in the length distributions (Figure 5), but preliminary analyses indicate that these relatively minor misfits to the data do not appear to be the result of obvious sampling bias nor a consistent spatial aggregations by certain length groups (see Figures 4.3.2.3 & 4.3.2.4, WKGSS2020 main document). Therefore, the peak in small fish is presumably due to a consistently higher catchability in a few hauls, which varies among years. The catchability of this length range is therefore estimated separately (first slice ranges < 25 cm) to reduce the effects of this peak from influencing biomass estimates (Figure 3). However, selectivity, rather than catchability, is used to produce length distribution predictions. Therefore, without implementing a very unusual selectivity shape or multiple stock components with different size ranges and selectivity, it will likely be difficult for the model to capture this pattern. 
+
+The main portions of the the length distributions (i.e., those that represent the greatest density of fish within the fished population), appear to have a reasonable fit; however, the largest sizes tend to be very slightly underestimated. However, as these fish contribute little to the fishable population, and because changing the model structure to allow for more large fish to survive in the model simulations could have undesired side effects with little biological support (e.g., via age-dependent natural mortality, or unusual selectivity patterns), the simpler model structure was retained with these minor misfits to the survey data.
+
+However, the last two years of age and length data from the survey (Figure 6) also show a concerning trend on the right-hand slope of the distribution: age distributions are underestimated while length distributions are slightly overestimated in this region. This could signal a recent change in growth patterns (slightly slower growth, also seen in Figure 4.3.3.1.1., WKGSS2020 main document), although changes in ageing methods should also be ruled out. If this pattern continues and ageing error is ruled out, then time-variable growth should be considered in the next benchmark, as incorrect growth patterns can cause bias in the assessment [@minte2017get].
+
+These misfits are not apparent in the fit to the commercial age and length data (Figures 7 & 8). However, this is likely the result of a fishery that is less selective for smaller fish than the survey (as it is restricted to fish at depths > 400 m to avoid small fish), as well as generally poor data quality. Especially in recent years, sample sizes obtained from the commercial fishery (which is self-sampled as a stipulation of the fishing license) have dwindled, and likely reflect greater bias when sampled from only a few hauls that contain similarly sized fish. Nonetheless, the bias does not appear consistent across years, and the commercial fishery yields information during the periods between surveys (steps 1 - 3), so data were retained in the model.
+
+
+```{r aldisthistaut, echo = FALSE, fig.cap = 'Greater silver smelt in 5.a and 14. Comparison of autumn survey age-length distribution fits between model fits (black) and data (grey). Labels indicate the year and step of data sampled and model comparison.'}
+fit$catchdist.fleets %>% 
+  filter(name=='aldist.aut') %>% 
+  dplyr::group_by(year, step, age) %>% 
+  dplyr::summarise(predicted = sum(predicted), 
+                   observed = sum(observed, na.rm = TRUE)) %>% 
+  dplyr::ungroup() %>% 
+  dplyr::mutate(age = as.numeric(gsub("age", 
+                                      "", age)))  %>% 
+  ggplot(aes(age, 
+             predicted)) + 
+  geom_line(aes(age, observed), color = 'grey') + 
+  facet_wrap(~year + step, 
+             drop = FALSE, ncol = max(2 * 1, 
+                                      4)) + 
+  geom_line() + 
+  geom_text(data = fit$catchdist.fleets %>% 
+              filter(name=='aldist.aut') %>% 
+              dplyr::ungroup() %>% dplyr::mutate(age = as.numeric(gsub("age", 
+                                                                       "", age))) %>% 
+              dplyr::filter(age == min(age)) %>% 
+              dplyr::mutate(y = Inf, label = paste(year, 
+                                                   step, sep = ",")) %>% 
+              dplyr::select(step, 
+                            age, y, year, label) %>% 
+              dplyr::distinct(), 
+            aes(age, y, label = label), vjust = 1.3, 
+            hjust = -0.05, size = 3, inherit.aes = FALSE) + 
+  ylab("Proportion") + xlab("Age") + theme(axis.text.y = element_blank(), 
+                                           axis.ticks.y = element_blank(), panel.spacing = unit(0, 
+                                                                                                "cm"), plot.margin = unit(c(0, 0, 0, 0), 
+                                                                                                                          "cm"), strip.background = element_blank(), 
+                                           strip.text.x = element_blank())
+
+```
+
+```{r ldisthistaut, echo = FALSE,  fig.cap = 'Greater silver smelt in 5.a and 14. Comparison of autumn survey length distribution fits between model fits (black) and data (grey). Labels indicate the year and step of data sampled and model comparison.'}
+tmp_fit$ldist.aut 
+```
+
+```{r aldisthistcomm, echo=FALSE, fig.cap = 'Greater silver smelt in 5.a and 14. Comparison of commercial sample age-length distribution fits between model fits (black) and data (grey). Labels indicate the year and step of data sampled and model comparison.'}
+
+fit$catchdist.fleets %>% 
+  filter(name=='aldist.comm') %>% 
+  dplyr::group_by(year, step, age) %>% 
+  dplyr::summarise(predicted = sum(predicted), 
+                   observed = sum(observed, na.rm = TRUE)) %>% 
+  dplyr::ungroup() %>% 
+  dplyr::mutate(age = as.numeric(gsub("age", 
+                                      "", age)))  %>% 
+  ggplot(aes(age, 
+             predicted)) + 
+  geom_line(aes(age, observed), color = 'grey') + 
+  facet_wrap(~year + step, 
+             drop = FALSE, ncol = max(2 * length(unique(fit$catchdist.fleets$step )), 
+                                      4)) + 
+  geom_line() + 
+  geom_text(data = fit$catchdist.fleets %>% 
+              filter(name=='aldist.comm') %>% 
+              dplyr::ungroup() %>% dplyr::mutate(age = as.numeric(gsub("age", 
+                                                                       "", age))) %>% 
+              dplyr::filter(age == min(age)) %>% 
+              dplyr::mutate(y = Inf, label = paste(year, 
+                                                   step, sep = ",")) %>% 
+              dplyr::select(step, 
+                            age, y, year, label) %>% 
+              dplyr::distinct(), 
+            aes(age, y, label = label), vjust = 1.3, 
+            hjust = -0.05, size = 3, inherit.aes = FALSE) + 
+  ylab("Proportion") + xlab("Age") + theme(axis.text.y = element_blank(), 
+                                           axis.ticks.y = element_blank(), panel.spacing = unit(0, 
+                                                                                                "cm"), plot.margin = unit(c(0, 0, 0, 0), 
+                                                                                                                          "cm"), strip.background = element_blank(), 
+                                           strip.text.x = element_blank()) 
+
+
+```
+
+```{r ldisthistcomm, echo=FALSE, fig.cap = 'Greater silver smelt in 5.a and 14. Comparison of commercial sample length distribution fits between model fits (black) and data (grey). Labels indicate the year and step of data sampled and model comparison.'}
+tmp_fit$ldist.comm 
+```
+
+
+Bubble plots generally show the same trends in fits to the data, with an underestimation of the smallest fish (roughly < 25 cm, ages 1 - 2), overestimation of the next sizes greater (roughly 25 - 35 cm, ages 4 - 5), good estimation of the sizes contributing most to the exploitable fishery (roughly 35 - 55 cm, ages 6 - 17), and very slight overestimation of the largest fishes (> 55 cm and > age 17) (Figures 9 & 10). Because inter-age and inter-length correlations are not included in Gadget, some blocks of similar residuals can be seen, and are more pronounced in the length bubble plot because of its finer resolution. Commercial data residuals appear more random; however, this is likely due to poorer data quality.
+
+```{r aldistbub, echo=FALSE, fig.width = 7, fig.height= 3, fig.cap = 'Greater silver smelt in 5.a and 14. Bubble plots illustrating age-length distribution residuals between model predictions and data. Red bubbles indicate positive residuals (underestimation); blue bubbles indicate negative residuals (overestimation).'}
+tmp_no_igfs_bub <- plot(fit,data='catchdist.fleets', type = 'bubble')
+
+  tmp_no_igfs_bub$aldist+ 
+  xlab('Year')+
+    ylab('Age')  
+
+```
+
+```{r ldistbub, echo=FALSE, fig.width = 7, fig.height= 5, fig.cap = 'Greater silver smelt in 5.a and 14. Bubble plots illustrating length distribution residuals between model predictions and data. Red bubbles indicate positive residuals (underestimation); blue bubbles indicate negative residuals (overestimation).'}
+tmp_no_igfs_bub <- plot(fit,data='catchdist.fleets', type = 'bubble')
+  tmp_no_igfs_bub$ldist+ 
+    xlab('Year')+
+    ylab('Length (cm)')  
+```
+
+
+
+`r pagebreak()`
+
+#### Retrospective plots
+
+In figure Figure 11, the results of an analytical retrospective
+analysis are presented.  The analysis indicates that there was an upward revision of biomass over the first 3 years of the 5-year peel followed by a
+downward revision of biomass (SSB) over the last 2 years, and
+and subsequently an downward then upward revision of $F$.  Estimates of
+recruitment are decently stable except for the apparent peak in 2017 - 2018. As explained in reference to the survey indices, this is likely the influence of highly variable survey indices that, for the smallest sizes in the most recent years, have no repeated observations at larger sizes with which this influence can be tempered. Therefore, it is expected that these recruitment peaks may simply be the result of uncertainty in survey indices and are likely to disappear in the coming assessment years. 
+
+
+```{r retrosigfs, echo=FALSE, fig.width = 8, fig.height= 6, fig.cap = "Greater silver smelt in 5.a and 14. Retrospective plots illustrating stability in model estimates over a 5-year 'peel' in data. Results of spawning stock biomass, fishing mortality F, and recruitment (age 5) are shown."}
+mohns_rho <-
+  retro.igfs$res.by.year %>%
+  filter(!is.na(model)) %>% #removes base model
+  mutate(AssessmentYear = max(fit$res.by.year$year) - as.numeric(model)) %>% ## assumes the last year of model is the current assessment year
+  select(AssessmentYear,year,stock, total.biomass,F,recruitment) %>%
+  filter(AssessmentYear == year) %>%
+  left_join(fit$res.by.year %>%
+              select(year,stock, curr.bio = total.biomass,curr.F=F,curr.rec = recruitment)) %>%
+  group_by(stock) %>%
+  summarise(rec_rho = mean((recruitment-curr.rec)/curr.rec,na.rm = TRUE),
+            ssb_rho = mean((total.biomass-curr.bio)/curr.bio,na.rm = TRUE),
+            F_rho = mean((F-curr.F)/curr.F,na.rm = TRUE))
+
+retro_igfs_bio <-
+  retro.igfs$res.by.year %>% 
+  mutate(model = ifelse(is.na(model), 'original', model)) %>% 
+  filter(stock=='gssmat', year > 1999) %>% 
+  mutate(`Spawning stock biomass 000s tonnes` = total.biomass/1000000, Year = year) %>% 
+  ggplot()+
+  geom_line(aes(x = Year, y = `Spawning stock biomass 000s tonnes`, color = model)) + 
+  #ylim(0,55) +
+  xlim(1999,2020)+
+  theme_bw()
+
+retro_igfs_F <-
+  retro.igfs$res.by.year %>% 
+  mutate(model = ifelse(is.na(model), 'original', model)) %>% 
+  filter(stock=='gssmat', year > 1999) %>% 
+  mutate( Year = year) %>% 
+  ggplot()+
+  geom_line(aes(x = Year, y = F, color = model)) + 
+  #ylim(0,0.5) +
+  xlim(1999,2020)+
+  ylab('Fbar (ages 6 - 14)') +
+  theme_bw()
+
+retro_igfs_rec <-
+  retro.igfs$res.by.year %>% 
+  mutate(model = ifelse(is.na(model), 'original', model)) %>% 
+  filter(stock=='gssimm', year > 1999) %>% 
+  mutate(`Recruitment in millions (age 5)` = recruitment/1000000, Year = year) %>% 
+  ggplot()+
+  geom_line(aes(x = Year, y = `Recruitment in millions (age 5)`, color = model)) + 
+  #ylim(0,2.1) +
+  xlim(1999,2020)+
+  theme_bw()
+
+gridExtra::grid.arrange(retro_igfs_bio, retro_igfs_F, retro_igfs_rec, nrow = 3)
+```
+
+Mohn's rho was estimated to be `r mohns_rho %>% select(ssb_rho) %>% unlist` for SSB, `r mohns_rho %>% select(F_rho) %>% unlist` for F, and `r mohns_rho %>% select(rec_rho) %>% unlist` for recruitment.
+
+`r pagebreak()`
+
+### Derived quantities
+
+Estimated suitability from each fleet can be seen in Figure 12. As expected, the autumn survey selects more small fish than commercial fleets.
+
+Catchabilities show a roughly exponential increase with length before beginning to level off at the highest length slice. A higher catchabiltiy was not estimated from the smallest length slice, despite the small 'bump' observed in length distributions (Figure 13). 
+
+```{r suitabplot, echo=FALSE, fig.width = 5, fig.height= 3, fig.cap = 'Greater silver smelt in 5.a and 14. Selectivity estimates by fleet (commercial versus autumn survey) from the Gadget model.'}
+suitab_plot <-
+  fit$suitability %>% 
+  filter(stock=='gssmat',(fleet %in% c('aut', 'comm') & year == 2016 & step == 4) ) %>% #| (fleet=='igfs' & year==2016 & step==2)) %>%
+  mutate(suit = ifelse(length > 57 & fleet=='aut',1,suit)) %>% 
+  ggplot(aes(length, suit, color = fleet)) +
+  geom_line() +
+  xlab('Length (cm)') +
+  ylab('Suitability (a.k.a. Selectivity)') +
+  theme_bw()
+suitab_plot
+```
+
+```{r catchabplot, echo=FALSE, fig.width = 5, fig.height= 3, fig.cap = 'Greater silver smelt in 5.a and 14. Catchability estimates by the autumn survey fleet from the Gadget model.Lengths plotted are the minimum lengths included in the corresponding survey index slice.'}
+catchab_plot <-
+  fit$sidat %>% 
+  filter(year == 2016) %>% 
+  ungroup %>% 
+  select(name, label, intercept, slope) %>% 
+  distinct() %>% 
+  mutate(Catchability = exp(intercept), `Min. SI Length (cm)` = as.numeric(substr(label, 4,5)), fleet = substr(name,10,13)) %>% 
+  ggplot(aes(`Min. SI Length (cm)`, Catchability,color = fleet)) +
+  geom_line() +
+  #xlab('Length (cm)') +
+  #ylab('Suitability (a.k.a. Selectivity)') +
+  theme_bw()
+
+print(catchab_plot)
+```
+
+Growth patterns predicted by the model follow closely to the data, both in mean predictions and variability through the full range of ages, although minor deviations can be seen from year to year as growth is not estimated annually (Figure 14). 
+
+As noted in the WKGSS 2020 (main document), $l_{50,y}$ of the maturity ogive was found to change considerably over the time period in preliminary analyses, so time-variable maturity was included in the model. Results indicate that $l_{50,y}$ fit the maturity data reasonably well (Figure 15).
+
+```{r tmpgro, echo=FALSE, fig.width = 8, fig.height= 8, fig.cap = 'Greater silver smelt in 5.a and 14. Growth estimations by fleet from the Gadget model. Yellow bands and the black line show where the mean and 95% confidence intervals of the of model predictions, whereas the points and error bars show the mean and 95% confidence intervals of the data.'}
+tmp <- fit$catchdist.fleets %>% dplyr::ungroup() %>% 
+  tidyr::nest(-name) %>% 
+  dplyr::mutate(plots = purrr::map(data, 
+                                       function(x) {
+                                     if (length(unique(x$age)) > 1) 
+                                       x %>% group_by(year, step, age) %>% mutate(o = observed/sum(observed, 
+                                                                                                   na.rm = TRUE), p = predicted/max(sum(predicted), 
+                                                                                                                                    1e-14)) %>% select(year, step, age, length = avg.length, 
+                                                                                                                                                       observed, o, predicted, p) %>% ungroup() %>% 
+                                       mutate(age = as.numeric(gsub("age", "", 
+                                                                    age))) %>% group_by(year, step, age) %>% 
+                                       summarise(o.ml = sum(o * length, na.rm = TRUE), 
+                                                 o.sl = sqrt(sum(o * (length - o.ml)^2, 
+                                                                 na.rm = TRUE)), p.ml = sum(p * length), 
+                                                 p.sl = sqrt(sum(p * (length - p.ml)^2))) %>% 
+                                       mutate(o.ml = ifelse(o.ml == 0, NA, o.ml), 
+                                              o.sl = ifelse(o.sl == 0, NA, o.sl), upper = p.ml + 
+                                                1.96 * p.sl, lower = p.ml - 1.96 * 
+                                                p.sl, o.upper = o.ml + 1.96 * o.sl, 
+                                              o.lower = o.ml - 1.96 * o.sl) %>% ggplot(aes(age, 
+                                                                                           o.ml)) + geom_ribbon(fill = "gold", aes(ymax = upper, 
+                                                                                                                                   ymin = lower)) + geom_point(size = 0.5) + 
+                                       geom_line(aes(y = p.ml)) + geom_linerange(aes(ymax = o.upper, 
+                                                                                     ymin = o.lower)) + facet_wrap(~year + step, 
+                                                                                                                   drop = FALSE, ncol = max(2 * length(unique(x$step)), 
+                                                                                                                                            4)) + theme_bw() + xlab("Age") + ylab("Average length (cm) ") + 
+                                       geom_text(x = -Inf, y = Inf, aes(label = paste(year, 
+                                                                                      step, sep = ",")), size = 5, data = x %>% 
+                                                   dplyr::select(year, step) %>% dplyr::distinct(), 
+                                                 vjust = 1.5, hjust = -0.1, inherit.aes = FALSE) + 
+                                       theme(strip.background = element_blank(), 
+                                             strip.text = element_blank())
+                                   })) %>% filter(map(plots, ~!is.null(.)) %>% unlist()) %>% 
+  select(name, plots)
+tmp_no_igfs_gro <- tmp$plots %>% purrr::set_names(., tmp$name)
+
+  tmp_no_igfs_gro$aldist.aut
+
+```
+
+```{r matplot, echo=FALSE, fig.width = 8, fig.height= 8, fig.cap = 'Greater silver smelt in 5.a and 14. Annual maturity estimates (lines) compared to data (points). Note that L50 is estimated annually, except in year 2000 and prior are estimated as the same value, and the value in 2011 was fixed to that estimated 2012.'}
+matplot <- 
+#  all$stockdist %>%
+  fit$stockdist %>%
+  filter(stock=='gssmat',name == 'matp.aut', !is.na(obs.ratio), year > 1999) %>% 
+  ggplot(aes(length,obs.ratio)) + 
+#  ggplot(aes(length,obs.ratio, color = model, lty = L50t)) + 
+  geom_point() + 
+  geom_line(aes(length, pred.ratio), alpha = 0.7)+
+#  scale_color_discrete(c('red', 'green', 'red', 'green')) + 
+  facet_wrap(~year) + theme_minimal() + 
+  labs(y='Proportion mature',x='Length')
+print(matplot)
+```
+
+`r pagebreak()`
+
+### Population dynamics
+
+The model predicts that both mature and immature stock components ('gssmat' and 'gssimm' respectively in Figure 16) have increased substantially over the last 10 years. For both stock components, but especially the mature one (which is also indicative spawning stock biomass), this is likely due to a steady decrease in fishing pressure, which last peaked in 2010 (Figure 17). Recruitment patterns show a slower increase from 2000 - 2015, after which a large spike can be observed in 2017 - 2018. However, as discussed earlier, this spike is highly uncertain and will likely disappear as more data become available with which to estimate it more precisely. 
+
+
+```{r totbioplot, echo=FALSE, fig.width = 7, fig.height= 6, fig.cap = "Greater silver smelt in 5.a and 14. Estimates of total biomass by by stock from the Gadget model. The stock 'gssmat' reflects the mature portion (spawning stock biomass), whereas 'gssimm' reflects the immature portion of the stock."}
+tot_bio_plot <-
+  plot(fit, data='res.by.year',type='total') + theme_bw() + xlim(2000, 2020) + ylim(0,65)
+print(tot_bio_plot)
+```
+
+```{r Fplot, echo=FALSE, fig.width = 7, fig.height= 6, fig.cap = "Greater silver smelt in 5.a and 14. Estimates of fishing mortality F of fully selected ages."}
+F_plot <-
+  plot(fit, data='res.by.year',type='F') + theme_bw() +
+  ylab('Fbar (ages 6 - 14)')+ xlim(2000, 2020)
+print(F_plot)
+```
+
+```{r recplot, echo=FALSE, fig.width = 7, fig.height= 6, fig.cap = "Greater silver smelt in 5.a and 14. Estimates of recruitment by by stock."}
+rec_plot <-
+  fit$res.by.year %>% 
+  filter(stock=='gssimm', year > 1999) %>% 
+  ggplot()+ 
+  geom_line(aes(year, recruitment/1000000, color = stock)) +
+  geom_line(aes(year, recruitment/1000000, color = stock)) +
+  ylab('Recruitment in millions (age 5)')+
+  xlab('Year')+ 
+  theme_bw() +ylim(0,55)+ theme(legend.position = 'none')
+print(rec_plot)
+```
+
+
+Here, the relationship between spawning stock and recruitment at age 1 is shown, with a minimum spawning stock biomass in 2003 (Figure 18). Spawning stock biomass has generally increased since the mid 2000s but with little influence on recruitment, excluding the highly uncertain most recent estimates.
+
+```{r SRplot, echo=FALSE, fig.width = 7, fig.height= 6, fig.cap = "Greater silver smelt in 5.a and 14. Plots of the estimated recruitment age age 1 versus spawning stock biomass (lagged by 1 year). Vertical lines indicate the minimum observed spawning stock biomass value."}
+#ssb - rec
+SR_plot <-
+  fitage1$res.by.year %>% 
+  ungroup() %>% 
+  filter(stock=='gssmat') %>%
+  select(year, total.biomass) %>% 
+  filter(year > 1999) %>% 
+  mutate(`Spawning stock biomass (1000s tonnes)` = lag(total.biomass/1000000)) %>% 
+  left_join(fitage1$res.by.year %>% 
+              ungroup() %>% 
+              filter(stock=='gssimm') %>%
+              select(year, recruitment) %>% 
+              mutate(`Recruitment in millions (age 1)` = recruitment/1000000)) %>% 
+  arrange(year) %>% 
+  ggplot() + 
+  #geom_point(aes(x = `Spawning stock biomass (1000s tonnes)`, y = `Recruitment (millions)`, color = model)) +
+  geom_text(aes(x = `Spawning stock biomass (1000s tonnes)`, y = `Recruitment in millions (age 1)`, label = year)) +
+  geom_path(aes(x = `Spawning stock biomass (1000s tonnes)`, y = `Recruitment in millions (age 1)`), alpha = 0.3) +
+  geom_vline(aes(xintercept = minssb), lty = 2, data = fitage1$res.by.year %>% 
+               ungroup() %>% 
+               filter(stock=='gssmat') %>%
+               select(year, total.biomass) %>% 
+               filter(year > 1999) %>% 
+               mutate(`Spawning stock biomass (1000s tonnes)` = lag(total.biomass/1000000)) %>%
+               summarize(minssb = min(`Spawning stock biomass (1000s tonnes)`, na.rm = T))) + 
+  geom_text(aes(x = x, y = y, label = label), data = 
+              fitage1$res.by.year %>% 
+              ungroup() %>% 
+              filter(stock=='gssmat') %>%
+              select(year, total.biomass) %>%
+              filter(year > 1999) %>% 
+              mutate(`Spawning stock biomass (1000s tonnes)` = lag(total.biomass/1000000)) %>%
+              summarize(minssb = min(`Spawning stock biomass (1000s tonnes)`, na.rm = T)) %>%
+              left_join(fitage1$res.by.year %>% 
+                          ungroup() %>% 
+                          filter(stock=='gssmat') %>%
+                          select(year, total.biomass) %>% 
+                          filter(year > 1999) %>% 
+                          mutate(minssb = lag(total.biomass/1000000))) %>% 
+              mutate(x = 25, y = 140, label = paste0('Min. SSB = ', round(minssb,2), ' (in ', year, ')'))) + 
+  xlim(0,60)+ylim(0,155)+
+  theme_bw() 
+
+print(SR_plot)
+
+```
+
+`r pagebreak()`
+
+### Bootstrap results
+
+#### Estimated uncertainty
+
+The bootstrap replicates generally showed parameter estimation with a central tendency (Figures 19 - 23), with the base model tending toward the center, but with a few exceptions. Initial fishing mortaltity $F_0$ appears to have a higher value in the base model than most estimates from the bootstrap replicates (Figure 1). Annual $L_{50,y}$ estimations generally have very consistent estimation except for a series of runs in which the parameter may hit a boundary (Figure 19). This is likely due to insufficient data in the bootstrap run, as maturity data are one of the most sparse sources of data included. In addition, parameters related to growth sometimes appear bimodal or approach boundaries. For example, those controling the mean growth pattern ($k$, $L_{inf}$, and $l_0$) show rather broad, possibly bimodal distributions, but are not constrained by boundaries (Figure 19). These parameters are, however also correlated (Figure 20), signifying a range of plausible growth scenarios taken into account by the bootstrapped data set. The parameters controlling variability in growth ($\beta$ and $\sigma_0$) tend to approach boundaries (Figure 19), and are also correlated with each other as well as length of recruits $l_0$ (Figure 20). However, this is not surprising as different combinations of these growth variability parameters can lead to the same outcome of growth variation that match the variation in the data equally well (as in Figure 13). Selectivity parameter estimates of the autumn survey are also correlated with growth ('aut.l50' and 'aut.alpha' in Figure 20), as differences of size at age of smaller fish will influence their length distributions sampled by the autumn survey.
+
+The bootstrap replicates show that uncertainty is high in this model with a range of plausible survey index fits (Figure 21) and recruitment levels (Figure 22), which could affect the absolute estimated biomass. However, the base model data follow the median of the bootstrapped data (Figure 21), and the base model fitted results also tend to follow the median results of the bootstrap fitted results in both the estimated parameters and model results (Figures 21 - 24). 
+
+The estimates of recruitment generally follow the median of those generated from bootstrap replicates, with a large increase in uncertainty beginning in year 2014 (year class 2013), and particularly high uncertain for the most recent 3 estimates which, as discussed earlier, have little data available with which to estimate them (Figure 21). Age 1 is fixed to 0 so that this number is uniquely estimated by recruitment in 1990. The initial values estimated by the base model generally lie within the the 50th percentile range of the bootstrap replicates, although a noticeable dip in estimated numbers can be seen at age 5, counterbalanced by higher estimations at ages 4 and 6, and a generally steeper curve as higher ages are approached (Figure 22). The steeper curve is likely to be caused by the higher estimation of initial fishing pressure $F_0$ (Figure 1), while the dip in age 5 numbers is likely the result of Greater silver smelt being a long-lived species with slow but variable growth with ages that greatly overlap in length range over most ages. As a result, cohorts are difficult to distinguish, and numbers may be easily shifted among adjacent ages to effect the same length distributions. In addition, the first year of age distribution data, year 2000 in the survey, is particulary variable as a result of few samples being taken, and only ages 12 - 26 in this distribution correspond with initial ages 2--16. The dip at age 5 can then be seen to correspond with low numbers observed at age 15 in these 2000 survey data (Figure 4).
+
+Estimated catchability parameters have a strong central tendency with the base model run closely following the median of the bootstrap results. As expected, catchability of the smallest length group is slightly higher than the adjacent one (Figure 23), but estimates quicklly increase with length slice thereafter until the rate of increase slows with the largest group. Uncertainty in these estimates also increase as the length grouping increases, indicating less confidence in the estimated numbers of the largest fish. When catchability is underestimated at this high level, then 'paper fish' could be created, inflating the predicted biomass levels with individuals that are supposedly present but not observed. However, as the base model closely resembles the median of the bootstrap results, these situations are likely to be counterbalanced accross bootstrap replicates by the opposite scenario in which a high catchability of large fish leads to an overall smaller biomass level. In general, a large degree of uncertainty in biomass levels are likely to be generated from this wide spread in possible catchability values (Figure 23). 
+
+A likely cause of the large variability in catchability is the high variability in survey index values themselves. In this situation, randomly sampled survey indices may result in certain combinations that can lead to different views of population trends and biomass levels. However, without further pre-processing of the data, little can be done to counteract this effect, and it is simply reflected as uncertainty in biomass levels. Given this high variability in index values, which is maintained in the bootstrapped data sets, the model is effective at smoothing this variability, correctly indicating a disbelief in strong year-to-year variation in true population levels (Figure 24). In addition, example fits of the bootstrap simulations to the bootstrap data generaly show a good correspondence (Figure 25), with the same minor misfits as are found in the base model (e.g., underestimation of the higher frequency bump of small-sized fish in survey length- and age-length distributions, slight underestimation of the largest fish, etc, see Diagnostics section above).
+
+```{r BSpars, echo=FALSE, fig.width = 9, fig.height= 9, fig.cap = "Greater silver smelt in 5.a and 14. Histogram of parameter estimates from 100 bootstrap samples, the red line indicates the estimate from the base run. Limits on the X axis represent bounds of the parameter search."}
+
+hist.dat <-
+  bootfit.igfs$params %>%
+  filter(!(model %in% removals))%>%
+  bind_rows(bootfit.igfs$params %>%
+              filter(model==2) %>% 
+              mutate(model=0, 
+                     value = lower)) %>% 
+  bind_rows(bootfit.igfs$params %>%
+              filter(model==2) %>% 
+              mutate(model=-1, 
+                     value = upper)) %>% 
+  filter(optimise==1,
+         !grepl('rec\\.[0-9]',switch),
+         !grepl('init\\.[0-9]',switch),
+         !grepl('scalar',switch)) %>%
+   mutate(switch = gsub('^[A-Za-z]+\\.','',switch),
+         value = ifelse(grepl('k$|mat1$',switch),0.001*value,value),
+         label = forcats::fct_recode(switch,
+                                     'beta' = "bbin",
+                                     'alpha[g]' = 'gil.alpha',
+                                     'l[50][g]' ='gil.l50',
+                                     'alpha[l]' = 'lln.alpha',
+                                     'l[50][l]' ='lln.l50',
+                                     'alpha[t]' = 'bmt.alpha',
+                                     'l[50][t]' ='bmt.l50',
+                                     'alpha[s]' = 'igfs.alpha',
+                                     'l[50][s]'='igfs.l50',
+                                     'F[0]'='init.F',
+                                     'L[infinity]'='Linf',
+                                     'lambda'='mat1',
+                                     'l[50]'='mat2',
+                                     'sigma[0]'='rec.sd',
+                                     'l[0]'='recl'  )) %>% 
+  ungroup
+
+   ggplot() + 
+     geom_histogram(aes(value), fill='gray', 
+                    data = hist.dat %>%
+                        mutate(value = ifelse(model == -1, NA, value))
+                               )+
+     geom_blank(aes(value),data = hist.dat %>%
+                        filter(model==-1)) + 
+#     geom_histogram(data = hist.dat %>%
+#                        filter(model==-1), alpha = 0) + 
+     facet_wrap(~label,scale='free',labeller = label_parsed) +
+     geom_vline(aes(xintercept=value),
+              col='red',
+              data=fit$params %>%
+                filter(optimise==1,
+                       !grepl('rec\\.[0-9]',switch),
+                        !grepl('init\\.[0-9]',switch),
+                       !grepl('scalar',switch)) %>%
+                mutate(switch = gsub('^[A-Za-z]+\\.','',switch),
+                       value = ifelse(grepl('k$|mat1$',switch),0.001*value,value),
+                       label = forcats::fct_recode(switch,
+                                                   'beta' = "bbin",
+                                                   'alpha[g]' = 'gil.alpha',
+                                                   'l[50][g]' ='gil.l50',
+                                                   'alpha[l]' = 'lln.alpha',
+                                                   'l[50][l]' ='lln.l50',
+                                                   'alpha[t]' = 'bmt.alpha',
+                                                   'l[50][t]' ='bmt.l50',
+                                                   'alpha[s]' = 'igfs.alpha',
+                                                   'l[50][s]'='igfs.l50',
+                                                   'F[0]'='init.F',
+                                                   'L[infinity]'='Linf',
+                                                   'lambda'='mat1',
+                                                   'l[50]'='mat2',
+                                                   'sigma[0]'='rec.sd',
+                                                   'l[0]'='recl' ))) +
+   theme_light() +
+   labs(x='Parameter value',y='% iterations')
+ 
+ 
+    ```
+
+
+```{r BSVB, eval = FALSE, echo=FALSE, fig.width = 9, fig.height= 9, fig.cap = "Greater silver smelt in 5.a and 14. X-Y scatterplot of the bootstrap estimates of $L_{/inf}$ and $k$. The red cross indicates the base run estimate."}
+
+bootfit.igfs$params%>%
+  filter(!(model %in% removals)) %>%
+  filter(grepl('k$|Linf',switch)) %>%
+  mutate(switch = gsub('^[A-Za-z]+\\.','',switch),
+         value = ifelse(grepl('k$|mat1$',switch),0.001*value,value)) %>%
+  select(model,switch,value) %>%
+  tidyr::spread(switch, value) %>%
+  left_join(cols) %>% 
+  ggplot(aes(k,Linf, color = col)) + geom_point() +
+  geom_point(col='red',
+             data=fit$params %>%
+               filter(grepl('k$|Linf',switch)) %>%
+               mutate(switch = gsub('^[A-Za-z]+\\.','',switch),
+                      value = ifelse(grepl('k$|mat1$',switch),0.001*value,value)) %>%
+               select(switch,value) %>%
+               tidyr::spread(switch, value),
+             pch='+',size=10) +
+  theme_light() +
+  labs(x='k',y=expression(L[infinity]))
+
+bootfit.igfs$params%>%
+  filter(!(model %in% removals)) %>%
+  filter(grepl('recl$|rec.sd',switch)) %>%
+  mutate(switch = gsub('^[A-Za-z]+\\.','',switch),
+         value = ifelse(grepl('k$|mat1$',switch),0.001*value,value)) %>%
+  select(model,switch,value) %>%
+  tidyr::spread(switch, value) %>%
+  left_join(cols) %>% 
+  ggplot(aes(recl,rec.sd, color = col)) + geom_point() +
+  geom_point(col='red',
+             data=fit$params %>%
+               filter(grepl('recl$|rec.sd',switch)) %>%
+               mutate(switch = gsub('^[A-Za-z]+\\.','',switch),
+                      value = ifelse(grepl('k$|mat1$',switch),0.001*value,value)) %>%
+               select(switch,value) %>%
+               tidyr::spread(switch, value),
+             pch='+',size=10) +
+  theme_light() +
+  labs(x='Rec. length',y='Rec. SD')
+
+```
+
+
+```{r BSpairs, echo=FALSE, message = FALSE, fig.width = 9, fig.height= 9, fig.cap = "Greater silver smelt in 5a and 14. Pairs-plot of all parameters except those related to the number of recruits and initial number at age."}
+
+bootfit.igfs$params %>%
+  filter(!(model %in% removals)) %>% 
+  filter(optimise==1,
+         !grepl('rec\\.[0-9]',switch),
+         !grepl('init\\.[0-9]',switch),
+         !grepl('scalar',switch),
+         !grepl('mat.l50',switch)) %>%
+  mutate(switch = gsub('^[A-Za-z]+\\.','',switch),
+         value = ifelse(grepl('k$|mat1$',switch),0.001*value,value),
+         label = forcats::fct_recode(switch,
+                                     'beta' = "bbin",
+                                     'alpha[c]' = 'comm.alpha',
+                                     'l[50][c]' ='comm.l50',
+                                     'alpha[s]' = 'igfs.alpha',
+                                     'l[50][s]'='igfs.l50',
+                                     'F[0]'='init.F',
+                                     'L[infinity]'='Linf',
+                                     'lambda'='mat1',
+                                     'l[50]'='mat2',
+                                     'sigma[0]'='rec.sd',
+                                     'l[0]'='recl' )) %>%
+  select(model,switch,value) %>% spread(switch,value) %>% left_join(cols) %>% select(-model) %>%
+  GGally::ggpairs(columns = 1:10) +#, ggplot2::aes(colour = col)) +
+  theme_light()
+
+
+```
+
+
+```{r BSrec, echo=FALSE, fig.width = 9, fig.height= 9, fig.cap = "Greater silver smelt in 5a and 14. Boxplots of annual recruitment (age 1) bootstrap estimates, the red line indicates the estimate from the base run."}
+
+bootfit.igfs$res.by.year %>%
+  filter(!(model %in% removals)) %>%
+  filter(grepl('imm',stock), year > 1999) %>%
+  mutate(recruitment = recruitment/1e6) %>%
+  ggplot(aes(year,recruitment,group=round(year))) + geom_boxplot()+#geom_ribbon(aes(ymin=l,ymax=u),fill="gold") + geom_line() +
+  geom_line(data=fitage1$res.by.year %>% filter(stock=='gssimm', year > 1999),aes(y=recruitment/1e6,group=1),col='red') +
+  labs(y='Recruitment (in millions, age 1)',x='Year') +
+  theme_light() #+ 
+  #ylim(0,200)
+
+
+```
+
+
+```{r BSageparest, echo=FALSE, fig.width = 9, fig.height= 9, fig.cap = "Greater silver smelt in 5a and 14. Boxplots of initial age structure bootstrap estimates, the red line indicates the estimate from the base"}
+
+bootfit.igfs$stock.std%>%
+  filter(!(model %in% removals)) %>%
+  filter(year == 1990) %>%
+  group_by(model,age) %>%
+  summarise(number=sum(number)) %>%
+  ggplot(aes(age,number/1e6,group=round(age))) + geom_boxplot() +
+  geom_line(data=fit$stock.std %>%
+              filter(year == 1990)%>%
+              group_by(age) %>%
+              summarise(number=sum(number)),aes(group=1),col='red') +
+  labs(y='Initial age structure (in millions)',x='Age') +
+  theme_light()
+
+```
+
+
+```{r BSqest, echo=FALSE, fig.width = 9, fig.height= 6, fig.cap = "Boxplot of estimated catchability parameters, $q_g$, as a function of the survey index length group."}
+
+bootfit.igfs$sidat %>%
+  filter(!(model %in% removals)) %>%
+  select(name,intercept) %>%
+  #filter(!(name %in% c('si.50-60.aut', 'si.50-60.igfs'))) %>% 
+  distinct() %>%
+  group_by(name) %>% 
+  ggplot(aes(name,exp(intercept))) + 
+  geom_boxplot() +
+  geom_point() +
+  geom_line(aes(group=1),col='red',
+            data=fit$sidat %>%
+              select(name,intercept) %>%
+              distinct()) +
+  theme_light() +
+  labs(x='Survey index',y=expression(q[g])) #+ 
+  #ylim(0,0.0005)
+```
+
+
+```{r BSSI, echo=FALSE, fig.width = 9, fig.height= 6, fig.cap = "Bootstrap distribution of the length aggregated abundance indices from the autumn survey compared with the predicted survey indices. The black line is the bootstrap median and the yellow area is the 2.5 and 97.5% percentiles of the bootstrapped indices, while the black points indicate the survey index.  The blue solid line is the median of the predicted indices from the  bootstrap runs and the blue dotted line the 2.5 and 97.5% percentile.  The red line is the predicted indices from the base model. "}
+
+#fit to individual data sets
+#
+bootfit.igfs$sidat %>%
+#filter(!(model %in% c(22,70,73,24,56,64)))%>%
+#filter(name != 'si.45-50.aut') %>% 
+group_by(year,name) %>%
+  summarise(om=median(observed,na.rm=TRUE),
+            ou=quantile(observed,0.975,na.rm=TRUE),
+            ol=quantile(observed,0.025,na.rm=TRUE),
+            pm=median(predict,na.rm=TRUE),
+            pu=quantile(predict,0.975,na.rm=TRUE),
+            pl=quantile(predict,0.025,na.rm=TRUE)) %>%
+  ggplot(aes(year,om)) + geom_ribbon(aes(ymin=ol,ymax=ou),fill="gold") + geom_line() +
+  geom_line(aes(y=pm),col='blue') +
+  geom_line(aes(y=pu),col='blue',lty=2) +
+  geom_line(aes(y=pl),col='blue',lty=2) +
+  geom_line(aes(y=predict),col='red',data=fit$sidat) +
+  geom_point(aes(y=observed),data=fit$sidat) +
+  facet_wrap(~name,scale='free_y',ncol=2) + theme_light() +
+  labs(y='Survey index',x='Year')+
+  geom_label(data=fit$sidat %>%
+               select(name,slope,sse) %>%
+               distinct() %>%
+               mutate(label=paste(name,paste0('sse:',sse),sep='\n')),
+             aes(label=label),x=-Inf,y=Inf,size=3, vjust = 1.1,hjust=-0.1) +
+  theme(strip.background = element_blank(),strip.text=element_blank())
+
+```
+
+
+
+```{r BSldist, echo=FALSE, fig.width = 9, fig.height= 6, fig.cap = "Example bootstrap length distribution from both survey and commercial samples compared with model estimates (from 2014, step 4). Green points and vertical bars denote the median and 95% interval of the bootstrap distribution of observed values, while the solid lines and golden ribbon the median and 95% intevals of the bootstrapped estimates by the model. The solid red line indicates the fit from the baseline model."}
+bootfit.igfs$catchdist.fleets%>%
+  #filter(!(model %in% c(22,70,73,24,56,64))) %>%
+  filter(year==2010,step==4) %>%
+  mutate(groupy=ifelse(grepl('aldist',name),age,as.character(lower))) %>%
+  group_by(name,groupy,model) %>%
+  dplyr::summarise(o=sum(observed,na.rm=TRUE),
+                   p=sum(predicted,na.rm=TRUE)) %>%
+  group_by(name,groupy) %>%
+  dplyr::summarise(om=median(o,na.rm=TRUE),
+                   pm=median(p,na.rm=TRUE),
+                   ou=quantile(o,0.975,na.rm=TRUE),
+                   pu=quantile(p,0.975,na.rm=TRUE),
+                   ol=quantile(o,0.025,na.rm=TRUE),
+                   pl=quantile(p,0.025,na.rm=TRUE)) %>%
+  ungroup() %>%
+  mutate(groupy=gsub('age','',groupy) %>% as.numeric()) %>%
+  ggplot(aes(groupy,om)) +
+  geom_ribbon(aes(ymin=pl,ymax=pu),fill='gold') +
+  geom_point(col='darkgreen') +
+  geom_segment(aes(xend=groupy,yend=ou,y=ol),col='darkgreen') +
+  facet_wrap(~name,scale='free') + theme_light() +
+  geom_line(aes(y=pm)) + #xlim(c(25,55)) +
+  #  geom_label(x=70,y=0.065,aes(label=year),size=3) +
+  #  geom_text(x=95,y=0.04,angle=90,aes(label=paste0('n = ',round(total.catch))),size=3) +
+  theme(strip.background = element_blank(),strip.text=element_blank()) +
+  xlab('Length') + ylab('Proportion') +
+  #theme(axis.text.y = element_blank()) +
+  geom_label(data=fit$catchdist.fleets %>% select(name) %>% distinct(),
+             aes(label=name),x=-Inf,y=Inf,size=3, vjust = 2,hjust=-0.1)
+
+
+```
+
+`r pagebreak()`
+
+#### Population dynamics from bootstrap replicates
+
+The base model results closely align with the medians of the bootstrap estimates in in biomass levels and $\bar{F_y}$, especially in the last 5 or so years, and recruitment, especially in the middle range of the model (Figure 27). Both biomass and recruitments have large spread in the 95% confidence intervals toward larger values, likely the result of the high uncertainty in catchability values. Slight annual variations in spawning stock biomass of the baseline model in comparison to the bootstrap median, which appears lesser when comparing total biomass, are likely the result of slight differences in the annual estimation of $L_{50,y}$, affecting the maturity ogive annually. 
+
+
+```{r BSresnoigfs, echo=FALSE, fig.width = 9, fig.height= 6, fig.cap = "Bootstrap model results. The solid red lines and golden ribbons show the median, 25th - 75th percentile range, and 2.5th - 97.5th percentile range of the bootstrapped estimates by the model. The dashed black indicates the fit from the baseline model. Fishing mortality is measured as the mean of fish aged 6 - 14."}
+
+
+
+bio.plot <-
+  finres.igfs %>% #was bootres
+  filter(year > 1999) %>% 
+  rename(yea=year) %>%
+  select(-matches('cv|r|ssb')) %>%
+  rename(year=yea) %>%
+  gather(col,value,-year) %>%
+  dplyr::mutate(stat=gsub('(^u+|^l+|^m|^f).*',("\\1"),col),
+                col = str_sub(col,-2),
+                value=value/1e6) %>%
+  #filter((col %in% c('hb','tb'))) %>%
+  filter((col %in% c('tb'))) %>%
+  spread(stat,value) %>%
+  dplyr::mutate(col=ifelse(col=='hb','Ref. biomass','Total biomass')) %>%
+  ggplot(aes(year,m,group=col, color = col)) + 
+  geom_ribbon(aes(ymax=u,ymin=l,fill=col),alpha=0.5) +
+  geom_ribbon(aes(ymax=uu,ymin=ll,fill=col),alpha=0.5) +
+  geom_line() +
+  geom_line(aes(y=f),col='black', linetype = 2)+
+  theme_light() +
+  expand_limits(y=0) +
+  scale_fill_manual(name=NULL,values=c('gold','lightblue')) +
+  #scale_color_manual(name=NULL,values=c('gold','lightblue')) +
+  labs(y='Biomass (in kt)',x='Year') +
+  theme(legend.position = 'none') #c(0.1,0.9))
+
+ssb.plot <-
+  finres.igfs %>%
+    filter(year > 1999) %>% 
+  select(c(year,matches('ssb'))) %>%
+  gather(col,value,-year) %>%
+  dplyr::mutate(stat=gsub('(^u+|^l+|^m|^f).*',("\\1"),col),
+                col = "ssb",
+                value=value/1e6) %>%
+  spread(stat,value) %>%
+  #filter(year > 1990) %>% 
+  ggplot(aes(year,m,group=col, color = col)) +
+  geom_ribbon(aes(ymax=u,ymin=l,fill=col),alpha=0.5) +
+  geom_ribbon(aes(ymax=uu,ymin=ll,fill=col),alpha=0.5) +
+  geom_line() +
+  geom_line(aes(y=f),col='black', linetype = 2)+
+  theme_light() +
+  scale_fill_manual(name=NULL,values=c('gold','lightblue')) +
+  expand_limits(y=0) +
+  labs(y='SSB (in kt)',x='Year') +
+  theme(legend.position = 'none')
+
+
+F.plot <-
+  finres.igfs %>%
+    filter(year > 1999) %>% 
+#  select(year,matches('[a-z]F|[a-z]hr')) %>%
+  select(year,matches('[a-z]F')) %>%
+  select(-matches('cv')) %>%
+  gather(col,value,-year) %>%
+  dplyr::mutate(stat=gsub('(^u+|^l+|^m|^f).*',("\\1"),col),
+                col = ifelse(grepl('hr',col),'Harvest rate','Fishing mortality')) %>%
+  spread(stat,value) %>%
+  #filter(year < thisyear) %>% 
+  ggplot(aes(year,m,group=col, color = col)) +
+  geom_ribbon(aes(ymax=u,ymin=l,fill=col),alpha=0.5) +
+  geom_ribbon(aes(ymax=uu,ymin=ll,fill=col),alpha=0.5) +
+  geom_line() +
+  geom_line(aes(y=f),col='black', linetype = 2)+
+  theme_light() +
+  expand_limits(y=0) +
+  scale_fill_manual(name=NULL,values=c('gold','lightblue')) +
+  #labs(y='Fishing mortality & Harvest rate',x="Year")+
+  labs(y='Fishing mortality (ages 6 - 14)',x="Year")+
+  theme(legend.position = 'none')#c(0.15,0.9))
+
+rec.plot <-
+  finres.igfs %>%
+    filter(year > 1999) %>% 
+  select(year,matches('[a-z]r')) %>%
+  select(-matches('hr')) %>%
+  gather(col,value,-year) %>%
+  dplyr::mutate(stat=gsub('(^u+|^l+|^m|^f).*',("\\1"),col),
+                col = str_sub(col,-1),
+                value = value/1e6) %>%
+  filter(stat!='c') %>%
+  spread(stat,value) %>%
+  ggplot(aes(year,m,group=col, color = col)) +
+  geom_ribbon(aes(ymax=u,ymin=l),alpha=0.5,fill='gold') +
+  geom_ribbon(aes(ymax=uu,ymin=ll),alpha=0.5,fill='gold') +
+  geom_line() +
+  geom_line(aes(y=f),col='black', linetype = 2)+
+  theme_light() +
+  expand_limits(y=0) +
+  labs(y='Recruitment age 1 (in millions)',x="Year")+
+  theme(legend.position = 'none')
+
+catch.plot <-
+  fit$res.by.year %>%
+  dplyr::mutate(stock=ifelse(grepl('mat',stock),'Mature','Immature')) %>%
+  #filter(year < thisyear) %>% 
+  ggplot(aes(year,catch/1e6,fill=stock)) +
+  geom_bar(stat='identity') +
+  theme_light() +
+  scale_fill_manual(name = NULL, values=c('gold','lightblue')) +
+  labs(y='Landings (in kt)',x="Year") +
+  theme(legend.position = c(0.1,0.9))
+
+cv.plot <-
+  finres.igfs %>%
+    filter(year > 1999) %>% 
+  select(year,matches('cv')) %>%
+  gather(col,value,-year) %>%
+  dplyr::mutate(stat=str_sub(col,0,2),
+         col = str_sub(col,3,5)) %>%
+  filter(col %in% c('hb','ssb','r','F'), year > 1999) %>%
+  spread(stat,value) %>%
+  dplyr::mutate(col=case_when(.$col=='hb'~'Harv. biomass',
+                       .$col=='ssb'~'SSB',
+                       .$col=='r'~'Recruitment',
+                       .$col=='F'~'F')) %>%
+  ggplot(aes(year,cv,lty=col)) +
+  geom_line() +
+  scale_linetype_manual(name=NULL,values=1:4) +
+  theme_light() +
+  expand_limits(y=0) +
+  labs(y='CV',x='Year') +
+  theme(legend.position = c(0.2,0.8))
+
+gridExtra::grid.arrange(bio.plot,
+                        ssb.plot,# +   
+#                          geom_hline(data=data_frame(y=bloss),aes(yintercept=y),col='black',lty=2),
+                        F.plot,# +   
+#                          geom_hline(data=data_frame(y=c(0.12,0.28)),aes(yintercept=y),col='black',lty=2)+
+#                          geom_hline(data=data_frame(y=0.18),aes(yintercept=y),col='black'),
+                        rec.plot,
+                        catch.plot,ncol=3)
+
+```
+
+
+```{r retrossi, eval = FALSE, echo=FALSE, fig.width = 8, fig.height= 8, fig.cap = "Greater silver smelt in 5.a and 14. Analytical retrospective analysis of the fit to the survey indices."}
+bootfit.igfs$sidat %>% 
+  #filter(!(model %in% c(22,70,73,24,56,64)))%>% 
+  group_by(year,name) %>% 
+  summarise(om=median(observed,na.rm=TRUE),
+            ou=quantile(observed,0.975,na.rm=TRUE),
+            ol=quantile(observed,0.025,na.rm=TRUE),
+            pm=median(predict,na.rm=TRUE),
+            pu=quantile(predict,0.975,na.rm=TRUE),
+            pl=quantile(predict,0.025,na.rm=TRUE)) %>% 
+  ggplot(aes(year,om)) + geom_ribbon(aes(ymin=ol,ymax=ou),fill="gold") + geom_line() +
+  geom_line(aes(y=pm),col='blue') +
+  geom_line(aes(y=pu),col='blue',lty=2) +
+  geom_line(aes(y=pl),col='blue',lty=2) +
+  geom_line(aes(y=predict),col='red',data=fit$sidat) +
+  geom_line(aes(y=predict,lty=model),col='red',data=retro.fit$sidat) +
+  
+  facet_wrap(~name,scale='free_y') + theme_light() + 
+  labs(y='Survey index',x='Year')+
+  geom_label(data=fit$sidat %>%
+              select(name,slope,sse) %>%
+              distinct() %>% 
+              mutate(label=name),
+            aes(label=label),x=-Inf,y=Inf,size=3, vjust = 1.1,hjust=-0.1) +
+  theme(strip.background = element_blank(),strip.text=element_blank(),
+        legend.position = 'none')
+
+```
+
+
+`r pagebreak()`
+
+
+## Reference points
+
+According ICES technical guidelines two types of reference points are referred to when giving advice for category 1 stocks: *precautionary approach (PA)* reference points and maximum *sustainable yield (MSY)* reference points. The PA reference points are used when assessing the state of stocks and their exploitation rate relative to the precautionary approach objectives. The MSY reference points are used in the advice rule applied by ICES to give advice consistent with the objective of achieving MSY.  
+
+The following sections describe the derivation of the management reference points in terms of fishing mortality ($F$), which in all cases is based on the average of fish aged 6 - 14 ($\bar{F_{6-14,y}}$). The model for the stock recruitment and assessment error, in combination with the bootstrap results, are used to project the stock status stochastically in order to derive the PA and MSY reference points.  
+ 
+When considering uncertainty in the estimation of reference points four sources of error need to be considered (eg. in[@butterworth1999experiences]and references therein). These are:
+
+* **Process error** i.e. the natural variation in the stock under management.  Example process that is beyond the control of the manager/modeller is variation in recruitment.
+* **Observation error** is relatied to uncertainty in the way the stock is sampled.
+* **Implementation error** describes how well the management policies are enforced, i.e. the extent of illegal landings and discards.
+* **Model error** related to the form of the model, such as stock definitions and variations in model parameter
+ 
+Observation error and to some degree model error are addressed by the bootstrap approach employed in here.  Illegal landings and discards by Icelandic fishing vessels are considered to be neglible and it is assumed that foreign vessel catches are a part of the  management plan. It is assumed therefore implementation error would be virtually none. The largest source of error outstanding is the extent of process error, in particular variation in the stock recruitment relationship. 
+ 
+The following sections describe the model for the stock recruitment and assessment error which in combination with the bootstrap results is used to project the stock status along with rationale for setting biomass reference points.
+
+### Recruitment
+ The relationship between the estimated spawning stock and recruitment is shown in Figure 28. The annual recruitment, during the observation period, is estimated
+ as a fixed effect without any consideration of the size of the
+ spawning stock biomass. This means that no formal stock recruit
+ relationship is defined. This is allowed by information on past
+ recruitment such as age and length distributions and survey
+ indices. It can be observed that for time periods where less data is
+ available on recruitment, such as recruitment in the most recent
+ years, have higher levels of uncertainty. 
+ 
+ 
+### Setting $B_{loss}$, $B_{lim}$, and $B_{pa}$
+The Greater silver smelt stock in Iceland experienced two peaks of heavier fishing pressure: roughly 1998-2000,
+likely due to a new market opening, and roughly 2009-2011, likely due to a rush to collect fishing history
+of the species due to its impending entrance into the ITQ system. Therefore, the dip in spawning stock
+biomass observed roughly 2000 - 2004 is likely to be a result of the first heavy fishing period. Recruitment
+estimates prior to 2000 are not given as the autumn survey data are only reliable for this species from 2000,
+and therefore little reliable length distrubution data are available to inform the recruitment estimates prior
+to this period.
+Bloss was set to the minimum value in the SSB series resulting from the base model run (after 1999 when
+reliable data are available). No apparent trend can be seen when the most recent three years of recruitment,
+which are highly uncertain and dependent on little data, are excluded. Therefore, recruitment is likely not
+to be impaired. Therefore the stock recruitment relationship for greater silver smelt in 5.a and 14 was
+considered to most closely resemble a Category 5 stock recruitment relationship according to ICES Guidelines
+for assessing reference points for Category 1 and 2 stocks (ICES 2017), which describes the relationship as
+“Stocks showing no evidence of impaired recruitment or with no clear relation between stock and recruitment
+(no apparent S–R signal)” (p. 3). The only other option to consider in the guidelines with no evidence of
+impaired recruitment is Category 6, “Stocks with a narrow dynamic range of SSB and showing no evidence of
+past or present impaired recruitment,” (p. 3). However, the dynamic range was not considered “narrow” by
+the following reasoning. With the two highest recruitment values excluded (which are also within the most
+recent 3 years and are highly uncertain), then there is a wider range of SSB values (the maximal value is
+roughly 3x that of the minimal value) alongside a smaller range in recruitment (maximal is 2x minimal, see
+Figure 4.6.3.1). Following the same procedures, the example given for Category 5 gives a similarly wider
+range in SSB than recruitment (5x in SSB range vs. 2.5x in recruitment range). Following the same procedure
+for Category 6, however, yields a broader range in recruitment (excluding the two greatest recruitment values
+as was done in the other cases) than SSB (2x in SSB range versus 4x in recruitment range). Therefore,
+“narrow dynamic range” was considered less appropriate than the description under Category 5.
+
+Assuming that the spawning stock relationship most resembles a Category 5 pattern, according to the ICES
+technical guidelines, $B_{lim}$ can not be estimated from these data and that the lowest observed SSB during that period (i.e. $B_{loss}$ = SSB(2003) = `r  round(blim, 2)` kt).However, the alternative possibility, that it resembles a
+Category 6 pattern, is presented for comparison.
+
+Assuming that the spawning stock relationship most resembles a Category 6 pattern, according to the ICES
+technical guidelines, $B_{lim}$ can not be estimated from these data and that the lowest observed SSB during that
+period (i.e. B loss = SSB(2003) = 18.3 kt), which is the lowest observed biomass from the base--line model (Figure 28), and an appropriate value at which to set either as $B_{pa}$ or $B_{lim}$, depending on the the perception of the historical fishing mortality. Bootstrap variation in $B_{loss}$ can be seen in Figure 28. The fishing mortality is perceived to have since 2000 varied between 0.05 and 0.6 on fully recruited ages, the equivalent $F_{6−14,y}$
+of 0.05 to 0.4, with a mean of 0.142. Unfortunately this cannot be compared with $F_{msy}$ until after $F_{msy}$ is
+estimated below. As both periods of high fishing mortality are quite short compared to the lifespan of Greater
+silver smelt, it could be that overall fishing was at a rate less than $F_{msy}$ . This idea would be supported by
+the $F_{msy}$ estimation found when $B_{loss}$ = $B_{pa}$ (see below). However, the mean F of 0.142 is similar to the
+estimated $F_{msy}$ when $B_{loss}$ = $B_{lim}$ .That is, it is unclear whether the two high periods of fishing pressure
+were enough to drive overall fishing mortality up to $F_{msy}$ or higher and population levels down to $B_{pa}$ versus
+$B_{lim}$ . As $B_{loss}$ follows 5 years after the highest level of fishing pressure experienced (which exceeds both F lim
+calculations), it is possible $B_{loss}$ is more accurately represented as $B_{lim}$ . In addition, in both cases the mean
+F experienced is much higher than F p.05 , indicating that it is difficult to say with confidence that historical
+fishing mortality has been low in relation to either the estimated $F_{msy}$ or that which is used in the advice rule.
+Therefore the more conservative route of setting $B_{lim}$ = $B_{loss}$ is suggested here. However, the alternative
+reference point calculation of setting B pa to $B_{loss}$ is also presented for comparison.
+
+In line with ICES technical guidelines, since $B_{lim}$ but not $B_{pa}$ was estimated, a proxy
+for $B_{pa}$ can be calculated based on the standard factor, $e^{\sigma * 1.645}$ where $\sigma$ is 0.2, used for calculating $B_{pa}$ from $B_{lim}$. Therefore, a proxy for $B_{pa}$ could be set at $B_{lim}*e^{1.645*0.2}$  = `r  round(blim, 2)` x $1.39$  = `r round(bpa,2)` kt. 
+
+ 
+```{r SR, echo=FALSE, fig.width = 10, fig.height= 6, fig.cap = "Medians (red points) of the spawing stock biomass versu recruitment relationship for Greater silver smelt in 5a and 14 estimated from bootstrap runs. Uncertainty in recruitment and SSB is indicated with 95th percentile intervals. The vertical black dashed line represents the bootstrap median of $B_{loss}$; the vertical solid line represents the base run $B_{loss}$ estimate (set to $B_{lim}$), and the dashed line is $B_{pa}$. Note that recruitment estimates in the last few years (2017 - 2019) are highly uncertain."}
+
+bloss <- 
+  bootfit.igfs$res.by.year %>% 
+  filter(grepl('mat',stock)) %>% 
+  filter(year > 1999) %>% 
+  group_by(model) %>% 
+  summarise(bloss=min(total.biomass)/1e6)
+
+tmp <- 
+bootfit.igfs$res.by.year %>%
+  group_by(year,model) %>% 
+  filter(year > 1999) %>% 
+  dplyr::summarise(recruitment=sum(recruitment,na.rm=TRUE)/1e6,
+                   ssb = total.biomass[grepl('mat',stock)]/1e6) %>% 
+  ungroup()
+
+dat <- tmp %>% 
+  left_join(tmp %>% 
+              select(model,year,ssb.5=ssb) %>% 
+              dplyr::mutate(year=year+1)) %>% 
+  filter(year > 1999) %>% 
+  group_by(year) %>% 
+  summarise(mr=median(recruitment),
+            ur=quantile(recruitment,0.975),
+            lr=quantile(recruitment,0.025),
+            ms=median(ssb.5,na.rm=TRUE),
+            us=quantile(ssb.5,0.975,na.rm=TRUE),
+            ls=quantile(ssb.5,0.025,na.rm=TRUE)) 
+dat <- 
+  finres.igfs %>% 
+  select(year, mr, ur, lr) %>% 
+  filter(year > 1999) %>% 
+  left_join(finres.igfs %>% 
+              mutate(year = year + 1) %>% 
+              select(year, ms = mssb, us = ussb, ls = lssb)) %>% 
+  mutate(mr = mr/1e6, ur = ur/1e6, lr = lr/1e6, ms = ms/1e6, us = us/1e6, ls = ls/1e6) 
+  
+
+dat %>% 
+  ggplot(aes(ms,mr)) + 
+    
+    #geom_rect(ymin=-Inf,ymax=Inf,xmin=quantile(bloss$bloss,0.975),
+    #          xmax=quantile(bloss$bloss,0.025),fill='gold')+
+    geom_vline(xintercept = median(bloss$bloss),lty=2)+
+    geom_vline(xintercept = fitage1$res.by.year %>% 
+                 filter(grepl('mat',stock)) %>%
+                 filter(year > 1999) %>% 
+                 ungroup() %>% 
+                 summarise(min(total.biomass)/1e6) %>% 
+                 unlist(),col='red')+
+    geom_vline(xintercept = bpa,col='red', lty = 2)+
+    geom_errorbar(aes(ymax=ur,ymin=lr),col='grey') + 
+    geom_errorbarh(aes(xmax=us,xmin=ls),col='grey') + 
+    geom_path()+
+    geom_point(col='red')+
+    geom_text(aes(label=year),vjust=0.15,hjust=0.15) + 
+   xlab('Spawning stock biomass (in \'000 tons) ') + 
+  ylab('Recruitment (in millions, age 1)') + theme_light() +
+  expand_limits(x=0,y=0) 
+  
+
+
+```
+
+
+
+
+### Stock recruitment relationship used for projections
+A variety of approaches are common when estimating a stock
+recruitment relationship. In the absence of a stock-recruitment signal from the available historical data (Figure 28), 
+the ICES guidelines suggest that the hockey-stick recruitment function is used, i.e. 
+\begin{equation}
+  R_y = \bar{R}_y \min(1,S_y/B_{loss})
+\end{equation}
+where $R_y$ is annual recruitment, $S_y$ the spawning stock biomass,
+$B_{loss}$ the breakpoint in hockey stick function and $\bar{R_y}$ is the
+recruitment when not impaired due to low levels of SSB. Here $\bar{R}_y$ is considered to be drawn from the historical distribution using a block-bootstrap, randomly drawn block starting years and including 7 consecutive years in the blocks. This is done to account for intra-correlation in the recruitment time--series without projecting beyond the range of the observed recruitment. The timing of the recruitment in the model occurs at the end of the $1^{st}$ time-step, using the projected spawning stock biomass at the same time. 
+
+
+
+
+```{r SRacf, echo=FALSE, fig.width = 10, fig.height= 6, fig.cap = "Histogram of the bootstrap distribution of $B_{loss}$ where the red line indicates the base model estimate."}
+
+bootfit.igfs$res.by.year%>% 
+  #filter(!(model %in% removals) %>% 
+    filter(grepl('mat',stock)) %>% 
+    filter(year > 1999) %>% 
+    group_by(model) %>% 
+    dplyr::summarise(bloss = min(total.biomass)/1e6) %>% 
+    ggplot(aes(bloss)) + geom_histogram() + 
+    labs(x=expression(B[loss]),y='Num. replicates') + 
+    theme_light() + 
+    geom_vline(xintercept = fit$res.by.year %>% 
+                 filter(grepl('mat',stock)) %>% 
+                 filter(year > 1999) %>% 
+                 ungroup() %>% 
+                 summarise(min=min(total.biomass)/1e6) %>% 
+                 unlist(),
+               col='red')
+```
+
+
+### Assessment error 
+Observation error and to some degree model error are addressed by the
+bootstrap approach employed in here.
+
+Illegal landings and discards by Icelandic fishing vessels are considered to
+be negligible and it is assumed that foreign vessel catches will be part of the
+management plan when implemented. It is assumed therefore implementation error would be virtually
+none. The largest source of error outstanding is the extent of process
+error, in particular variation in the stock recruitment relationship, and the assessment error. Derivation of the $B_{pa}$ but not $B_{lim}$ needs no consideration of assessment error, but derivation of $F_{msy}$ does, so it is introduced here.
+
+Management strategies were evaluated was harvesting according to target fishing mortality $F_{target}$. Errors in the assessment
+procedure that relate to harvest advice model are emulated as:
+\begin{equation}\label{eq:asserr}
+\hat{F_{target}} = e^{E_y} F_{target}
+\end{equation}
+where $E_y = \sigma (\rho \epsilon_{y-1} + \sqrt{1-\rho^2}\epsilon_y)$ is the assessment error and $\sigma$ is CV of the spawning stock biomass in the most recent estimated year (2019), $\rho$ the autocorrelation between assessment years and $\epsilon_y\sim N(0,1)$. The corresponding CV was set at 0.2. The autocorrelation in assessment error $\rho$ is set to $0.6$. The 100 bootstrap model fits are each replicated 10 times, so that for each bootstrap model,
+  10 variations of random assessment error and recruitment uncertainty can be simulated in forward simulations.
+
+<!-- %\subsection{Residual pattern} -->
+<!-- \begin{figure} -->
+
+<!-- <<echo=FALSE,results='asis',fig.width=10, fig.height=6,cache=TRUE,warning=FALSE,message=FALSE>>= -->
+<!--   bootacf <-  -->
+<!--     bootfit$res.by.year %>%  -->
+<!--   #filter(!(model %in% c(22,70,73,24,56,64)))%>% -->
+<!--     filter(grepl('imm',stock)) %>%  -->
+<!--     group_by(model) %>%  -->
+<!--     do(x=acf(.$recruitment,plot=FALSE)) %>%  -->
+<!--     broom::tidy(x) %>%  -->
+<!--     ggplot(aes(lag,acf,group=round(lag))) + geom_boxplot() +  -->
+<!--     theme_light() +  -->
+<!--     geom_hline(yintercept = c(-1,1)*qnorm((1 + 0.95)/2)/sqrt(35),lty=2) + -->
+<!--     labs(x='',y='') +  -->
+<!--     annotate('label',x=13,y=1,label='ACF')  -->
+
+<!--   bootpacf <-  -->
+<!--     bootfit$res.by.year %>% -->
+<!--     filter(grepl('imm',stock)) %>%  -->
+<!--     group_by(model) %>%  -->
+<!--     do(x=pacf(.$recruitment,plot=FALSE)) %>%  -->
+<!--     broom::tidy(x) %>%  -->
+<!--     ggplot(aes(lag,acf,group=round(lag))) + geom_boxplot() +  -->
+<!--     theme_light()+  -->
+<!--     geom_hline(yintercept = c(-1,1)*qnorm((1 + 0.95)/2)/sqrt(35),lty=2) + -->
+<!--     labs(x='',y='') +  -->
+<!--     ylim(c(-0.5,1))+  -->
+<!--     annotate('label',x=13,y=1,label='PACF')  -->
+
+<!--   bootacf2005 <-  -->
+<!--     bootfit$res.by.year %>%  -->
+<!--     filter(year < 2005) %>%        -->
+<!--     #filter(!(model %in% c(22,70,73,24,56,64)))%>% -->
+<!--     filter(grepl('imm',stock)) %>%  -->
+<!--     group_by(model) %>%  -->
+<!--     do(x=acf(.$recruitment,plot=FALSE)) %>%  -->
+<!--     broom::tidy(x) %>%  -->
+<!--     ggplot(aes(lag,acf,group=round(lag))) + geom_boxplot() +  -->
+<!--     theme_light() +  -->
+<!--     geom_hline(yintercept = c(-1,1)*qnorm((1 + 0.95)/2)/sqrt(35),lty=2) + -->
+<!--     labs(x='',y='') +  -->
+<!--     annotate('label',x=13,y=1,label='ACF')  -->
+
+<!--   bootpacf2005 <-  -->
+<!--     bootfit$res.by.year %>% -->
+<!--     filter(year < 2005) %>%  -->
+<!--     filter(grepl('imm',stock)) %>%  -->
+<!--     group_by(model) %>%  -->
+<!--     do(x=pacf(.$recruitment,plot=FALSE)) %>%  -->
+<!--     broom::tidy(x) %>%  -->
+<!--     ggplot(aes(lag,acf,group=round(lag))) + geom_boxplot() +  -->
+<!--     theme_light()+  -->
+<!--     geom_hline(yintercept = c(-1,1)*qnorm((1 + 0.95)/2)/sqrt(35),lty=2) + -->
+<!--     labs(x='',y='') +  -->
+<!--     ylim(c(-0.5,1))+  -->
+<!--     annotate('label',x=13,y=1,label='PACF')  -->
+
+<!-- gridExtra::grid.arrange(bootacf,bootpacf,bootacf2005,bootpacf2005,ncol=2)   -->
+<!-- @ -->
+
+<!-- %\includegraphics[width=1.0\linewidth]{../Graphs/bootacf} -->
+<!-- \caption{Estimated autocorrelation (left panels) and partial autocorrelation (right panels) in recruitment. Top panels indicate the correlation including all estimates of recrutitment while the bottom panels recruitment exluding estimates after 2005. The dashed lines illustrate the standard 95% uncertainty region.}\label{fig:bootacf} -->
+<!-- \end{figure} -->
+
+<!-- <<asscomp,echo=FALSE,results='asis',fig.width=10, fig.height=6,cache=TRUE,warning=FALSE,message=FALSE,fig.lp="fig:",fig.cap='ling in 5a. Current assement of the reference biomass of ling (> 75 cm) compared with assessment from the analytical retrospective estimate of the terminal biomass. The shaded yellow ribbon represents the uncertainty (CV = 0.28) at the terminal year.'>>= -->
+<!-- fit$res.by.year %>%  -->
+<!--   select(year,stock,tru.bio=total.biomass,tru.F=F,tru.rec=recruitment) %>%  -->
+<!--   left_join(retro.fit$res.by.year %>%  -->
+<!--               filter(year+as.numeric(model)==2016) %>%  -->
+<!--               select(year,stock, -->
+<!--                      retro.bio = total.biomass, -->
+<!--                      retro.F = F, -->
+<!--                      retro.rec = recruitment)) %>% -->
+<!--   tidyr::gather(type,value,-(year:stock)) %>%  -->
+<!--   separate(type,c('source','type')) %>%  -->
+<!--   spread(type,value) %>% -->
+<!--   group_by(year,source) %>%  -->
+<!--   summarise(total.bio=sum(bio)/1e6, -->
+<!--             ssb = sum(bio[grepl('mat',stock)])/1e6, -->
+<!--             rec = sum(rec,na.rm=TRUE)/1e6) %>%  -->
+<!--   left_join(fit$stock.full %>%  -->
+<!--               filter(length>ref.cm) %>%  -->
+<!--               group_by(year) %>%  -->
+<!--               summarise(hb=sum(number*mean.weight)/1e6) %>%  -->
+<!--               mutate(source='tru')) %>%  -->
+<!--   left_join(retro.fit$stock.full %>%  -->
+<!--               filter(length>ref.cm, -->
+<!--                      year+as.numeric(model)==2016) %>%  -->
+<!--               group_by(year) %>%  -->
+<!--               summarise(hb.retro=sum(number*mean.weight)/1e6) %>%  -->
+<!--               mutate(source='retro')) %>%  -->
+<!--   mutate(hb=ifelse(source=='retro',hb.retro,hb)) %>%  -->
+<!--   select(-hb.retro) %>%  -->
+<!--   gather(type,value,-c(year:source)) %>%  -->
+<!--   filter(type=='hb') %>%  -->
+<!--   mutate(value=ifelse(year==2016,value[!is.na(value)&year==2016],value), -->
+<!--          source = ifelse(source=='tru','Current assessment','Analytical retrospective')) %>%  -->
+<!--   ggplot(aes(year,value,col=source)) +  -->
+<!--   geom_ribbon(aes(ymin=value*exp(qnorm(0.025)*0.2), -->
+<!--                   ymax=value*exp(qnorm(0.975)*0.2)), -->
+<!--               alpha=0.5, -->
+<!--               fill='gold',col='white', -->
+<!--               data=. %>% filter(source == 'Current assessment'))+ -->
+<!--   geom_line() +  -->
+<!--   #facet_wrap(~type) + -->
+<!--   theme_light() + geom_point() +  -->
+<!--   theme(legend.position = c(0.5,0.8)) + -->
+<!--   scale_color_manual(name='Assessment',values=c('red','darkblue')) + -->
+<!--   labs(y='Reference biomass (in kt)',x ='Year') + -->
+<!--   expand_limits(y=0) -->
+
+<!-- @ -->
+
+### Estimating $F_{lim}$ and $F_{pa}$
+According to the ICES guidelines, the precautionary reference points and $F_{msy}$ are set by simulating the stock using the stock-recruitment relationship described earlier, based on a wide range of fishing mortality rates. For each stochastic simulation, 1 of the 100 bootstrap runs was forward projected with 1 of 10 randomly generated bootstrapped recruitment series, yielding 1 000 stochastic simulations. A series of tested target effort-based harvest rates $H_{target}$ values (0 - 1 in steps of 0.01, roughly resulting in $F_{target}$ values ranging 0 - 0.5) were then tested by projecting harvesting under corresponding harvest rates $H_{target}$ for 100 years under in each of the 1 000 simulations (100 000 in total).  
+
+<!-- The simulation predicted the stock status was  -->
+<!-- projected forward 300 years. For each bootstrap model estimate the stock -->
+<!-- status was projected 10 times, resulting in a total of 1000 samples.  -->
+<!-- The spawning stock biomass was calculated based on model output after 2060. -->
+<!-- This is done to ensure that the stock had reached an equilibrium -->
+<!-- under the new fishing mortality regime.  -->
+
+$F_{lim}$ is set as the $F$ that, in equilibrium (last 50 of the simulated 100-year projection), gives a 50% probability of SSB $> B_{lim}$ without assessment error, described in Table 1. 
+From this $F_{lim}$ is set as the equilibrium fishing mortality when $H_{lim}$ is applied. $H_{pa}$ is then set as the harvest rate that would lead to the equilibrium fishing mortality of $F_{pa}$. $F_{pa}$ is defined as the $F_{lim}/e^{1.645*\sigma}$ where $\sigma$ is the CV of the estimated fishing mortality in the assessment year. 
+
+
+The results from the long-term simulations are shown in Figure 30.  $F_{lim}$, resulting in 50% long-term probability of SSB $>B_{lim}$, was estimated as `r round(f.lim,2)`. As the CV of $F$ in 2019 is 0.25, $F_{pa}$ is estimated as `r round(f.lim,2)`$/1.508$ = `r round(f.pa,2)`. 
+
+
+### Estimating $F_{msy}$
+An additional simulation experiment where, in addition to recruitment and bootstrap variations, assessment error was added the harvest rate that would lead to the maximum sustainable yield, $F_{msy}$, was estimated. To calculate $F_{msy}$ ,simulated annual total landings $c_y$ were calculated over the 50 years from 2070, and plotted over $F_{target}$ to form a yield curve. Spawning stock biomasses were similarly analyzed. $F_{msy}$ was then chosen as the $F_{target}$ that corresponds with maximal median yield in the yield curve. 
+
+Figure 31 shows the evolution of catches, SSB and fishing mortality for select values of $F$. The equilibrium yield curve is shown in figure
+30, where the maximum average yield, under the recruitment
+assumptions, is roughly 9 thousand tonnes with a 90% confidence interval of for the yield ranging 0 to almost 17 thousand tons. $F_{msy}$ was estimated to be `r round(f.msy,2)`, corresponding with $H_{msy}$ of `r round(hr_msy,2)`. 
+
+### Estimating MSY $B_{trigger}$
+
+In line with ICES technical guidelines for Category 5 patterns in the spawning stock-recruitment relationship, the MSY $B_{trigger}$ is set as $B_{lim}$, as the stock 
+shows a wide dynamic range and its fishing history in relation to $F_{msy}$ is uncertain.
+
+Equilibrium spawning stock biomass  is shown in
+Figure 30, both with and without MSY $B_{trigger}$ implemented. Long-term results of the spawning stock biomass obtained at $F_{msy}$ was estimated at roughly 36 thousand tonnes with a 90% confidence interval of 0 - 62 thousand tonnes.
+
+`r pagebreak()`
+
+### Estimating $F_{p.05}$
+
+ICES technical guidelines suggest that $F_{msy}$ is also set such that the annual risk of SSB falling below $B_{lim}$ does not exceed 5%. This simulation should be done with MSY $B_{trigger}$ implemented. Therefore, the maximum $F$ that leads to this 5% annual risk in simulations with both assessment error and the MSY $B_{trigger}$ implemented ($F_{p.05}$) should replace $F_{msy}$ if it is found that $F_{0.05} < F_{msy}$. Table 3 shows that the risk of SSB falling below $B_{lim}$ rapidly increases, so $F_{0.05}$ was found to be $< F_{msy}$ and therefore replaces it in the ICES MSY advice rule (Table 4, Figure 30). Examples of individual bootstrap projections with fising mortality set to select $F$ values in the vicinity of $F_{0.05}$  are shown in Figure 31. In particular Figure 31 demonstrate both the variability in spawning stock levels found among stochastic replicates, as well as the variability expected in resulting $F$ values when the MSY advice rule is applied.
+
+ 
+
+```{r longtermresults, echo =FALSE}
+  read_csv(paste0(base_dir, '/long_term_resbloss_as_blim.csv')) %>% 
+    mutate(harvest_rate = round(harvest_rate,2)) %>% 
+    filter(harvest_rate %in% round(c(hr_target-0.01,hr_target, hr_target + 0.01, hr_target + 0.02, hr_target + 0.04, hr_target + 0.06, hr_target + 0.08, hr_msy, hr_pa, hr_lim),2)) %>% 
+    mutate(`Reference point` = c('', 'Fp05', '', '', '', '', '', 'Fmsy', 'Fpa', 'Flim'), F = round(F, 3), yieldwithBtrigger = round(yieldwithBtrigger,2), mssbwithBtrigger=round(mssbwithBtrigger,2), pcrashwithBtrigger = round(pcrashwithBtrigger,3),yieldnoBtrigger=round(yieldnoBtrigger,2),pcrash = round(pcrash,3), mssb=round(mssb,2)) %>% 
+    select(`Reference point`, F, yieldwithBtrigger, mssbwithBtrigger, pcrashwithBtrigger,yieldnoBtrigger, mssb, pcrash) %>% 
+    setNames(.,c('Reference point','F', 'Yield (tonnes, median)',  'SSB (tonnes, median)', 'P SSB < Blim', 'Yield (tonnes, median)', 'SSB (tonnes, median)','P SSB < Blim')) %>%
+  kableExtra::kable(caption = "Long-term results in terms of yield, spawning stock biomass (SSB), and the probability of SSB dropping below Blim, from stochastic simulations with recruitment uncertainty and assessment error included, both with the MSY Btrigger implemented and without.") %>% 
+    add_header_above(c(" " = 2, "with Btrigger" = 3, "no Btrigger" = 3)) %>% 
+    kable_styling(bootstrap_options = c("striped", "hover", "condensed")) %>% 
+    column_spec(1:8, width = "3em")
+  
+
+```
+
+`r pagebreak()`
+
+```{r yield, eval = FALSE, echo=FALSE, fig.width = 10, fig.height= 6, fig.cap = "Greater silver smelt in 5a and 14. Equilibrium catch (left) and SSB (right) curves as a function of $F$. Results with process error and without appear the same, so only the plot with added assessment uncertainty is shown.  The black solid curves indicate the median projected catch and SSB and the shaded yellow region the 2.5% -- 97.5% percentiles. Vertical lines indicate $F_{lim}$ (red), $F_{pa}$ (dashed) and $F_{target}$ (black, set to $F_pa$). The horizontal solid red line indicates $B_{lim}$; the horizontal dashed red line is $B_{pa} ."}
+
+# bpa <- 
+#   fit$res.by.year %>% 
+#   filter(year > 1999) %>% 
+#   filter(grepl('mat',stock)) %>% 
+#   ungroup() %>% 
+#   filter(total.biomass==min(total.biomass)) %>% 
+#   transmute(total.biomass=total.biomass/1e6) %>% 
+#   unlist()
+# 
+# blim <- bpa/1.39
+#bpa <- blim*1.39
+
+# Hmsy <- 
+#   res2 %>% 
+#   filter(mlnd==max(mlnd)) %>% 
+#   select(rate,mF)
+# 
+# Hlim <- 
+#   res20 %>% 
+#   filter(mssb < blim) %>% 
+#   head(1) %>% 
+#   bind_rows(  res20 %>% 
+#                 filter(mssb >= blim) %>% 
+#                 tail(1)) %>%
+#   mutate(rate=as.numeric(rate)) %>% 
+#   summarise(rate = rate[2]*(blim-mssb[1])/abs(mssb[1]-mssb[2]) + rate[1]*(mssb[2]-blim)/abs(mssb[1]-mssb[2]),
+#             mF = mF[2]*(blim-mssb[1])/abs(mssb[1]-mssb[2]) + mF[1]*(mssb[2]-blim)/abs(mssb[1]-mssb[2]))
+# 
+# upper <- Hlim$mF/exp(1.645*0.33)
+# Hpa <- 
+#   res20 %>% 
+#   filter(mF < upper & mF > Hmsy$mF & rate < 0.7) %>% 
+#   tail(1) %>% 
+#   bind_rows(  res20 %>% 
+#                 filter(mF >= upper & rate < 0.7) %>% 
+#                 head(1)) %>%
+#   mutate(rate=as.numeric(rate)) %>% 
+#   summarise(rate = rate[2]*(upper-mF[1])/abs(mF[1]-mF[2]) + rate[1]*(mF[2]-upper)/abs(mF[1]-mF[2]),
+#             mF = upper)
+# 
+# 
+# yield.plot <- 
+#   res20 %>% 
+#   bind_rows(res2,.id='meth') %>% 
+#   #filter(!(rate %in%c(0.46,0.52))) %>% 
+#   ggplot(aes(as.numeric(rate),mlnd,group=1)) + 
+# #  geom_ribbon(aes(ymin=llnd,ymax=ulnd),fill='gold') + 
+#   geom_ribbon(aes(ymin=mlndq5,ymax=mlndq95),fill='gold',alpha=0.5) + 
+#   geom_line() +
+#   #xlim(c(0.01,1)) +
+#   geom_vline(xintercept = Hmsy$rate %>% as.numeric())+
+#   geom_vline(xintercept = Hpa$rate, lty=2) +
+#   geom_vline(xintercept = Hlim$rate, col='red')+
+#   theme_light() + 
+#   labs(x='Harvest rate (H)', y='',title='Avg. yield (in kt)') +
+#   scale_x_continuous(breaks = seq(0,0.5,by=0.1)) + 
+#   xlim(c(0,0.7)) + 
+#   facet_wrap(~meth,ncol=1) +
+#   theme(strip.background = element_blank(),strip.text=element_blank())
+# ssbmsy <- 
+#   res20 %>% 
+#   bind_rows(res2,.id='meth') %>% 
+#   #filter(!(rate %in%c(0.46,0.52))) %>% 
+#   ggplot(aes(as.numeric(rate),mssb,group=1)) +
+#   geom_hline(yintercept =blim,col='red') +
+# #  geom_ribbon(aes(ymin=lssb,ymax=ussb),fill='gold') + 
+#   geom_ribbon(aes(ymin=mssbq5,ymax=mssbq95),fill='gold',alpha=0.5) +
+#   geom_line() +
+#   #ylim(c(0,)) +
+#   geom_vline(xintercept = Hmsy$rate %>% as.numeric())+
+#   geom_vline(xintercept = Hpa$rate, lty=2) +
+#   geom_vline(xintercept = Hlim$rate, col='red')+
+#   theme_light() + 
+#   labs(x='Harvest rate (H)', y='',title='Avg. SSB (in kt)')+
+#   scale_x_continuous(breaks = seq(0,1,by=0.1)) +
+#   xlim(c(0,0.7)) + 
+#   facet_wrap(~meth,ncol=1)  +
+#   theme(strip.background = element_blank(),strip.text=element_blank())
+#   
+# gridExtra::grid.arrange(yield.plot,ssbmsy,ncol=2)
+
+
+
+
+  knitr::include_graphics(paste0(base_dir,'/yield_plot.png'), dpi = 100)
+  #knitr::include_graphics('/net/hafkaldi/export/home/haf/pamela/19-gss/exploratory_models/gadget/01-new_ass_no_igfs_mt_s5/yield_plot_no_asserr.png')
+
+
+```
+
+
+
+
+```{r yieldwithasserr, fig.width = 6, echo = FALSE}
+  knitr::include_graphics(paste0(base_dir,'/yield_plotbloss_as_blim.png'), dpi = 100)
+```
+
+``` {r yieldwithasserrwithBtrigger, fig.width = 6, echo = FALSE, fig.cap = 'Long-term yield and SSB from simulations. Median yield and SSB results from projections are shown by the black curves. Outer edges of the ribbons (outlined by orange dashed lines) indicate the 5th - 95th percentile range. Overlaid additional yellow  are the 15th - 85th percentile and 25th - 75th percentile ranges (indicated by progressively darker yellow and orange-dashed edges moving toward the median). Vertical lines: Fmsy is the blue dashed line, Fpa is the red dashed line, Flim is the solid red line, Fp05 is the black solid line. Horizontal lines: Blim is the red solid line; Bpa is the red dashed line. Top panels include assessment error; bottom panels include assessment error and have Btrigger implemented.'}
+  knitr::include_graphics(paste0(base_dir,'/yield_plotbloss_as_blimwithBtrigger.png'), dpi = 100)
+
+```
+
+
+```{r exampleFs, echo=FALSE, fig.width = 10, fig.height= 6, fig.cap = "Greater silver smelt in 5a and 14. Projected catches, spawning stock biomass, fishing mortality (mean ages 6 - 14), and recruitment (age 1, millions) for select target harvest rates. Red dashed horizontal lines represent Fpa and Bpa, whereas red solid horizontal lines represent Flim and Blim. The blue horizontal solid line in the plot of F shows Fmsy used in the ICES advice rule (Fp05) and the blue dashed lines show the 5th - 95th percentile range."}
+
+rates <- round(c(hr_target, hr_target + 0.02, hr_target + 0.04, hr_target + 0.06, hr_target + 0.08),2)
+hrs <- round(seq(0.01, 1, 0.01),2)
+wh <- which(hrs %in% rates)
+
+
+f.05_lims <- 
+  f.curve_withBtrigger %>% 
+  filter(round(harvest_rate,2) %in% rates[2]) %>% 
+  select(m,l,u) %>% 
+  unlist
+
+ssb_dat <-
+    res_withBtrigger$mat.ssb %>% 
+#  bind_rows(.id='rate') %>% 
+  filter(round(harvest_rate,2) %in% rates,year < 2050) %>% 
+  mutate(ssb = number*mean_weight, harvest_rate = round(harvest_rate,2)) %>% 
+  group_by(year,harvest_rate) %>%
+  summarise(mssb=median(ssb),
+                          ussb=quantile(ssb,0.975),
+                          lssb=quantile(ssb,0.025),
+                          #mssb = quantile(ssb, 0.5),
+                          uussb=quantile(ssb,0.75),
+                          llssb=quantile(ssb,0.25)) %>% 
+  left_join(res_withBtrigger$mat.ssb %>% 
+      #  bind_rows(.id='rate') %>% 
+       mutate(rep = model*1000 + trial) %>%
+      filter(round(harvest_rate,2) %in% rates[1],year < 2050, rep == 1*1000 + 2*100 + wh[1]) %>% 
+  mutate(ssb = number*mean_weight, harvest_rate = round(harvest_rate,2)) %>% 
+      #filter(rep == 1) %>% 
+     group_by(year,harvest_rate) %>%
+      summarise(mssb113=median(ssb),
+                ussb113=quantile(ssb,0.975),
+                lssb113=quantile(ssb,0.025),
+                #mssb113 = quantile(ssb, 0.5),
+                uussb113=quantile(ssb,0.75),
+                llssb113=quantile(ssb,0.25)) ) %>% 
+  left_join(res_withBtrigger$mat.ssb %>% 
+      #  bind_rows(.id='rate') %>% 
+       mutate(rep = model*1000 + trial) %>%
+      filter(round(harvest_rate,2) %in% rates[2],year < 2050, rep == 50*1000 + 8*100 + wh[2]) %>% 
+  mutate(ssb = number*mean_weight, harvest_rate = round(harvest_rate,2)) %>% 
+      #filter(rep == 1) %>% 
+     group_by(year,harvest_rate) %>%
+      summarise(mssb215=median(ssb),
+                ussb215=quantile(ssb,0.975),
+                lssb215=quantile(ssb,0.025),
+                #mssb113 = quantile(ssb, 0.5),
+                uussb215=quantile(ssb,0.75),
+                llssb215=quantile(ssb,0.25)) ) %>% 
+    left_join(res_withBtrigger$mat.ssb %>% 
+      #  bind_rows(.id='rate') %>% 
+       mutate(rep = model*1000 + trial) %>%
+      filter(round(harvest_rate,2) %in% rates[3],year < 2050, rep == 67*1000 + 6*100 + wh[3]) %>% 
+  mutate(ssb = number*mean_weight, harvest_rate = round(harvest_rate,2)) %>% 
+      #filter(rep == 1) %>% 
+     group_by(year,harvest_rate) %>%
+      summarise(mssb317=median(ssb),
+                ussb317=quantile(ssb,0.975),
+                lssb317=quantile(ssb,0.025),
+                #mssb317 = quantile(ssb, 0.5),
+                uussb317=quantile(ssb,0.75),
+                llssb317=quantile(ssb,0.25)) ) %>% 
+      left_join(res_withBtrigger$mat.ssb %>% 
+      #  bind_rows(.id='rate') %>% 
+       mutate(rep = model*1000 + trial) %>%
+      filter(round(harvest_rate,2) %in% rates[4],year < 2050, rep == 89*1000 + 7*100 + wh[4]) %>% 
+  mutate(ssb = number*mean_weight, harvest_rate = round(harvest_rate,2)) %>% 
+      #filter(rep == 1) %>% 
+       group_by(year,harvest_rate) %>%
+      summarise(mssb519=median(ssb),
+                ussb519=quantile(ssb,0.975),
+                lssb519=quantile(ssb,0.025),
+                #mssb519 = quantile(ssb, 0.5),
+                uussb519=quantile(ssb,0.75),
+                llssb519=quantile(ssb,0.25)) ) %>% 
+      left_join(res_withBtrigger$mat.ssb %>% 
+      #  bind_rows(.id='rate') %>% 
+       mutate(rep = model*1000 + trial) %>%
+      filter(round(harvest_rate,2) %in% rates[5],year < 2050, rep == 30*1000 + 4*100 + wh[5]) %>% 
+  mutate(ssb = number*mean_weight, harvest_rate = round(harvest_rate,2)) %>% 
+      #filter(rep == 1) %>% 
+        group_by(year,harvest_rate) %>%
+      summarise(mssb921=median(ssb),
+                ussb921=quantile(ssb,0.975),
+                lssb921=quantile(ssb,0.025),
+                #mssb921 = quantile(ssb, 0.5),
+                uussb921=quantile(ssb,0.75),
+                llssb921=quantile(ssb,0.25)) )
+
+ssb_progn.plot <- 
+  ssb_dat %>% 
+  left_join(frates) %>% 
+  ggplot(aes(year,mssb/1e6)) + 
+  geom_ribbon(aes(ymin=lssb/1e6,ymax=ussb/1e6),fill='gold',alpha=0.5) + 
+  geom_ribbon(aes(ymin=llssb/1e6,ymax=uussb/1e6),fill='gold',alpha=0.5) + 
+  geom_line() + 
+  geom_line(aes(y=mssb113/1e6),lty=6) +
+  geom_line(aes(y=mssb215/1e6),lty=5) +
+  geom_line(aes(y=mssb317/1e6),lty=3) +
+  geom_line(aes(y=mssb519/1e6),lty=4) +
+  geom_line(aes(y=mssb921/1e6),lty=5) +
+  geom_vline(xintercept = 2019,lty=2) +
+  facet_wrap(~F,ncol=1) +
+  theme_light() + 
+  labs(title='SSB (in kt)',x='Year',y='') +
+  geom_hline(yintercept = bpa,lty=2, col = 'red') +
+  geom_hline(yintercept = blim,col='red')+ 
+  expand_limits(y=0) + 
+  xlim(2000, 2035)
+
+
+catch_dat <-
+    res_withBtrigger$catch.lw %>%   
+  filter(year>2019,round(harvest_rate,2) %in% rates,year < 2050) %>% 
+  select(c(year,harvest_rate,biomass_consumed)) %>% 
+  mutate(harvest_rate = round(harvest_rate,2)) %>% 
+  #mutate(ssb = number*mean_weight) %>% 
+  group_by(year,harvest_rate) %>%
+  summarise(mlnd=median(biomass_consumed)*4,
+                          ulnd=quantile(biomass_consumed,0.975)*4,
+                          llnd=quantile(biomass_consumed,0.025)*4,
+                          #mssb = quantile(ssb, 0.5),
+                          uulnd=quantile(biomass_consumed,0.75)*4,
+                          lllnd=quantile(biomass_consumed,0.25)*4) %>%
+  bind_rows(fit$res.by.year %>% 
+              group_by(year) %>% 
+              summarise(mlnd=sum(catch)) %>% 
+              right_join(expand.grid(year=1990:2019,
+                                    harvest_rate=rates)))%>% 
+  left_join(res_withBtrigger$catch.lw %>% 
+      #  bind_rows(.id='rate') %>% 
+       mutate(rep = model*1000 + trial) %>%
+      filter(round(harvest_rate,2) %in% rates[1],year < 2050, rep == 1*1000 + 2*100 + wh[1]) %>% 
+    mutate(harvest_rate = round(harvest_rate,2)) %>% 
+      #filter(rep == 1) %>% 
+    group_by(year,harvest_rate) %>%
+      summarise(mlnd113=median(biomass_consumed)*4,
+                ulnd113=quantile(biomass_consumed,0.975)*4,
+                llnd113=quantile(biomass_consumed,0.025)*4,
+                #mssb113 = quantile(ssb, 0.5),
+                uulnd113=quantile(biomass_consumed,0.75)*4,
+                lllnd113=quantile(biomass_consumed,0.25)*4) ) %>% 
+  left_join(res_withBtrigger$catch.lw %>% 
+      #  bind_rows(.id='rate') %>% 
+       mutate(rep = model*1000 + trial) %>%
+      filter(round(harvest_rate,2) %in% rates[2],year < 2050, rep == 1*1000 + 2*100 + wh[2]) %>% 
+       mutate(harvest_rate = round(harvest_rate,2)) %>% 
+      #filter(rep == 1) %>% 
+        group_by(year,harvest_rate) %>%
+      summarise(mlnd215=median(biomass_consumed)*4,
+                ulnd215=quantile(biomass_consumed,0.975)*4,
+                llnd215=quantile(biomass_consumed,0.025)*4,
+                #mssb215 = quantile(ssb, 0.5),
+                uulnd215=quantile(biomass_consumed,0.75)*4,
+                lllnd215=quantile(biomass_consumed,0.25)*4) ) %>% 
+  left_join(res_withBtrigger$catch.lw %>% 
+      #  bind_rows(.id='rate') %>% 
+       mutate(rep = model*1000 + trial) %>%
+      filter(round(harvest_rate,2) %in% rates[3],year < 2050, rep == 1*1000 + 2*100 + wh[3]) %>% 
+        mutate(harvest_rate = round(harvest_rate,2)) %>% 
+      #filter(rep == 1) %>% 
+        group_by(year,harvest_rate) %>%
+        summarise(mlnd317=median(biomass_consumed)*4,
+                ulnd317=quantile(biomass_consumed,0.975)*4,
+                llnd317=quantile(biomass_consumed,0.025)*4,
+                #mssb317 = quantile(ssb, 0.5),
+                uulnd317=quantile(biomass_consumed,0.75)*4,
+                lllnd317=quantile(biomass_consumed,0.25)*4) ) %>% 
+  left_join(res_withBtrigger$catch.lw %>% 
+      #  bind_rows(.id='rate') %>% 
+       mutate(rep = model*1000 + trial) %>%
+      filter(round(harvest_rate,2) %in% rates[4],year < 2050, rep == 1*1000 + 2*100 + wh[4]) %>% 
+        mutate(harvest_rate = round(harvest_rate,2)) %>% 
+      #filter(rep == 1) %>% 
+        group_by(year,harvest_rate) %>%
+        summarise(mlnd519=median(biomass_consumed)*4,
+                ulnd519=quantile(biomass_consumed,0.975)*4,
+                llnd519=quantile(biomass_consumed,0.025)*4,
+                #mssb317 = quantile(ssb, 0.5),
+                uulnd519=quantile(biomass_consumed,0.75)*4,
+                lllnd519=quantile(biomass_consumed,0.25)*4) ) %>% 
+  left_join(res_withBtrigger$catch.lw %>% 
+      #  bind_rows(.id='rate') %>% 
+       mutate(rep = model*1000 + trial) %>%
+      filter(round(harvest_rate,2) %in% rates[5],year < 2050, rep == 1*1000 + 2*100 + wh[5]) %>% 
+        mutate(harvest_rate = round(harvest_rate,2)) %>% 
+      #filter(rep == 1) %>% 
+       group_by(year,harvest_rate) %>%
+        summarise(mlnd921=median(biomass_consumed)*4,
+                ulnd921=quantile(biomass_consumed,0.975)*4,
+                llnd921=quantile(biomass_consumed,0.025)*4,
+                #mssb317 = quantile(ssb, 0.5),
+                uulnd921=quantile(biomass_consumed,0.75)*4,
+                lllnd921=quantile(biomass_consumed,0.25)*4) ) %>% 
+  mutate(mlnd921 = ifelse(year < 2020, NA, mlnd921),
+         mlnd519 = ifelse(year < 2020, NA, mlnd519),
+         mlnd317 = ifelse(year < 2020, NA, mlnd317),
+         mlnd215 = ifelse(year < 2020, NA, mlnd215),
+         mlnd113 = ifelse(year < 2020, NA, mlnd113))
+
+catch_progn.plot <- 
+  catch_dat%>% 
+  left_join(frates) %>% 
+  ggplot(aes(year,mlnd/1e6)) + 
+  geom_ribbon(aes(ymin=llnd/1e6,ymax=ulnd/1e6),fill='gold',alpha=0.5) + 
+  geom_ribbon(aes(ymin=lllnd/1e6,ymax=uulnd/1e6),fill='gold',alpha=0.5) + 
+  geom_line() + 
+  geom_line(aes(y=mlnd113/1e6),lty=6) +
+  geom_line(aes(y=mlnd215/1e6),lty=5) +
+  geom_line(aes(y=mlnd317/1e6),lty=3) +
+  geom_line(aes(y=mlnd519/1e6),lty=4) +
+  geom_line(aes(y=mlnd921/1e6),lty=5) +
+  geom_vline(xintercept = 2019,lty=2) +
+  facet_wrap(~F,ncol=1) +
+  theme_light() + 
+  labs(title='Landings (in kt)',x='Year',y='') +
+  expand_limits(y=0) + 
+  xlim(2000, 2035)
+
+# catch_progn.plot <- 
+# res_by_year %>% 
+# #  bind_rows(.id='rate') %>% 
+#   filter(year>2019,rate %in% rates,year < 2050) %>% 
+#   select(c(year,rate,matches("lnd"))) %>% 
+#   bind_rows(fit$res.by.year %>% 
+#               group_by(year) %>% 
+#               summarise(mlnd=sum(catch/4)) %>% 
+#               left_join(expand.grid(year=1982:2016,
+#                                     rate=as.character(rates))))%>% 
+#   ggplot(aes(year,4*mlnd/1e6)) + 
+#   geom_ribbon(aes(ymin=4*llnd/1e6,ymax=4*ulnd/1e6),fill='gold',alpha=0.5) + 
+#   geom_ribbon(aes(ymin=4*lllnd/1e6,ymax=4*uulnd/1e6),fill='gold',alpha=0.5) + 
+#   geom_line() + 
+#   geom_line(aes(y=lnd6/1e6),lty=2) +
+#   geom_line(aes(y=lnd542/1e6),lty=3) +
+#   geom_line(aes(y=lnd931/1e6),lty=4) +
+#   geom_vline(xintercept = 2017,lty=2) +
+#   facet_wrap(~rate,ncol=1) +
+#   theme_light() + 
+#   labs(title='Catches (in kt)',x='Year',y='') + 
+#   expand_limits(y=0)
+f_dat <-
+    res_withBtrigger$catch.F %>%   
+  filter(year>2019,round(harvest_rate,2) %in% rates,year < 2050) %>% 
+  select(c(year,harvest_rate,mortality)) %>% 
+  #mutate(ssb = number*mean_weight) %>% 
+    mutate(harvest_rate = round(harvest_rate,2)) %>% 
+  group_by(year,harvest_rate) %>%
+  summarise(mF=mean(mortality),
+                          uF=quantile(mortality,0.975),
+                          lF=quantile(mortality,0.025),
+                          #mssb = quantile(ssb, 0.5),
+                          uuF=quantile(mortality,0.75),
+                          llF=quantile(mortality,0.25)) %>% 
+  bind_rows(bootfit.igfs$res.by.year %>% 
+              filter(grepl('mat',stock)) %>% 
+              group_by(year) %>% 
+              dplyr::summarise(mF=mean(F),
+                        uuF=quantile(F,0.75),
+                        llF=quantile(F,0.25),
+                        uF = quantile(F,0.975),
+                        lF = quantile(F,0,025)) %>% 
+              right_join(expand.grid(year=1990:2019,
+                                    harvest_rate=rates)))%>% 
+  left_join(res_withBtrigger$catch.F %>% 
+      #  bind_rows(.id='rate') %>% 
+       mutate(rep = model*1000 + trial) %>%
+      filter(round(harvest_rate,2) %in% rates[1],year < 2050, rep == 1*1000 + 2*100 + wh[1]) %>% 
+        mutate(harvest_rate = round(harvest_rate,2)) %>% 
+      #filter(rep == 1) %>% 
+        group_by(year,harvest_rate) %>%
+        summarise(mF113=median(mortality),
+                uF113=quantile(mortality,0.975),
+                lF113=quantile(mortality,0.025),
+                #mssb113 = quantile(ssb, 0.5),
+                uuF113=quantile(mortality,0.75),
+                llF113=quantile(mortality,0.25)) ) %>% 
+  left_join(res_withBtrigger$catch.F %>% 
+      #  bind_rows(.id='rate') %>% 
+       mutate(rep = model*1000 + trial) %>%
+      filter(round(harvest_rate,2) %in% rates[2],year < 2050, rep == 1*1000 + 2*100 + wh[2]) %>% 
+        mutate(harvest_rate = round(harvest_rate,2)) %>% 
+      #filter(rep == 1) %>% 
+        group_by(year,harvest_rate) %>%
+        summarise(mF215=median(mortality),
+                uF215=quantile(mortality,0.975),
+                lF215=quantile(mortality,0.025),
+                #mssb215 = quantile(ssb, 0.5),
+                uuF215=quantile(mortality,0.75),
+                llF215=quantile(mortality,0.25)) ) %>% 
+  left_join(res_withBtrigger$catch.F %>% 
+      #  bind_rows(.id='rate') %>% 
+       mutate(rep = model*1000 + trial) %>%
+      filter(round(harvest_rate,2) %in% rates[3],year < 2050, rep == 1*1000 + 2*100 + wh[3]) %>% 
+        mutate(harvest_rate = round(harvest_rate,2)) %>% 
+      #filter(rep == 1) %>% 
+       group_by(year,harvest_rate) %>%
+        summarise(mF317=median(mortality),
+                uF317=quantile(mortality,0.975),
+                lF317=quantile(mortality,0.025),
+                #mssb317 = quantile(ssb, 0.5),
+                uuF317=quantile(mortality,0.75),
+                llF317=quantile(mortality,0.25)) ) %>% 
+  left_join(res_withBtrigger$catch.F %>% 
+      #  bind_rows(.id='rate') %>% 
+       mutate(rep = model*1000 + trial) %>%
+      filter(round(harvest_rate,2) %in% rates[4],year < 2050, rep == 1*1000 + 2*100 + wh[4]) %>% 
+        mutate(harvest_rate = round(harvest_rate,2)) %>% 
+      #filter(rep == 1) %>% 
+        group_by(year,harvest_rate) %>%
+        summarise(mF519=median(mortality),
+                uF519=quantile(mortality,0.975),
+                lF519=quantile(mortality,0.025),
+                #mssb317 = quantile(ssb, 0.5),
+                uuF519=quantile(mortality,0.75),
+                llF519=quantile(mortality,0.25)) ) %>% 
+  left_join(res_withBtrigger$catch.F %>% 
+      #  bind_rows(.id='rate') %>% 
+       mutate(rep = model*1000 + trial) %>%
+      filter(round(harvest_rate,2) %in% rates[5],year < 2050, rep == 1*1000 + 2*100 + wh[5]) %>% 
+        mutate(harvest_rate = round(harvest_rate,2)) %>% 
+      #filter(rep == 1) %>% 
+       group_by(year,harvest_rate) %>%
+        summarise(mF921=median(mortality),
+                uF921=quantile(mortality,0.975),
+                lF921=quantile(mortality,0.025),
+                #mssb317 = quantile(ssb, 0.5),
+                uuF921=quantile(mortality,0.75),
+                llF921=quantile(mortality,0.25)) ) %>% 
+    mutate(mF921 = ifelse(year < 2020, NA, mF921),
+         mF519 = ifelse(year < 2020, NA, mF519),
+         mF317 = ifelse(year < 2020, NA, mF317),
+         mF215 = ifelse(year < 2020, NA, mF215),
+         mF113 = ifelse(year < 2020, NA, mF113))
+
+
+f_progn.plot <- 
+  f_dat %>% 
+  left_join(frates) %>% 
+  ggplot(aes(year,mF)) + 
+  geom_ribbon(aes(ymin=lF,ymax=uF),fill='gold',alpha=0.5) + 
+  geom_ribbon(aes(ymin=llF,ymax=uuF),fill='gold',alpha=0.5) + 
+  geom_line() + 
+  geom_line(aes(y=mF113),lty=6) +
+  geom_line(aes(y=mF215),lty=5) +
+  geom_line(aes(y=mF317),lty=3) +
+  geom_line(aes(y=mF519),lty=4) +
+  geom_line(aes(y=mF921),lty=5) +
+  geom_vline(xintercept = 2019,lty=2) +
+  geom_hline(yintercept = f.lim, color = 'red', lty = 1) +
+  geom_hline(yintercept = f.pa,  color = 'red', lty = 2) +
+  geom_hline(yintercept = f.05_lims[1], color = 'deepskyblue') +
+  geom_hline(yintercept = f.05_lims[2], color = 'deepskyblue', lty = 2) +
+  geom_hline(yintercept = f.05_lims[3], color = 'deepskyblue', lty = 2) +
+  facet_wrap(~F,ncol=1) +
+  theme_light() + 
+  labs(title='Fishing mortality',x='Year',y='') +
+  #expand_limits(y=0) + 
+  xlim(2000, 2035) +
+  ylim(0,0.4)
+
+
+
+# 
+# f_progn.plot <- 
+#   res_by_year %>% 
+#   filter(year>2017) %>% 
+#   bind_rows(bootfit.igfs$res.by.year %>% 
+#               filter(grepl('mat',stock)) %>% 
+#               group_by(year) %>% 
+#               dplyr::summarise(mF=mean(F),
+#                         uuF=quantile(F,0.75),
+#                         llF=quantile(F,0.25),
+#                         uF = quantile(F,0.95),
+#                         lF = quantile(F,0,05)) %>% 
+#               right_join(expand.grid(year=1990:2019,
+#                                     rate=as.chararates))))%>% 
+# #  bind_rows(.id='rate') %>% 
+#   filter(rate %in% rates,year < 2050) %>% 
+#   #select(c(year,rate,)) %>% 
+#   ggplot(aes(year,mF)) + 
+#   geom_ribbon(aes(ymin=lF,ymax=uF),fill='gold',alpha=0.5) + 
+#   geom_ribbon(aes(ymin=llF,ymax=uuF),fill='gold',alpha=0.5) + 
+#   geom_line() + 
+#   geom_line(aes(y=F6),lty=2) +
+#   geom_line(aes(y=F542),lty=3) +
+#   geom_line(aes(y=F931),lty=4) +
+#   geom_vline(xintercept = 2017,lty=2) +
+#   geom_hline(yintercept = Hlim$mF,col='red')+
+#   geom_hline(yintercept = Hpa$mF,lty=2)+
+#   facet_wrap(~rate,ncol=1) +
+#   theme_light() + 
+#   labs(title='Fishing mortality',x='Year',y='') + 
+#   expand_limits(y=0)
+rec_dat <- 
+   res_withBtrigger$imm.rec %>% 
+#  bind_rows(.id='rate') %>% 
+  filter(round(harvest_rate,2) %in% rates,year < 2050) %>% 
+  mutate(rec = number) %>% 
+  mutate(harvest_rate = round(harvest_rate,2)) %>% 
+ group_by(year,harvest_rate) %>%
+  summarise(mrec=median(rec),
+                          urec=quantile(rec,0.975),
+                          lrec=quantile(rec,0.025),
+                          #mrec = quantile(rec, 0.5),
+                          uurec=quantile(rec,0.75),
+                          llrec=quantile(rec,0.25)) %>% 
+  left_join(res_withBtrigger$imm.rec %>% 
+      #  bind_rows(.id='rate') %>% 
+       mutate(rep = model*1000 + trial) %>%
+      filter(round(harvest_rate,2) %in% rates[1],year < 2050, rep == 1*1000 + 2*100 + wh[1]) %>% 
+        mutate(rec = number) %>% 
+        mutate(harvest_rate = round(harvest_rate,2)) %>% 
+        group_by(year,harvest_rate) %>%
+      summarise(mrec113=median(rec),
+                urec113=quantile(rec,0.975),
+                lrec113=quantile(rec,0.025),
+                #mrec113 = quantile(rec, 0.5),
+                uurec113=quantile(rec,0.75),
+                llrec113=quantile(rec,0.25)) ) %>% 
+  left_join(res_withBtrigger$imm.rec %>% 
+      #  bind_rows(.id='rate') %>% 
+       mutate(rep = model*1000 + trial) %>%
+      filter(round(harvest_rate,2) %in% rates[2],year < 2050, rep == 1*1000 + 2*100 + wh[2]) %>% 
+        mutate(rec = number) %>% 
+      #filter(rep == 1) %>% 
+        mutate(harvest_rate = round(harvest_rate,2)) %>% 
+      group_by(year,harvest_rate) %>%
+      summarise(mrec215=median(rec),
+                urec215=quantile(rec,0.975),
+                lrec215=quantile(rec,0.025),
+                #mssb113 = quantile(rec, 0.5),
+                uurec215=quantile(rec,0.75),
+                llrec215=quantile(rec,0.25)) ) %>% 
+    left_join(res_withBtrigger$imm.rec %>% 
+      #  bind_rows(.id='rate') %>% 
+       mutate(rep = model*1000 + trial) %>%
+      filter(round(harvest_rate,2) %in% rates[3],year < 2050, rep == 1*1000 + 2*100 + wh[3]) %>% 
+        mutate(rec = number) %>% 
+      #filter(rep == 1) %>% 
+        mutate(harvest_rate = round(harvest_rate,2)) %>% 
+        group_by(year,harvest_rate) %>%
+      summarise(mrec317=median(rec),
+                urec317=quantile(rec,0.975),
+                lrec317=quantile(rec,0.025),
+                #mrec317 = quantile(rec, 0.5),
+                uurec317=quantile(rec,0.75),
+                llrec317=quantile(rec,0.25)) ) %>% 
+      left_join(res_withBtrigger$imm.rec %>% 
+      #  bind_rows(.id='rate') %>% 
+       mutate(rep = model*1000 + trial) %>%
+      filter(round(harvest_rate,2) %in% rates[4],year < 2050, rep == 1*1000 + 2*100 + wh[4]) %>% 
+        mutate(rec = number) %>% 
+      #filter(rep == 1) %>% 
+        mutate(harvest_rate = round(harvest_rate,2)) %>% 
+        group_by(year,harvest_rate) %>%
+      summarise(mrec519=median(rec),
+                urec519=quantile(rec,0.975),
+                lrec519=quantile(rec,0.025),
+                #mrec519 = quantile(rec, 0.5),
+                uurec519=quantile(rec,0.75),
+                llrec519=quantile(rec,0.25)) ) %>% 
+      left_join(res_withBtrigger$imm.rec %>% 
+      #  bind_rows(.id='rate') %>% 
+       mutate(rep = model*1000 + trial) %>%
+      filter(round(harvest_rate,2) %in% rates[5],year < 2050, rep == 1*1000 + 2*100 + wh[5]) %>% 
+      mutate(rec = number) %>% 
+      #filter(rep == 1) %>% 
+        mutate(harvest_rate = round(harvest_rate,2)) %>% 
+        group_by(year,harvest_rate) %>%
+      summarise(mrec921=median(rec),
+                urec921=quantile(rec,0.975),
+                lrec921=quantile(rec,0.025),
+                #mrec921 = quantile(rec, 0.5),
+                uurec921=quantile(rec,0.75),
+                llrec921=quantile(rec,0.25)) )
+
+rec_progn.plot <- 
+ rec_dat %>% 
+  left_join(frates) %>% 
+  ggplot(aes(year,mrec/1e6)) + 
+  geom_ribbon(aes(ymin=lrec/1e6,ymax=urec/1e6),fill='gold',alpha=0.5) + 
+  geom_ribbon(aes(ymin=llrec/1e6,ymax=uurec/1e6),fill='gold',alpha=0.5) + 
+  geom_line() + 
+  geom_line(aes(y=mrec113/1e6),lty=6) +
+  geom_line(aes(y=mrec215/1e6),lty=5) +
+  geom_line(aes(y=mrec317/1e6),lty=3) +
+  geom_line(aes(y=mrec519/1e6),lty=4) +
+  geom_line(aes(y=mrec921/1e6),lty=5) +
+  geom_vline(xintercept = 2019,lty=2) +
+  facet_wrap(~F,ncol=1) +
+  theme_light() + 
+  labs(title='Recruitment',x='Year',y='') +
+  expand_limits(y=0) + 
+  xlim(2000, 2035)
+
+
+# rec_progn.plot <- 
+# res_by_year %>% 
+#   filter(rate %in% rates,year < 2050) %>% 
+#   select(rate,year,matches('rec')) %>%
+#   ggplot(aes(year,mrec/1e6)) + 
+#   geom_ribbon(aes(ymin=lrec/1e6,ymax=urec/1e6),fill='gold',alpha=0.5) + 
+#   geom_ribbon(aes(ymin=llrec/1e6,ymax=uurec/1e6),fill='gold',alpha=0.5) + 
+#   geom_line() + 
+#   geom_line(aes(y=rec6/1e6),lty=2) +
+#   geom_line(aes(y=rec542/1e6),lty=3) +
+#   geom_line(aes(y=rec931/1e6),lty=4) +
+#   geom_vline(xintercept = 2017,lty=2) +
+#   facet_wrap(~rate,ncol=1) +
+#   theme_light() + 
+#   labs(title='Recruitment (in millions)',x='Year',y='') + 
+#   expand_limits(y=0)
+
+gridExtra::grid.arrange(catch_progn.plot,ssb_progn.plot,f_progn.plot,rec_progn.plot,ncol=4)
+
+```
+
+
+
+
+
+<!-- <<Fdist,fig.height=8,fig.width=8,fig.lp='fig:',fig.cap="Ling in 5a. Distribution realised harvest rates as a function target harvest rates",echo=FALSE,warning=FALSE,message=FALSE,cache=TRUE>>= -->
+<!-- res_quick %>%  -->
+<!--   filter(year>2060) %>%  -->
+<!--   #filter(rate %in% rates) %>%  -->
+<!--   ggplot(aes(hr)) + geom_histogram(aes(y=..density..)) + -->
+<!--   theme_light() + #xlim(c(0.1,0.45)) +  -->
+<!--   #scale_fill_grey(name='Target harv. rate') + -->
+<!--   #theme(legend.position = c(0.9,0.7)) + -->
+<!--   labs(x='Realised harvest rate',y='Density') +  -->
+<!--   facet_wrap(~rate) + -->
+<!--   theme(strip.background = element_blank(), -->
+<!--         strip.text=element_blank()) + -->
+<!--   geom_label(data=data_frame(rate=rates), -->
+<!--              aes(label=rate),  -->
+<!--              x=-Inf,y=Inf,size=3,  -->
+<!--              vjust = 1.1,hjust=-0.1) + -->
+<!--   xlim(c(0,.75)) -->
+<!-- @ -->
+
+
+<!-- \begin{table}[!h] -->
+<!-- \vspace{1mm} -->
+<!-- \caption[] -->
+<!-- {Ling in 5a. Equilibrium averages of yield, fishing mortality (F at age $15^+$) spawning stock biomass (SSB),  recruitment and probility that SSB falls below either $B_{pa}$ or $B_{pa}$ at any point in time from forward projections of the stock status of ling. }\label{tbl:prognres} -->
+<!-- \vspace{2mm} -->
+<!-- \resizebox{\columnwidth}{!}{\centering -->
+<!-- \scriptsize -->
+<!-- \begin{tabular}{l| r r r r r r} -->
+<!-- \toprule -->
+<!-- Harvest rate & Eq. yield & F & SSB & Recruitment & $P(\exists y|SSB_y < B_{pa})$ & $P(\exists y|SSB_y < B_{lim})$ \\ \midrule -->
+<!-- <<echo=FALSE,results='asis',message=FALSE,warning=FALSE>>= -->
+<!-- res2 %>%  -->
+<!--   left_join(res_by_year %>%  -->
+<!--               filter(year>2060) %>%  -->
+<!--               group_by(rate) %>%  -->
+<!--               summarise(mFq5=mean(lF), -->
+<!--                         mFq95=mean(uF), -->
+<!--                         mrecq5=mean(lrec), -->
+<!--                         mrecq95=mean(urec))) %>%  -->
+<!--   transmute(harv.rate=as.numeric(rate), -->
+<!--             yield = sprintf('%.2f (%.2f,%.2f)',mlnd,mlndq5,mlndq95), -->
+<!--             F = sprintf('%.3f (%.3f,%.3f)',mF,mFq5,mFq95), -->
+<!--             ssb = sprintf('%.2f (%.2f,%.2f)',mssb,mssbq5,mssbq95), -->
+<!--             rec = sprintf('%.2f (%.2f,%.2f)',mrec/1e6,mrecq5/1e6,mrecq95/1e6),#) %>% #, -->
+<!--             ppa = sprintf('%.2f',pBpa), -->
+<!--             plim = sprintf('%.2f',pBlim)) %>%  -->
+<!--   filter(harv.rate < 0.6,harv.rate > 0.05) %>%  -->
+<!--   unite(col,matches("."),sep=' & ') %>%  -->
+<!--    (function(x){ -->
+<!--      paste(x$col,collapse = '\\\\ \n') -->
+<!--    }) %>%  -->
+<!--    paste0('\\\\') %>%  -->
+<!--    cat()  -->
+<!-- @ -->
+
+<!-- \bottomrule -->
+<!-- \end{tabular} -->
+<!-- \par} -->
+<!-- \end{table} -->
+
+
+`r pagebreak()`
+
+
+### Proposed target harvest rate
+ICES guidelines suggest that if $F_{p.05} < F_{msy}$, where $F_{p.05}$ is the maximal fishing rate whose median does not exceed a 5% annual risk of the simulated SSB series dropped below $B_{lim}$, then $F_{msy}$ used in the ICES advice rule should be lowered to $F_{p.05}$ from $F_{msy}$. In this case, it is lowered. Also, considering the candidate harvest rate for Greater silver smelt in 5a and 14, one may want to investigate the marginal gain of increasing the harvest rate in terms of equilibrium yields. 
+In addition, short term forward projections illustrated in Figure 31 indicate that 
+harvest rates will have adapted (on average) to their equilibrium catch levels within 4 decades from now. 
+<!-- Second, the harvest rates have a non-zero chance of exceeding the harvest rate and biomass reference points (as illustrated in fig. \ref{fig:ssbfor} and listed in table \ref{tbl:refpoint}) even at $H_{msy}$, where the probability of SSB going below $B_{lim}$ at any time during the forecast was 0.74, while $H=0.18$ has a probability of 0.05.     -->
+
+The proposed target harvest rate, of `r round(ftarget,2)` illustrated in fig. Figure 31, is considered consistent with the ICES MSY approach. The expected 5% and 95% percentiles of true fishing mortality values, when setting catches according `r round(f.05_lims[1],2)`, are `r round(f.05_lims[2],2)` and `r round(f.05_lims[3],2)` respectively, as illustrated by Figure 31.
+
+`r pagebreak()`
+**Table 4. Greater silver smelt in 5a and 14. Summary of reference points proposed. The fishing mortality is relative to the mean for ages 6-14.**
+
+
+Framework | Reference point| Value | Technical basis
+---------|---------------|---|-----------------
+MSY approach| MSY $B_{trigger}$| `r round(btrigger,2)` kt | $B_{pa}$
+-   | $F_{msy}$ | `r round(f.msy, 2)`| Median $F$ that maximises the median long-term catch in stochastic simulations with 7-year block-bootstrapped recruitment, scaled according to a hockey stick recruitment function with the breakpoint set to $B_{lim}$.
+-   | $F_{p.05}$ | `r round(f.05,2)`| The fishing mortality that has an annual 5% probability of  of SSB < $B_{lim}$.
+------|-------|------|----------------
+Precautionary approach | $B_{lim}$| `r round(blim,2)` kt| SSB(2003), corresponding to $B_{loss}$ as the fishing level in relation to $F_{msy}$ is unclear and model uncertainty high
+-   | $B_{pa}$  |`r round(bpa,2)` kt | $B_{lim}*e^{1.645*\sigma}$ where $\sigma=0.2$
+-   | $F_{lim}$ |`r round(f.lim,2)`| $F$ corresponding to 50% long-term probability of SSB > $B_{lim}$ 
+-    | $F_{pa}$ |`r round(f.pa,2)`| $F_{lim}/e^{1.645*\sigma}$ where $\sigma=0.25$
+-------|------|----|----------------
+MSY advice rule | $F_{msy}$ |  `r round(ftarget,2)`| $F$ such that $F\leq F_{msy}$, $F\leq F_{pa}$, and $F\leq F_{0.05}$, long-term yield is consistent with MSY while leading to high stock biomass 
+-  | MSY $B_{trigger}$| `r round(btrigger,2)`| Set as $B_{pa}$ 
+
+`r pagebreak()`
+
+
+
+<!-- <<mp.plot, fig.height=5,fig.width=10,fig.lp='fig:',fig.cap='Ling in 5a. Graphical presention of the proposed managment rule. The black solid line indicates the harvest rate relative to the >75cm biomass as a function of the SSB',echo=FALSE>>= -->
+<!-- Hmp <- 0.18 -->
+<!-- ggplot(aes(x,y), -->
+<!--        data=data_frame(x=c(0,bpa,bpa*5),y=c(0,Hmp,Hmp))) +  -->
+<!--   geom_path() +  -->
+<!--   expand_limits(y=Hmp*1.5) + -->
+<!--   theme_light() +  -->
+<!--   geom_vline(xintercept = bpa,lty=2) + -->
+<!--   geom_vline(xintercept = blim,col='red') + -->
+<!--   annotate('text',label=sprintf('Btrigger = %.2f',bpa),x=bpa*1.1,y=0.05,angle=90) +  -->
+<!--   labs(y='Harv. rate',x='SSB (in kt)')+ -->
+<!--   annotate('text',label=sprintf('Blim = %.2f',blim),x=blim*0.9,y=0.05,angle=90) + -->
+<!--   annotate('text',label=sprintf('Hmp = %.2f',Hmp),x=bpa*2,y=1.05*Hmp) -->
+<!-- @ -->
+
+`r pagebreak()`
+## Alternative reference point calculation
+
+In this section we explore what the reference points would be if the spawning stock recruitment relationship
+were taken to be a Category 6 pattern and historical fishing mortality were considered low. See section
+*Setting $B_{loss}$ , $B_{lim}$ , and $B_{pa}$*.
+
+
+```{r yieldwithasserr_alt, fig.width = 6, echo = FALSE}
+  knitr::include_graphics(paste0(base_dir,'/yield_plot.png'), dpi = 100)
+```
+
+``` {r yieldwithasserrwithBtrigger_alt, fig.width = 6, echo = FALSE, fig.cap = 'Long-term yield and SSB from simulations. Median yield and SSB results from projections are shown by the black curves. Outer edges of the ribbons (outlined by orange dashed lines) indicate the 5th - 95th percentile range. Overlaid additional yellow  are the 15th - 85th percentile and 25th - 75th percentile ranges (indicated by progressively darker yellow and orange-dashed edges moving toward the median). Vertical lines: Fmsy is the blue dashed line, Fpa is the red dashed line, Flim is the solid red line, Fp05 is the black solid line. Horizontal lines: Blim is the red solid line; Bpa is the red dashed line. Top panels include assessment error; bottom panels include assessment error and have Btrigger implemented.'}
+  knitr::include_graphics(paste0(base_dir,'/yield_plotwithBtrigger.png'), dpi = 100)
+
+load(paste0(base_dir,'/ref_points.Rdata'))
+
+```
+
+**Table 5. Greater silver smelt in 5a and 14. Summary of alternative reference points proposed. The fishing mortality is relative to the mean for ages 6-14.**
+
+
+Framework | Reference point| Value | Technical basis
+---------|---------------|---|-----------------
+MSY approach| MSY $B_{trigger}$| `r round(btrigger,2)` kt | $B_{pa}$
+-   | $F_{msy}$ | `r round(f.msy, 2)`| Median $F$ that maximises the median long-term catch in stochastic simulations with 7-year block-bootstrapped recruitment, scaled according to a hockey stick recruitment function with the breakpoint set to $B_{lim}$.
+-   | $F_{p.05}$ | `r round(f.05,2)`| The fishing mortality that has an annual 5% probability of  of SSB < $B_{lim}$.
+------|-------|------|----------------
+Precautionary approach | $B_{lim}$| `r round(blim,2)` kt| $B_{pa}/e^{1.645*\sigma}$ where $\sigma=0.2$
+-   | $B_{pa}$  |`r round(bpa,2)` kt | SSB(2003), corresponding to $B_{loss}$ as historical fishing in relation to $F_{msy}$ is considered low
+-   | $F_{lim}$ |`r round(f.lim,2)`| $F$ corresponding to 50% long-term probability of SSB > $B_{lim}$ 
+-    | $F_{pa}$ |`r round(f.pa,2)`| $F_{lim}/e^{1.645*\sigma}$ where $\sigma=0.25$
+-------|------|----|----------------
+MSY advice rule | $F_{msy}$ |  `r round(ftarget,2)`| $F$ such that $F\leq F_{msy}$, $F\leq F_{pa}$, and $F\leq F_{0.05}$, long-term yield is consistent with MSY while leading to high stock biomass 
+-  | MSY $B_{trigger}$| `r round(btrigger,2)`| Set as $B_{pa}$ 
+
+`r pagebreak()`
+
+## Application of reference points in the advice rule
+
+The decision which allocates catches to the fleets requires 1) an expected quanitity of catch to be removed that will complete total catch removals for the current fishing season (not implemented currently, but will be for assessment purposes, 2) a 1-year projection to determine the amount of biomass avaible to fish, and 3) application of projected fishing effort according to $F_{msy}$ to determine the expected catch from fishing at this level. The expected catch is then obtained by rearranging the fishing mortality equation and summing over all ages $a$, stocks $s$ and time steps $t$ to form the annual advised TAC:
+
+$$
+F_{target, asyt} = \frac{-\log(1.0 - \frac{C_{asyt}}{N_{asyt}})}{\Delta t}
+$$
+$$
+TAC_y = \sum_{ast} C_{y} = \sum_{ast} (e^{(F_{target, asyt}\Delta t} +1) N_{asyt}  = C_{asyt}
+$$
+while $SSB_y > B_{pa}$,  
+$$
+TAC_y = C_{asyt}\frac{SSB_y}{B_{trigger}}
+$$
+while $B_{trigger} \leqslant SSB_y < B_{lim}$, and 
+$$
+TAC_y = 0
+$$
+while $B_{lim} \leqslant SSB_y$
+
+Because age 1 recruitment estimates are highly uncertain from the the most recent three years, it is proposed to use the geometric mean of the three years previous to these values (e.g., for 2020, this would be the geometric mean of age 1 recruitment estimates from years 2014 - 2016). It will also be assumed that the catches used in short-term projections to fill in the catches expected to be observed for the rest of the current fishing season will be evenly distributed over the last two quarters and be set such that the TAC for the current fishing year is filled. In advice sheets, it is planned that short-term projection scenarios will include fishing at $F_{msy}$ as implemented in the ICES advice rule, $F_{pa}$, $F_{lim}$, and $F=0$.
+
+## Conclusions
+The gadget model presented here captures the overall trends in the data, and in spite of minor misfits the
+model is usable for assessing the stock and to base advice to managers. However, in a complicated integrated
+model setting that has many parameters and many data-sets of varying quality, such as the Gadget model, it
+is to be expected that there may be problems with some parameters and fit to some data sets.
+
+
+Most parameters are well defined except for the beta-binomial parameter that affects the degree of variation
+in growth implemented from one time-step to the next. This parameter is often not well defined in Gadget
+models because there are multiple sources of variation control variability in growth, including standard
+deviation in recruitment length and the fixed parameter in the beta-binomial distribution that controls the
+number of maximum length group steps that can be taken in a single time step.
+
+A number of growth parameters are highly correlated in the bootstraps, including $L_{inf}$ and $k$ from the Von Bertalanffy growth equation and the length and standard deviations at recruitment $l_0$ and $\sigma_0$. Although correlations in growth parameters are not unexpected, resulting growth patterns should be scrutinized annually to ensure that these constraints do not add bias to the model, as growth is highly influential in population dynamics. Under current model settings and data sources, the predicted mean growth and variation fit patterns in the data quite well, so they are not considered a problem, but should be evaluated in the next benchmark. In addition, the apparent shift in growth pattern found in the past two years of data should be investigated in the next benchmark if it is found to continue.
+
+The main problem in the model in terms of its utility for providing advice is its high uncertainty in biomass
+levels and trends. This is likely to be a direct result of the high index variability itself, as well as high
+uncertainty in whether the stock has actually been increasing in biomass levels and recruitment over the
+most recent 6 years or not, as uncertainty in these values naturally increase in the latest years of the model. That is, for the most recent years, less data are available on recruitment and age composition, causing higher
+levels of uncertainty. According to the model, Greater silver smelt in 5a and 14 has experienced increased
+recruitment in recent years. This pattern could be due to migration or increased productivity, but are likely
+due to environmental changes as several other species have exhibited similar trends in these years (e.g., cod,
+ling, etc.). However, this increase and high recruitment uncertainty in recent years should be taken into
+account when projecting the stock for annual advice: overly optimistic mean recruitment should be avoided. In addition, $F_{p05}$ was found to be less than the estimated $F_{msy}$, suggesting that there is a less likely, but still possible, situation that the stock is not actually increasing, which can lead to a high probability of the estimated $F_{msy}$, when applied, reducing SSB below $B_{lim}$. Therefore, the upward trend in biomass and recruitment found in the final 6 years of the model should be taken with caution, as it may be corrected downwards in the next few assessment cycles. 
+
+However, as a result of this uncertainty, precautionary reference points control the proposed ICES MSY advice rule: $F_{p05}$ controls $F_{msy}$ and MSY $B_{trigger}$ was set using $B_{lim}$. Therefore the proposed MSY advice rule takes into account this large amount of uncertainty, and is deemed precautionary and an improvement from the category 3 assessment currently used. Should methods be found to reduce the uncertainty in the model during the next benchmark (e.g., methods for smoothing input survey index data, etc.), and biomass and recruitment appear to continue in an upward trends, then reference point definitions could be revisited.
+
+
+
+
+
+
+
+## References

@@ -2,7 +2,7 @@
 title: A Gadget assessment of Greater silver smelt *Argentina silus*
   in Icelandic and Greenlandic waters (ICES division 27.5a and 27.14) Part I - base model  
 author: "Pamela J. Woods and Bjarki Þ. Elvarsson"
-date: "02/02/2020"
+date: "Marine and Freshwater Research Institute, Reykjavík, Iceland"
 output:
   pdf_document: default
   html_document:
@@ -15,73 +15,75 @@ bibliography: library.bib
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 library(tidyverse)
 library(mfdb)
+library(kableExtra)
 mdb<-mfdb('Iceland')
 library(Rgadget)
 
-fit_no_igfs<- gadget.fit( gd = '/net/hafkaldi/export/home/haf/pamela/19-gss/exploratory_models/gadget/01-new_ass_no_igfs_mt_s5',
+base_dir <- '/net/hafkaldi/export/home/haf/pamela/19-gss/exploratory_models/gadget/01-new_ass_no_igfs_mt_s6'
+
+fit<- gadget.fit( gd = base_dir,
                           recruitment_step_age	= tibble(stock = 'gssimm', age = 5, step = 1), 
                           f.age.range = data.frame(stock = c('gssmat', 'gssimm'), age.min = c(6,6), age.max = c(14,14)),
-                    wgts = 'WGTS2')
-
-fit_no_igfs_age1<- gadget.fit( gd = '/net/hafkaldi/export/home/haf/pamela/19-gss/exploratory_models/gadget/01-new_ass_no_igfs_mt_s5',
-                          recruitment_step_age	= tibble(stock = 'gssimm', age = 1, step = 1), 
-                          f.age.range = data.frame(stock = c('gssmat', 'gssimm'), age.min = c(6,6), age.max = c(14,14)),
-                    wgts = 'WGTS2')
+                    wgts = 'WGTS')
 
 
-tmp_fit_no_igfs <- plot(fit_no_igfs,data='catchdist.fleets')
+tmp_fit <- plot(fit,data='catchdist.fleets')
 
-  R1 <- gadget.fit( gd = '/net/hafkaldi/export/home/haf/pamela/19-gss/exploratory_models/gadget/01-new_ass_no_igfs_mt_s5', wgts = NULL,
-                   main.file = 'Retro2/R1/main', 
-                   params.file = 'Retro2/params.retro.1',
-                   recruitment_step_age	= tibble(stock = 'gssimm', age = 5, step = 1), 
-                   f.age.range = data.frame(stock = c('gssmat', 'gssimm'), age.min = c(6,6), age.max = c(14,14)))
-  R2 <- gadget.fit( gd = '/net/hafkaldi/export/home/haf/pamela/19-gss/exploratory_models/gadget/01-new_ass_no_igfs_mt_s5',wgts = NULL,
-                   main.file = 'Retro2/R2/main', 
-                   params.file = 'Retro2/params.retro.2',
-                   recruitment_step_age	= tibble(stock = 'gssimm', age = 5, step = 1), 
-                   f.age.range = data.frame(stock = c('gssmat', 'gssimm'), age.min = c(6,6), age.max = c(14,14)))
-  R3 <- gadget.fit( gd = '/net/hafkaldi/export/home/haf/pamela/19-gss/exploratory_models/gadget/01-new_ass_no_igfs_mt_s5',wgts = NULL,
-                   main.file = 'Retro2/R3/main', 
-                   params.file = 'Retro2/params.retro.3',
-                   recruitment_step_age	= tibble(stock = 'gssimm', age = 5, step = 1), 
-                   f.age.range = data.frame(stock = c('gssmat', 'gssimm'), age.min = c(6,6), age.max = c(14,14)))
-  R4 <- gadget.fit( gd = '/net/hafkaldi/export/home/haf/pamela/19-gss/exploratory_models/gadget/01-new_ass_no_igfs_mt_s5',wgts = NULL,
-                   main.file = 'Retro2/R4/main', 
-                   params.file = 'Retro2/params.retro.4',
-                   recruitment_step_age	= tibble(stock = 'gssimm', age = 5, step = 1), 
-                   f.age.range = data.frame(stock = c('gssmat', 'gssimm'), age.min = c(6,6), age.max = c(14,14)))
-  R5 <- gadget.fit( gd = '/net/hafkaldi/export/home/haf/pamela/19-gss/exploratory_models/gadget/01-new_ass_no_igfs_mt_s5',wgts = NULL,
-                   main.file = 'Retro2/R5/main', 
-                   params.file = 'Retro2/params.retro.5',
-                   recruitment_step_age	= tibble(stock = 'gssimm', age = 5, step = 1), 
-                   f.age.range = data.frame(stock = c('gssmat', 'gssimm'), age.min = c(6,6), age.max = c(14,14)))
+  # R1 <- gadget.fit( gd = base_dir, wgts = NULL,
+  #                  main.file = 'Retro/R1/main', 
+  #                  params.file = 'Retro/params.retro.1',
+  #                  recruitment_step_age	= tibble(stock = 'gssimm', age = 5, step = 1), 
+  #                  f.age.range = data.frame(stock = c('gssmat', 'gssimm'), age.min = c(6,6), age.max = c(14,14)))
+  # R2 <- gadget.fit( gd = base_dir,wgts = NULL,
+  #                  main.file = 'Retro/R2/main', 
+  #                  params.file = 'Retro/params.retro.2',
+  #                  recruitment_step_age	= tibble(stock = 'gssimm', age = 5, step = 1), 
+  #                  f.age.range = data.frame(stock = c('gssmat', 'gssimm'), age.min = c(6,6), age.max = c(14,14)))
+  # R3 <- gadget.fit( gd = base_dir,wgts = NULL,
+  #                  main.file = 'Retro/R3/main', 
+  #                  params.file = 'Retro/params.retro.3',
+  #                  recruitment_step_age	= tibble(stock = 'gssimm', age = 5, step = 1), 
+  #                  f.age.range = data.frame(stock = c('gssmat', 'gssimm'), age.min = c(6,6), age.max = c(14,14)))
+  # R4 <- gadget.fit( gd = base_dir,wgts = NULL,
+  #                  main.file = 'Retro/R4/main', 
+  #                  params.file = 'Retro/params.retro.4',
+  #                  recruitment_step_age	= tibble(stock = 'gssimm', age = 5, step = 1), 
+  #                  f.age.range = data.frame(stock = c('gssmat', 'gssimm'), age.min = c(6,6), age.max = c(14,14)))
+  # R5 <- gadget.fit( gd = base_dir,wgts = NULL,
+  #                  main.file = 'Retro/R5/main', 
+  #                  params.file = 'Retro/params.retro.5',
+  #                  recruitment_step_age	= tibble(stock = 'gssimm', age = 5, step = 1), 
+  #                  f.age.range = data.frame(stock = c('gssmat', 'gssimm'), age.min = c(6,6), age.max = c(14,14)))
+  # 
+  # retro.fit <- bind.gadget.fit(R1,R2,R3,R4,R5)
   
-  retro.fit <- bind.gadget.fit(R1,R2,R3,R4,R5)
-  
-  save(retro.fit,file='/net/hafkaldi/export/home/haf/pamela/19-gss/exploratory_models/gadget/01-new_ass_no_igfs_mt_s5/retroFit.Rdata')
+ # save(retro.fit,file=paste0(base_dir,'/retroFit.Rdata'))
 
-#load('/net/hafkaldi/export/home/haf/pamela/19-gss/exploratory_models/gadget/01-new_ass_no_igfs_mt_s5/retroFit.Rdata')
-retro.igfs <- bind.gadget.fit(retro.fit,fit_no_igfs)
+load(paste0(base_dir, '/retroFit.Rdata'))
+retro.igfs <- bind.gadget.fit(retro.fit,fit)
 names(retro.igfs$res.by.year)[1] <- 'model1'
 rm(retro.fit)
 
 
-
+pagebreak <- function() {
+  if(knitr::is_latex_output())
+    return("\\newpage")
+  else
+    return('<div style="page-break-before: always;" />')
+}
 
 ```
 
 ## Introduction
 
-The purpose of this document is to present the best Gadget models explored as potential category 1 assessments for the 2020 ICES benchmark for Greater silver smelt *Argentina silus* in Icelandic and Greenlandic waters in ICES divisions 27.5a and 14 (WKGSS2020). Gadget models were explored because although there is relatively plentiful data available for this species (see main document WKGSS 2020), explorations using age-based methods showed very uncertain results, possibly as a result of uncertainty in age-length keys and uncertainty in ageing in combination with slow growth. These features are common in deepwater species and often presents a difficulty in that cohorts are not easily followed in length distributions. Greater silver smelt in 27.5a and 14 are no exception to this problem and show little cohort structure (main document WKGSS 2020, section ...). The Gadget modeling framework has, however, been successful as a category 1 assessment framework with similarly data-challenged deepwater species (e.g., tusk *Brosme brosme* and ling *Molva molva* in Ices division 27.5a nad 14). 
+The purpose of this document is to present the best Gadget models explored as potential category 1 assessments for the 2020 ICES benchmark for Greater silver smelt *Argentina silus* in Icelandic and Greenlandic waters in ICES divisions 27.5a and 14 (WKGSS2020). Gadget models were explored because although there is relatively plentiful data available for this species (see main document WKGSS 2020), explorations using age-based methods showed very uncertain results, possibly as a result of uncertainty in age-length keys and uncertainty in ageing in combination with slow growth. These features are common in deepwater species and often present a difficulty in that cohorts are not easily followed in length or age distributions. Greater silver smelt in 27.5a and 14 are no exception to this problem and show little cohort structure (main document WKGSS 2020, section XXX). The Gadget modeling framework has, however, been successful as a category 1 assessment framework with similarly data-challenged deepwater species (e.g., tusk *Brosme brosme* and ling *Molva molva* in ICES division 27.5a and 14 @wkicemse2017, @elvarsson2018pushing). 
 
-Gadget stands for the "Globally applicable  Area
-Disaggregated  General  Ecosystem  Toolbox", which is a statistical
+Gadget stands for the "Globally applicable  Area Disaggregated  General  Ecosystem  Toolbox", which is a statistical
 model of marine ecosystems (previously known as BORMICON
 [@stefansson1997bormicon] and 
-Fleksibest [@guldbrandsen2002fleksibest]). Gadget is an length- and age-based, forward-simulation
+Fleksibest [@guldbrandsen2002fleksibest]). Gadget is a length- and age-based, forward-simulation
 modeling framework. Models are coupled with an extensive set of data comparisons and
-optimisation routines so that paramters describing processes within the simulation, including ageing, growth, maturation, recruitment, and mortality, can be fit to data. 
+optimisation routines so that parameters describing processes within the simulation, including ageing, growth, maturation, recruitment, and mortality, can be fit to various sources of data in an integrated setting [@maunder2013review]. 
 Processes are generally modeled as length-dependent, but age and other characteristics (e.g., maturity, gender, stock) are tracked in the simulation model, enabling data comparisons with observations at length and/or age. The framework is capable of generating
 multi-area and multi-fleet models, including
 predation and mixed fisheries issues; however, it can also be used on a
@@ -96,8 +98,6 @@ given by [@guldbrandsen2002fleksibest].
 
 ## Methods
 
-In this document, two assessments are compared, although a variety of variations were attempted. The final two that were compared differ only in the inclusion of survey index data from the Icelandic spring survey (IGFS), in addition to autumn survey index (IAGS) data and compositional data (length distributions, age-length distributions, and maturity proportions) used to fit the models. Additional model variants attempted will be mentioned in the relevant sections below.
-
 ### Basic Gadget framework
 
 The Gadget framework is composed of 1) an ecosystem simulator, 2) a
@@ -105,14 +105,14 @@ likelihood function that takes the output from the ecosystem simulator
 and compares it to data, and 3) an objective function minimizer. The simulation
 model runs with defined functional forms and parameter values, and
 produces a modeled population, with modeled surveys and
-catches. These surveys and catches are compared against the available
+catches. Simulated values from these surveys and catches (i.e., quantities, composition proportions) are compared to the available
 data to produce a weighted likelihood score. Optimisation routines
 then attempt to find the best set of parameter values.
 
 #### The ecosystem simulator
 The ecosystem simulator is 
 structured to be highly flexible. Its
-fundamental unit, a 'stock' (or more accurately substock),
+fundamental unit, a "stock" (or more accurately substock),
 represents a group of individuals that is homogenous with respect to
 various processes (e.g., sex, maturity, location, life stage, etc.). 
 The stock unit within Gadget is simply a representation of the total
@@ -125,44 +125,42 @@ according to harvest rate and (length--based) selection functions.
 Processes in the ecosystem simulator include those that determine single-species
 population dynamics (recruitment, growth, maturation, aging, natural mortality, straying)
 as well as multi-species or multi-area process of migration or predation
-(including commercial fisheries). Likewise, these processes are also 'stock'-specific. 
-Individuals in different 'stocks', or stages of the life history of a particular species, would be
+(including commercial fisheries). Likewise, these processes are also "stock"-specific. 
+Individuals in different "stocks", or stages of the life history of a particular species, would be
 represented as separate stocks and "moved" between
 stocks when required. The simulation takes place in a set number of
 years and time steps within a year. The time-steps within the year allow for the
-emulation of the subannual cycles of the ecosystem, such as recruitment
+emulation of the subannual cycles of the ecosystem, such as seasonal recruitment
 and stock migrations.
 
 #### Gadget likelihood 
 Gadget's likelihood module processes the output from the ecosystem
-simulation based on aggregate dimensions. Within the likelihood module
+simulation based on user-defined aggregated dimensions. Within the likelihood module
 a number of datasets can be compared to the model output. In addition
 to a suite of functions designed to work with different types of
-survey indices, length distributions, tagging data, age and length
-distribution and maturity data, to name a few, can be contrasted to
+survey indices, other types of data, including length distributions, tagging data, age and length
+distributions, and maturity proportions to name a few, can be contrasted to
 the model output. Each data set is included at its own aggregation
-level, with missing data handled in a robust manner. That is, data can be grouped 
-arbitrarily in model - data comparisons; for example, the length of all individuals greater than a certain age can be compared. This feature can allow for maximizing the use of the highest quality data used for fitting the model to data. 
+level, with missing data handled in a robust manner. Simulated values can then be grouped 
+arbitrarily in the data comparisons; for example, the length of all individuals greater than a certain age can be compared to the equivalent value in the model. This feature can allow for maximizing the use of the highest quality data used for fitting the model to data. 
 
-In contrast with Gadget, age-based or stock production type stock
+In contrast with Gadget, age-based or stock-production-type stock
 assessments require data in a fairly processed form. For instance when
-using VPA one requires the total catch in numbers of individuals by
-age. However, apart from catches of fin whales in the North Atlantic
-[@iwcistfin2015], one rarely has all catches by numbers at
+using VPA, one requires the total catch in numbers of individuals by
+age. However, one rarely has all catches by numbers at
 age. Therefore the age distribution of catches needs to be
 approximated using some combination of age readings, length
 distributions, total catches in tons and weight at age (as noted
-in [@hirst2005estimating]) . In essence using a typical VPA requires a two-step modelling process, whereas Gadget models combines these two steps. 
+in [@hirst2005estimating]) . In essence using typical age-based methods requires a two-step modelling process, whereas Gadget models combines these two steps as an integrated model.
 
-In addition, the inclusion of multiple data sources in the modeling framework requires weights applied to each data source to prevent the data source with the most number of data points, which may not reflect the highest quality or most important dat source, from dominating the likelihood function. This is a common problem with all assessments incorporating multiple sources of data. A solution to this problem is implemented here through the use of an iterative reweighting algorithm, described below. After weights are determined, the function minimizer can be applied.
+The inclusion of multiple data sources in the modeling framework requires weights to be applied to each data source to prevent the data source with the most number of data points, which may not reflect the highest quality or most important dat source, from dominating the likelihood function. This is a common problem with all integrated assessments incorporating multiple sources of data. A solution to this problem is implemented here through the use of an iterative reweighting algorithm, described below. After weights are determined, the function minimizer can be applied.
 
 #### The objective function minimizer
 
 Gadget's objective function minimizer, based on the negative log--likelihood, varies the
-model parameters, runs a full simulation, and calculates a new
-output. This process is repeated until a minimum is obtained. The total objective function to be minimised is a weighted sum of the
-different components.  The estimation could be difficult due to groups
-of correlated parameters or multiple local optima. To address these issues Gadget has three alternative optimising algorithms built in, a wide
+model parameters, runs a full simulation, calculates a new
+output, and the negative log--likelihood associated with those parameters. The new parameter set is accepted or rejected according to the change in the negative log--likelihood and the implemented algorithm routine. This process is repeated until a minimum is obtained. In practice, however, the estimation can be difficult due to groups
+of correlated parameters or multiple local optima. To address these issues Gadget has three alternative optimising algorithms built in: a wide
 area search simulated annealing [@corana1987minimizing],
 a local search Hooke and Jeeves algorithm
 [@HookeJeeves1961] and finally one based on the
@@ -196,7 +194,7 @@ The population is governed by the following equations:
 
 where $G^{l}_{l'}$ is the proportion in length-group $l$ that 
 has grown $l - l'$ length-groups in $\Delta t$, $C_{falsyt}$ denotes the
-catches by fleet $f \in \{S,A, C\}$, i.e. the spring survey, autumn survey and commercial fleets, $M_a$ the
+catches by fleet $f \in \{A, C\}$, i.e. autumn survey and commercial fleets, $M_a$ the
 natural mortality at age $a$ and $I_{al'lsyt}$ denotes the movement of fish at length $l'$ from
 the immmature to the mature stock component at length $l$ . Here $l$ is used interchangeably as either the length-group or the midpoint of the length interval for that particular length-group,
 depending on the context.The survey 
@@ -207,8 +205,8 @@ length distribution predictions.
 #### Growth
 Growth in length is modeled as a two--stage process, an average length
 update in $\Delta t$ and a growth dispersion around the mean
-update (as described in ][@stefansson05bbin].
-Average length update is modeled by calculating the mean growth for each length
+update (as described by @stefansson05bbin).
+The average length update is modeled by calculating the mean growth for each length
 group for each time step, using a parametric
 growth function. In the current 
 model a simplified form of the Von Bertanlanffy function has been
@@ -222,8 +220,8 @@ where $l_\infty$ is the terminal length and $k$ is the annual growth rate.
 Then the length distributions are updated
 according to the calculated mean growth by allowing some portion of
 the fish to have no growth, a proportion to grow by one length group
-and a proportion two length groups etc.  How these proportions are
-selected affects the spread of the length distributions but these two
+and a proportion two length groups etc. How these proportions are
+selected affects the spread of the length distributions, but these two
 equations must be satisfied:
 
 \begin{equation}\nonumber
@@ -235,7 +233,7 @@ and
 \end{equation}  
 
 Here $\Delta l$ is the calculated mean growth and $p_{il}$ is the
-proportion of fish in length group $l$ growing $i$ length groups.
+proportion of fish in length group $l$ growing $i$ length groups. 
 Here the growth is dispersed according to a beta--binomial
 distribution parametrised by the following equation: 
 \begin{equation}\label{eq:betabinom}
@@ -253,15 +251,15 @@ number of length-groups grown.
 
 
 The weight, $W_{sl}$, at length-group $l$ is calculated according to
-the following stock component specific length -- weight relationship: 
+the following stock-specific ($s$) length -- weight relationship: 
 \begin{equation}\label{eq:lw}
 W_{sl} = \mu_s l^{\omega_s}
 \end{equation} 
 
 
 #### Recruitment and initial abundance
-Gadget allows for a number of relationships between stock recruitment
-and the size of the spawning stock to be defined. However in this
+Gadget allows for a number of relationships between the size of the spawning stock 
+and generated recruitment to be defined. However in this
 model the number of recruits each year, $R_y$, is estimated
 within the model as an estimated parameter. 
 
@@ -269,10 +267,10 @@ Recruitment enters the population according to:
 \begin{equation}\label{eq:rec}
   N_{a_{min}l0yt'} = R_{y} p_l
 \end{equation}
-where $t'$ denotes the recruitment time-step and  $p_l$ is the proportion
+where $t'$ denotes the recruitment time-step, 0 denotes the immature stock, and $p_l$ is the proportion
 in length-group $l$ that is recruited. $p_l$ is determined by a normal
 density with mean length set according to eq. \ref{eq:vonB} where the initial length $l_0$ at age 1 \footnote{$l_0$ as a one to one mapping with $t_0$ used in 
-a typical von Bertalanffy growth model} and variance $\sigma^2_{3}$. 
+a typical von Bertalanffy growth model} and variance $\sigma^2_{0}$. 
 
 A simple formulation of initial abundance in numbers is used for
 each age group in length-group $l$: 
@@ -280,23 +278,23 @@ each age group in length-group $l$:
 N_{als11} = \nu_{as} q_{al}    
 \end{equation}
 where $\nu_{as}$ is the initial number at age $a$ in the initial
-year of stock $s$ and $q_l$ the proportion at length-group $l$ which is determined
+time step $1$ and year $1$ of stock $s$ and $q_l$ the proportion at length-group $l$ which is determined
 by a normal density with a mean according to the growth model in
-equation __ and variance $\sigma_a^2$, with a starting length according as $l_0$ (length at age 1). 
+equation 2 with a starting length according as $l_0$ (length at age 1), and variance $\sigma_a^2$.
 
 #### Maturation
-Two stage maturity is modeled and represented by the two stock
+Two-stage maturity is modeled and represented by the two stock
 components. Numbers of immature fish are stored in the 'immature' stock component until they mature, at which point they are moved to the 'mature' stock component. Movement from the immature to mature stock component is formulated as
 \begin{equation}\label{eq:mat}
   I_{al'lsyt} = \left\{ \begin{matrix}
-      N_{al'0y,t-1}\times m_{l'}^{l} & \textup{if s
+      N_{al'sy,t-1}\times m_{l'}^{l} & \textup{if s
       = 1 and t > 1} \\
-    N_{al'0y-1,T}\times m_{l'}^{l} & \textup{if s
+    N_{al'sy-1,T}\times m_{l'}^{l} & \textup{if s
       = 1 and t = 1} \\
     
-    - N_{al'0y,t-1}\times m_{l'}^{l} & \textup{if s
+    - N_{al'sy,t-1}\times m_{l'}^{l} & \textup{if s
       = 0 and t > 1}\\
-    - N_{al'0y-1,T}\times m_{l'}^{l} & \textup{if s
+    - N_{al'sy-1,T}\times m_{l'}^{l} & \textup{if s
       = 0 and t = 1}
 
  
@@ -305,22 +303,21 @@ components. Numbers of immature fish are stored in the 'immature' stock componen
 
 
 
-where $s=0$, as noted above, denotes the immature stock component.  and
-$m_{l'}^{l}$ is the proportion of immatures that mature between the
-lengths $l$ and $l'$ defined as:
+where $s=0$, as noted above, denotes the immature stock component.  $s=1$ denotes the mature stock component, $T$
+is the final time step in a year, and
+$m_{l'}^{l}$ is the proportion of immatures that mature from $l'$ to $l$ defined as:
 
 
 \begin{equation}
-m_{l'}^l = \frac{\lambda (l-l')}{1 + e^{-\lambda (l - l_{50})}}
+m_{l'}^l = \frac{\lambda (l-l')}{1 + e^{-\lambda (l - l_{50,y})}}
 \end{equation}
 
 
-However, when individuals of the immature stock component reach the maximal age of the immature stock (in this case age 14) than those individuals are all moved to the mature stock component. Note that the parameter $l_{50,y}$ varies annually. This was included after initial explorations showed substantial changes in maturity over time (main document, WKGSS 2020, section...).
+In addition, when individuals of the immature stock component reach the maximal age of the immature stock (in this case age 14), then those individuals are all moved to the mature stock component when they age. Therefore, all fish 15+ are mature. Note also that the parameter $l_{50,y}$ varies annually. This was included after initial explorations showed substantial changes in maturity over time (main document, WKGSS 2020, section...).
 
 #### Fleet operations
-Catches are simulated based on reported total landings and a length
-based suitability function for each of the fleets (commercial
-fleets and surveys). Total landings are assumed to
+Catches are simulated based on reported total landings and a length--based suitability function for each of the fleets (in this case, a single commercial
+fleet and a single survey). Total landings are assumed to
 be known and the total biomass is simply offset by the landed
 catch. The catches for length-group $l$ , fleet $f$ at year $y$ and
 time-step $t$ are calculated as  
@@ -340,7 +337,7 @@ The effective fishing mortality at age and at time step $t$ is calculated accord
 F_{asyt} = \frac{-\log(1.0 - \frac{C_{asyt}}{N_{asyt}})}{\Delta t}
 \end{equation}
 
-where $C_{asyt} =\sum_{fl} C_{falsyt}$ and $N_{asyt} = \sum_l N_{alsyt}$. For greater silver smelt the reported $F_y$ is the average $F_a$ for ages 6 - 14, for that year. 
+where $C_{asyt} =\sum_{fl} C_{falsyt}$ and $N_{asyt} = \sum_l N_{alsyt}$. For greater silver smelt the reported mean fishing mortality in a given year $y$, $\bar{F_y}$,  is calculated as the average $F_{ay}$, summed over all stocks and time steps,  over ages 6 - 14 for that year.
 
 <!-- Harvest rate in terms of the reference biomass is calulated as: -->
 <!-- \begin{equation} -->
@@ -351,39 +348,32 @@ where $C_{asyt} =\sum_{fl} C_{falsyt}$ and $N_{asyt} = \sum_l N_{alsyt}$. For gr
 
 
 ### Observation model
-A significant advantage of using an age-length structured model is
+A significant advantage of using a length- and age-structured models is
 that the modeled output can be compared directly against a wide
 variety of different data sources. It is not necessary to convert
 length into age data before comparisons. Gadget can use various types
 of data that can be included in the objective function. Length
-distributions, age length keys/distributions, survey indices by length or age (fit_no_igfs abundance or biomass), CPUE
-data, mean length and/or weight at age, tagging data and stomach
-content data can all be used. 
-
-Importantly this ability to handle length data directly means that the model can be used for stocks such
-as greater silver smelt in 5a and 14 where age data is sparse and/or are unreliable. Length data 
-can be used directly for model comparison. The model is able to
-combine a wide selection of the available data by using a maximum
-likelihood approach to find the best fit to a weighted sum of the
-data-sets.
-
-In Gadget, data are assimilated using a weighted log--likelihood
-function. Here four types of data enter the likelihood, length based
+distributions, age-length keys or distributions, survey indices by length or age (abundance or biomass), CPUE
+data, mean length and/or weight at age, tagging data, and stomach
+content data can all be used. Importantly this ability to handle length data directly means that the model can be used for stocks such
+as greater silver smelt in 5a and 14 where age data is sparse and/or are unreliable. In the greater silver smelt model,, data are assimilated using a weighted log--likelihood
+function. Here four types of data enter the likelihood, length--based
 survey indices, maturity at length from the survey, length distributions from survey and commercial
-fleets and age -- length distribution from from the survey and commercial
+fleets and age -- length distributions from from the survey and commercial
 fleets.  
 
 
-In formulations below it is assumed that the compositional data are sampled at random, fit_no_igfs from the fishery and surveys, as this is how the sampling protocol is Icelandic waters is set up. Other forms of likelihoods are implemented in Gadget that can be used to address other types of sampling, e.g. length stratified sampling of maturity. 
+In formulations below it is assumed that the compositional data are sampled at random from the fishery and surveys, as this is how the sampling protocol is Icelandic waters is set up. Other forms of likelihoods are implemented in Gadget that can be used to address other types of sampling (e.g. length--stratified sampling). 
 
 #### Survey indices
-For each length range grouping ('slice', $g$) the survey index is compared to the modeled
+For each length-range grouping ('slice', $g$) the survey index is compared to the modeled
 abundance at year $y$ and time-step $t$ using: 
 \begin{equation}\label{eq:SSSI}
   l_{g}^{\textup{SI}} = \sum_{y} \sum_t (\log I_{gy} - (\log q_g + b_g \log \widehat{N_{gyt}}))^2 
 \end{equation}
 where $$\widehat{N_{gyt}} = \sum_{l\in g} \sum_a \sum_s N_{alsyt}$$
 
+The values for $l_{g}^{\textup{SI}}$ are values for observed survey index in numbers, whereas $\widehat{N_{gyt}}$ represent the simulated population numbers, $q_g$ is the slice--specific catchability, and $b_g$ is the slice-specific slope parameter (often fixed at 1).
 
 #### Fleet data
 Length distributions are compared to predictions using
@@ -396,7 +386,7 @@ $$\pi_{flyt} = \frac{\sum_a\sum_s O_{falsyt}}{\sum_{a'}  \sum_{l'}\sum_sO_{fa'l'
 and 
 $$\hat{\pi}_{lyt} = \frac{\sum_a  \sum_s C_{falsyt}}{\sum_{a'}
   \sum_{l'}\sum_s C_{fa'l'syt}}$$ 
-i.e the observed and modeled proportions in length-group $l$ respectively
+represent respectively the observed and modeled proportions in length-group $l$ 
 at year $y$ and time-step $t$. Similarly age -- length data are
 compared:  
 \begin{equation}\label{eq:SSalk}
@@ -408,7 +398,7 @@ and
 $$\hat{\pi}_{falyt} = \frac{\sum_s C_{falsyt}}{\sum_{a'}
   \sum_{l'}\sum_s C_{fa'l'syt}}$$ 
   
-Length at maturity comparison uses the number fish of which maturity status has been assigned that are observed in a given fishery or a survey. The observed
+A length at maturity comparison uses the number fish mature versus immature that are observed in a given fishery or a survey. The observed
 proportions are compared to the modelled proportion using sum of
 squares: 
 \begin{equation}\label{eq:SSmat}
@@ -421,46 +411,50 @@ and
 $$\hat{\pi}_{flyt} = \frac{\sum_a  C_{fal1yt}}{\sum_{a'}
   \sum_{l'}\sum_sC_{fa'l'syt}}$$ 
   
-i.e. the observed and modelled proportions of greater silver smelt in length group $l$ and and mature, in year $y$ and timestep $t$, and where the fleet $f$ corresponds to the survey.
+represent the observed and modelled proportions of individuals respectively in length group $l$ in year $y$ and timestep $t$, and where the fleet $f$ corresponds to the survey.
 
   
 ### Order of calculations
 
 The order of calulations is as follows:
+
 1. **Printing:** model output at the beginning of the time-step
+
 2. **Consumption:** mainly fleet harvesting
+
 3. **Natural mortality:** Natural mortality is applied after consumption
-4. **Growth and maturation:** length update is applied and maturing fish moved from one stock component to the other.
+
+4. **Growth and maturation:** length update is applied and maturing fish moved from one stock component to the other
+
 5. **Spawning and recruitment:** New individuals enter the immature stock component
-6. **Likelihood comparison:** likelihood score is calculated here, note that the comparison is based on the modeled processes in previous steps
+
+6. **Likelihood comparison:** likelihood score is calculated here, note that the comparison is 
+   based on the modeled processes in previous steps
+
 7. **Printing:** model output at the end of the time-step
-8. **Ageing:** if this is the end of year the age is increased
+
+8. **Ageing:** if this is the end of year, the age is increased
 
 
 ### Iterative re--weighting
 
-The total objective function used the modeling process combines
-equations to using the following formula:
+The total objective function combines the above likelihood 
+equations into the following formula:
 
 
 \begin{equation}\label{eq:loglik}
 l^{{T}} = \sum_g  w_{gf}^{{SI}}
-l_{g,S}^{{SI}} + \sum_{f\in \{S,A,C\}} \left(
+l_{g,S}^{{SI}} + \sum_{f\in \{A,C\}} \left(
   w_{f}^{{LD}}  l_{f}^{{LD}} + w_{f}^{{AL}}
   l_{f}^{{AL}}\right) + w^{{M}}l^{{M}}
 \end{equation}
 
-where $f=S$, $A$, or $C$ denotes the spring survey, autumn survey and commercial fleets respectively (See subsection )
+where $f=A$, or $C$ denotes the autumn survey and commercial fleets respectively
 and $w$'s are the weights assigned to each likelihood components. 
 
-The weights, $w_i$, are necessary for several reasons. First of all it
-is used to to prevent some components from dominating the likelihood
-function. Another would be to reduce the effect of low quality
-data. It can be used as an a priori estimates of the variance in each
-subset of the data. 
-
-
-Assigning likelihood weights is not a trivial matter, has in the past
+The weights, $w_i$, are necessary for several reasons, including preventing some components from dominating the likelihood
+function and reducing the effect of low quality
+data. Howeer, assigning likelihood weights is not a trivial matter, and has in the past
 been the most time consuming part of a Gadget model. Commonly this has
 been done using some form of 'expert judgement'. General heuristics
 have recently been developed to estimated these weights
@@ -469,40 +463,41 @@ cite{stefansson2003issues}, and subsequently implemented in
 cite{taylor2007simple}, is used. 
 
 
-The general idea behind the iterative re-weighing is to assign the
+The general idea behind the iterative re-weighting is to assign the
 inverse variance of the fitted residuals as component weights. The
 variances, and hence the final weights, are calculated according the
 following algorithm: 
 
 1. Calculate the initial sums of squares (SS) given the initial
-  parametrization for all likelihood components. Assign the inverse SS
+  parameterization for all likelihood components. Assign the inverse SS
   as the initial weight for all likelihood components, resulting in a total initial score of 1 for each component. 
 2. For each likelihood component, do an optimization run with
   the initial weighted SS for that component set to 10000. Then estimate the
   residual variance using the resulting SS of that component divided
   by the degrees of freedom ($df^*$), i.e. $\hat{\sigma}^2 = \frac{SS}{df^*}$.
-3.  After the optimization set the final weight for that all
-  components as the inverse of the estimated variance from the step above
+3.  After the optimizations, set the final weight for that all
+  components as the inverse of the estimated variance from the step above.
   (weight $=1/\hat{\sigma}^2$). 
 
 
 The number of non-zero data-points ($df^{*}$) is used as a proxy
 for the degrees of freedom.
-While this may be a satisfactory proxy for larger data-sets it could be
-a gross overestimate of the degrees of freedom for smaller data-sets. 
+While this may be a satisfactory proxy for larger data sets, it could be
+a gross overestimate of the degrees of freedom for smaller data sets. 
 In particular, if the survey indices are weighed on their own while the
-yearly recruitment is estimated they could be over-fitted. In general 
-problem such as these can be solved with component grouping, that is
+yearly recruitment is estimated, they could be over-fitted, because yearly recruitment can simply be set 
+equal to the survey index series of the smallest-sized fish (divided by its catchability), or be back-calculated exactly from an older age class that has been set to equal a survey index representing a larger size class (divided by its catchability). In general,
+problems such as these can be solved with component grouping which assigns the same weight to all components within
+the grouping. That is,
 in step 2 the likelihood components that should behave similarly, such
-as survey indices representing similar age ranges, should be upweighted and optimized 
-together. This kind of grouping is used in the present model (See
-subsection ___). 
+as survey indices representing similar age ranges, would after grouping be upweighted and optimized 
+together. In the greater silver smelt model, all survey indices were grouped together to prevent overfitting.
 
 
 
 ### Optimisation
 The total objective function to be minimised is a weighted sum of the
-different components, as described in eq. __.  The estimation could be difficult due to groups
+different components, as described in eq. 17.  The estimation could be difficult due to groups
 of correlated parameters, multiple local optima or flat surfaces of the objective function in the search neighbourhood.  Therefore the
 optimisation procedure often involves a combination of the more robust
 simulated annealing, to make the results less sensitive to the initial
@@ -515,14 +510,15 @@ search  [@HookeJeeves1961] and
 finally one based on the Boyden-Fletcher-Goldfarb-Shanno algorithm
 hereafter termed BFGS. 
 
-The simulated annealing and Hooke-Jeeves algorithms are not gradient based,
+The simulated annealing and Hooke-Jeeves algorithms are not gradient--based,
 and there is therefore no requirement on the likelihood surface being
 smooth. Consequently neither of the two algorithms returns estimates
 of the Hessian matrix. Simulated annealing is more robust than Hooke
 and Jeeves and can find a global 
 optima where there are multiple optima but needs about 2-3 times the
 order of magnitude number of iterations than the Hooke and Jeeves
-algorithm.
+algorithm. To be effective at finding global minima, it accepts worse answers periodically in its search, 
+and therefore answers can appear random in a very flat gradient search.
 
 BFGS is a quasi-Newton optimisation method that
 uses information about the gradient of the function at the current
@@ -533,7 +529,7 @@ the two other algorithms implemented in Gadget, BFGS is very local
 search compared to simulated annealing and more computationally
 intensive than the Hooke and Jeeves.  However the gradient search in
 BFGS is more accurate than the step-wise search of Hooke and Jeeves and
-may therefore give a more accurate estimation of the optimum.  The
+may therefore give a better estimation of the optimum.  The
 BFGS algorithm used in Gadget is derived from that presented by
 [@bertsekas1999nonlinear].
 
@@ -541,20 +537,13 @@ BFGS algorithm used in Gadget is derived from that presented by
 The model is able to use all three algorithms in a single
 optimisation run, attempting to utilise the strengths of all. Simulated
 annealing is used first to attempt to reach the general area of a
-solution, followed by Hooke and Jeeves to rapidly home in on the local
+solution and make the results less sensitive to the initial
+(starting) values, followed by Hooke and Jeeves to rapidly home in on the local
 solution and finally BFGS is used for fine-tuning the optimisation. 
 This procedure is repeated several times to attempt to avoid
-converging to a local optimum. 
+converging to a local optimum.   
 
-The total objective function to be minimised is a weighted sum of the
-different components. 
-The estimation can be difficult because of some or groups of
-parameters are correlated and therefore the possibility of multiple
-optima cannot be excluded.  The optimisation was started with
-simulated annealing to make the results less sensitive to the initial
-(starting) values and then the optimisation was changed to Hooke and
-Jeeves when the 'optimum' was approached and then finally the BFGS was
-run in the end. The settings for the minimizers are listed in annex.
+Optimizations were performed for greater silver smelt using simulated annealing followed by a Hooke and Jeeves algorithm. Simulated annealing was run using 2 000 000 maximum simulated annealing iterations with 1e-03 as the minimum epsilon (halt criteria), 30 000 000 as the initial temperature 0.85 as the temperature reduction factor, 2 loops before temperature adjusted, 5 loops before step length adjusted, 1  as the initial value for the maximum step length, 2 as the step length adjustment factor, 0.3   and 0.7 as the lower and upper limits for ratio when adjusting step length respectively,  and 4  temperature loop checks.The Hooke and Jeeves algorithm was run with 100 000 maximum iterations, 1e-07 as the minimum epsilon (halt criteria), 0.5 as the resizing multiplier and 0 as the initial value for the step length. In practice, most of the optimization was completed by simulated annealing and both steps always converged. The BFGS algorithm was attempted as a third step in the optimization routine but was did not improve the fit appreciably so was removed.
 
 ### Bootstrap
 
@@ -710,21 +699,19 @@ test <-
 
 
 
-To estimate the uncertainty in the model parameters and derived quantities a 
-specialised boostrap for disparate datasets is used. The approach is based on 
-spatial subdivisions that can be considered to be i.i.d. Refer to 
-cite{Elvarsson2014} and cite{mfdb} for further implementation details. The bootstrapping approach consists of the following:
+To estimate the uncertainty in the model parameters and derived quantities, a 
+specialised boostrap for disparate datasets is used. The bootstrapping approach consists of the following:
 
 1.  The base data are stored in a standardized data base:
   + Time aggregation: 3 months
-  + Spatial aggregation: subdivision
+  + Spatial aggregation: areal subdivision (angular shapes indicated in Figure 1)
   + Further disaggregation is based on a range of categories
   including fishing gear, fishing vessel class, sampling type
   (e.g. harbour, sea and survey). A full listing of data types used in the
   case study can be found in table , these data are
-  stored subdivision dis-aggregated to allow for use in a bootstrap. 
+  stored subdivision disaggregated to allow for use in a bootstrap. 
 2. To bootstrap the data, the list of subdivisions, depicted in
-  fig. \ref{map2}, required for the
+  Figure 1, required for the
   model is sampled (with replacement) and stored. For a multi--area
   model one would conduct the re-sampling of subdivisions within each
   area of the model.  
@@ -732,58 +719,58 @@ cite{Elvarsson2014} and cite{mfdb} for further implementation details. The boots
   data (with replacement so the same data set may be repeated several times
   in a given bootstrap sample).
 4. For a single bootstrap Gadget model, the same list of re-sampled
-  subdivisions is used to extract each likelihood data set i.e.
-  length distributions, survey indices and age--length frequencies are
-  extracted from the same spatial definition.
+  subdivisions is used to extract each likelihood data set (i.e.,
+  length distributions, survey indices, and age--length frequencies are
+  extracted from the same spatial definition).
 5. A Gadget model is fitted to the extracted bootstrap data set
-  using the estimation procedure described above. 
+  using the estimation procedure described above. The entire estimation procedure 
+  is repeated for each bootstrap sample.  In particular, since the estimation procedure
+  includes an iterative re-weighting scheme, this re-weighting is repeated
+  for every bootstrap sample.  Doing this ensures that the bootstrap
+  procedure is no longer conditional on the weights.  The procedure as a
+  whole is quite computationally intensive but can easily be run in
+  parallel, e.g. on a computer cluster. 
 6. The re-sampling process is repeated until the desired number of bootstrap
-  samples are extracted, which in this case the total sample size is 100.
-7. The full dataset is extracted and 1000 bootstrap datasets created.
+  samples are extracted, which in this case is 100.
+7. The 100 bootsrap model fits are each replicated 10 times, so that for each bootstrap model,
+  10 variations of random assessment error and recruitment uncertainty can be simulated in forward simulations.
 
 When re-sampling, data are forced to remain in the correct year and
 time--step so re-sampling is based on sampling spatially the elementary
 data units within a given modeled unit of time and space.
 Thus, within a modeled spatial unit the bootstrap is a re-sampling of
 subdivisions. This implicitly assumes data contained within each area
-of the model to be independent and identically distributed. Independence
-is justified by the definition of subdivisions. Furthermore treating them
-as they were from the same distribution, i.e. bootstrap replicates,
+of the model to be independent and identically distributed, and is therefore
+the sample unit. Subdivisions were defined to maximize independence
+in earlier studies @Elvarsson2014. Furthermore treating bootstrap replicates
+as if they were from the same distribution
 appears to have little negative effect when compared to more
-traditional methods [@lornahaddock]. 
+traditional methods [@lornahaddock]. Refer to 
+@Elvarsson2014 and @mfdb for further implementation details. 
 
-
-The entire estimation procedure is repeated for each
-bootstrap sample.  In particular, since the estimation procedure
-includes an iterative re-weighting scheme, this re-weighting is repeated
-for every bootstrap sample.  The point of this is that the bootstrap
-procedure is no longer conditional on the weights.  The procedure as a
-whole is quite computationally intensive but can easily be run in
-parallel, e.g. on a computer cluster. 
 
 #### Model settings
 Greater silver smelt in 5a and 14 is assumed to be long-lived and the maximum age is set at
-26 with 26 acting also as a plus group,  and simulation goes back to 1980 when IGFS survey indices are included, or 1990 when not. Fish  
+26 as a plus group. Simulations begin in 1990, 6 years before catch data begin and 10 years before survey data begin
+as a 'burn-in' period, to allow for enough flexibility that the model is able to easily fit the earliest data 
+available and is not constrained by initial values. The immature stock   
 mature at age 15 at the latest. Recruitment to the immature stock component 
-occurs at age 1, in the $1^{st}$ quarter. The length range in the model was between 8 and 60 (all with no mature individuals < 25 cm), in 1 cm length intervals. 
-Recruitment was set to occur at the end of the first time-step. 
-An overview of the data sets and model parameters used in the model
-study is shown in Tables  and 
-respectively. 
+occurs at age 1, at the end of the $1^{st}$ quarter. The length range in the model ranged between 8 and 60 (with no mature individuals < 25 cm), in 1 cm length intervals. An overview of the data sets and model parameters used in the model
+study is shown in Table 1 and List 1 respectively. 
 
-```{r datatable, echo = FALSE, include = FALSE, fig.cap = "Overview of the likelihood data used in the model. Survey indices are calculated from the length distributions and are disaggregated (sliced) into six groups. Number of data-points refer to aggregated data  used as inputs in the Gadget model and represent the original data-set. All data can obtained from the Marine and Freshwater Research Institute, Iceland."}
+```{r datatable, echo = FALSE, fig.cap = "Overview of the likelihood data used in the model. Survey indices are calculated from the length distributions and are disaggregated (sliced) into six groups. Number of data-points refer to aggregated data  used as inputs in the Gadget model and represent the original data-set. All data can obtained from the Marine and Freshwater Research Institute, Iceland."}
  wgr <- 
-   fit_no_igfs$resTable %>% 
+   fit$resTable %>% 
    select(-.id) %>% 
    names() %>%
    set_names(.,.) %>% 
    map(function(x){
-    data_frame(group=grep(paste0('^',x,paste0('|\\.',x)),fit_no_igfs$resTable$.id,value=TRUE))
+    data_frame(group=grep(paste0('^',x,paste0('|\\.',x)),fit$resTable$.id,value=TRUE))
    }) %>% 
    bind_rows(.id="name") %>% 
    mutate(group=ifelse(grepl('si.',group),'sind',group))
  
- fit_no_igfs$catchdist.fleets %>%
+ fit$catchdist.fleets %>%
    filter(!is.na(number.x)) %>% 
    group_by(name) %>% 
    dplyr::summarise(quarters=step %>% unique() %>% sort() %>% paste(collapse=','),
@@ -792,15 +779,15 @@ respectively.
    mutate(type = ifelse(grepl('aldist',name),'Age--length distributions','Length distributions'),
           origin = gsub('[a-z]+\\.([a-z]+)','\\1',name),
           lik.ref = ifelse(grepl('aldist',name),'eq:SSalk','eq:SSldist')) %>% 
-   bind_rows(fit_no_igfs$stockdist %>% 
+   bind_rows(fit$stockdist %>% 
                group_by(name) %>% 
                dplyr::summarise(quarters=step %>% unique() %>% sort() %>% paste(collapse=','),
                          year.range=paste(min(year),max(year),sep='--'),n=n(),
                          deltal = paste(median(upper-lower),'cm')) %>% 
-               mutate(type = kableExtra::linebreak('Ratio of immature:mature\nby length group'),
+               mutate(type = 'Ratio of immature:mature by length group',
                       origin = gsub('[a-z]+\\.([a-z]+)','\\1',name),
                       lik.ref = 'eq:SSmat'),
-             fit_no_igfs$sidat %>% 
+             fit$sidat %>% 
                group_by(name) %>% 
                dplyr::summarise(quarters=step %>% unique() %>% sort() %>% paste(collapse=','),
                          year.range=paste(min(year),max(year),sep='--'),n=n(),
@@ -815,7 +802,12 @@ respectively.
    left_join(wgr) %>% 
    select(-lik.ref) %>% 
    rename(`Component name` = name, Quarters = quarters, `Year range` = year.range, N = n, `Delta l` = deltal, Type = type, Origin = origin, Grouping = group) %>% 
-   kableExtra::kable(format = 'pandoc')
+   kableExtra::kable(format = 'latex', 
+                     caption = "Overview of the likelihood data used in the model. Survey indices are calculated from the length distributions and are disaggregated (sliced) into six groups. Number of data-points refer to aggregated data  used as inputs in the Gadget model and represent the original data-set. All data can obtained from the Marine and Freshwater Research Institute, Iceland.")%>%
+  kable_styling(full_width = F) %>%
+   row_spec(0, bold=T) %>% 
+  column_spec(1, bold = T, border_right = T) %>%
+  column_spec(6, width = "30em")#, background = "yellow")
    # split(.$type) %>% 
    # map(function(x){
    #   header <-"  & \\multicolumn{3}{l}{\\textbf{%s:}} \\\\" %>% sprintf(x$type[1])
@@ -830,8 +822,9 @@ respectively.
 
 ```
 
+`r pagebreak()`
 
-**Greater silver smelt in 5a and 14. List of parameters in the Gadget
+**List 1. Greater silver smelt in 5a and 14. List of parameters in the Gadget
   model.**
   
 + Natural mortality, $M_a$, fixed at 0.15. This value was chosen based on preliminary results data-limited methods for estimating M on greater silver smelt in ICES divisions 1,2,3a, and 4 and 5a and 14.
@@ -882,7 +875,8 @@ frequencies
 
 
 
-```{r tablesigmas, echo = FALSE, fig.cap = "Greater silver smelt in 5a and 14. List of initial standard deviation in length by age, see eq. ...for further details. "}
+```{r tablesigmas, echo = FALSE, fig.cap = "Greater silver smelt in 5a and 14. List of initial standard deviation in length by age (Age:SD in cm), see eq. 6 for further details. "}
+  
   mfdb_dplyr_sample(mdb) %>%
   dplyr::filter(species == 'GSS',age >0,age < 27,!is.na(length))  %>%
   dplyr::select(age,length) %>%
@@ -895,15 +889,18 @@ frequencies
                 id = (age-1)%%7) %>%
    dplyr::select(-age) %>%
    tidyr::spread(split,ms,fill='') %>%
-   dplyr::select(-id) %>%
-   kableExtra::kable(format = 'pandoc')
+   dplyr::select(-id) %>% 
+  setNames(., c('','','','')) %>% 
+   kableExtra::kable(format = 'latex', caption = "Table 1. Greater silver smelt in 5a and 14. List of initial standard deviation in length by age (Age:SD in cm), see eq. 6 for further details. ")
 #  tidyr::unite(col,matches("."),sep=' & ') %>%
 #   (function(x){
 #     paste(x$col,collapse = '\\\\ \n')
 #   }) %>%
 #   paste0('\\\\') %>%
 #   cat()
+#   
 ```
+
 
 <!-- \begin{table}[ht] -->
 <!-- \caption{Greater silver smelt in 5a and 14. Initial standard deviation in length by age, see eq. \ref{eq:init} for further details} \label{tbl:sigmas} -->
@@ -944,8 +941,8 @@ Choice of natural mortality ($M$) is problematic as is normally the
 case in stock assessments.   Here $M$ is assumed to be constant with
 age at 0.15.
 
-#### Weight--length relationship
-The parameters of the weight--length relationship used in eq.  were estimated through the means of log-linear regression. Fig. shows the observed length-weight relation compared with the fitted values. 
+#### Length--weight relationship
+The parameters of the weight--length relationship used in eq.  were estimated through the means of log-linear regression. Figure 2 shows the observed length-weight relation compared with the fitted values. 
 
 ```{r lw, echo=FALSE, fig.cap = "Greater silver smelt in 5.a and 14: observed length-weight relationship (boxplots and points) compared with the fitted values (line)."}
  lw.constants <- 
@@ -975,26 +972,33 @@ The parameters of the weight--length relationship used in eq.  were estimated th
    theme_light() + labs(y='Weight (kg)', x='Length')
 ```
  
-----------------------------------------------------------------------------------------
+`r pagebreak()`
+
 ## Results
 
-### Model diagnostics
+Model results are only shown from 2000, as survey data are only available from 2000 onwards. Landings data are available from 1990, but the period 1990--1996 is likely to contain unrecorded discards, so landings data are only included from 1997. The period 1990-1996 is therefore only used as a "burn-in" period to allow more flexibility in fitting the data best in the earliest years with survey data. 
 
-#### Model fits to data
+### Base model diagnostics
 
-As noted in the introduction, survey indices can be extremely variable for Greater silver smelt due to its tendency to be influenced by a few very large hauls. The index data used as input here are the total raw numbers of fish caught (within length slices) in the entire autumn survey. Although they are expected to represent the entire stock, they are also expected to be highly variable because no treatment or data pre-processing has been performed to reduce this variability (e.g., stratification or the Winsorization procedure performed in the standard procedures for assessment). This variability is reflected in the model's fit to the survey index data (Figure 3). It should be noted that because the smallest fish only in the most current years have a few years of observation (i.e., they have not grown large enough yet to be observed in larger indices), these estimates are the most uncertain and will follow the extreme ups and downs of the survey index more closely. As a result, recruitment estimates at the youngest ages will be highly uncertain.
+#### Base model fits to data
 
-```{r siplot, echo=FALSE, fig.width = 9, fig.height= 6, fig.cap = 'Greater silver smelt in 5.a and 14. Autumn survey index fits (lines) to data (points). The green line indicates the difference between model and data values in the last year.'}
-plot(fit_no_igfs)
+As noted in the main document WKGSS 2020, section XXX on Greater silver smelt in Icelandic waters (ICES areas 5a and 14), survey indices can be extremely variable for Greater silver smelt due to its tendency to be influenced by a few very large hauls. The index data used as input here are the total raw numbers of fish caught (within length slices) in the entire autumn survey. Although they are expected to represent the entire stock, they are also expected to be highly variable because no treatment or data pre-processing has been performed to reduce this variability (e.g., stratification or the Winsorization procedure, as performed in the standard procedures for the category 3 assessment). This variability is reflected in the model's fit to the survey index data (Figure 3). It should be noted that because the smallest fish only in the most current years have a few years of observation (i.e., they have not grown large enough yet to be observed in larger indices), these estimates are the most uncertain and will follow the extreme ups and downs of the survey index more closely. As a result, recruitment estimates at the youngest ages will be highly uncertain.
+
+```{r siplot, echo=FALSE, fig.cap = 'Greater silver smelt in 5.a and 14. Autumn survey index number fits (lines) to data (points). The green line indicates the difference between model and data values in the last year.'}
+plot(fit)
 ```
 
-Model fits to the age-length distribution data from the autumn survey show reasonably close correspondence (Figure 4). The left side of the distributions often overestimate the data, due to a small but consistent peak in the smallest ages (1 - 2) that cannot be directly captured by the model. Therefore, the model underestimates this peak while overestimating the adjacent trough to capture the best fit. This small peak is also reflected in the length distributions (Figure 5), although the main portions of the the length distributions (i.e., those that represnt the greatest density of fish within the fished population), appear to have a reasonable fit. The largest sizes tend to very slightly underestimated. However, as these fish contribute little to the fishable population, and because changing the model structure to allow for more of the largest fish (to age-dependent natural mortality, unusual selectivity or catchability patterns), could have undesired side effects with little biological support, the simpler model structure was retained.
+Model fits to the age-length distribution data from the autumn survey show reasonably close correspondence (Figure 4). The left side of the distributions often overestimate the data, due to a small but consistent peak in the smallest ages (1 - 2) that cannot be directly captured by the model. Therefore, the model underestimates this peak while overestimating the adjacent trough to capture the best fit. This small peak is also reflected in the length distributions (Figure 5), but preliminary analyses indicate that these relatively minor misfits to the data do not appear to be the result of obvious sampling bias nor a consistent spatial aggregations by certain length groups (see Figure XXX, WKGSS2020 main document). Therefore, the peak in small fish is presumably due to a consistently higher catchability in a few hauls, which varies among years. The catchability of this length range is therefore estimated separately (first slice ranges < 25 cm) to reduce the effects of this peak from influencing biomass estimates (Figure 3). However, selectivity, rather than catchability, is used to preduce length distribution predictions. Therefore, without implementing a very unusual selectivity shape or multiple stock components with different size ranges and selectivity, it will likely be difficult for the model to capture this pattern. 
 
-These mis-fits are not apparent in the fit to the commercial age and length data (Figures 6 and 7). However, this is likely the result of a fishery that is less selective on smaller fish than the survey (as it is restricted to fish at depths > 400 m to avoid small fish), and poor data quality. Especially in recent years, sample sizes obtained from the commercial fishery (which is self-sampled as a stipulation of the fishing license) have dwindled, and likely reflect greater bias when sampled from only a few hauls that contain similarly sized fish. Nonetheless, the bias does not appear consistent across years, and the commercial fishery yields information during the periods between surveys (steps 1 - 3), so data were retained in the model.
+The main portions of the the length distributions (i.e., those that represent the greatest density of fish within the fished population), appear to have a reasonable fit; however, the largest sizes tend to be very slightly underestimated. However, as these fish contribute little to the fishable population, and because changing the model structure to allow for more large fish to survive in the model simulations could have undesired side effects with little biological support (e.g., via age-dependent natural mortality, or unusual selectivity patterns), the simpler model structure was retained with these minor misfits to the survey data.
+
+However, the last two years of age and length data from the survey also show a concerning trend on the right-hand slope of the distribution: age distributions are underestimated while length distributions are slightly overestimated in this region. This could signal a recent change in growth patterns (slightly slower growth, also seen in Figure XXX, WKGSS2020 main document), although changes in ageing methods should also be ruled out. If this pattern continues and ageing error is ruled out, then time-variable growth should be considered in the next benchmark, as incorrect growth patterns can cause bias in the assessment [@minte2017get].
+
+These misfits are not apparent in the fit to the commercial age and length data (Figures 6 and 7). However, this is likely the result of a fishery that is less selective for smaller fish than the survey (as it is restricted to fish at depths > 400 m to avoid small fish), as well as generally poor data quality. Especially in recent years, sample sizes obtained from the commercial fishery (which is self-sampled as a stipulation of the fishing license) have dwindled, and likely reflect greater bias when sampled from only a few hauls that contain similarly sized fish. Nonetheless, the bias does not appear consistent across years, and the commercial fishery yields information during the periods between surveys (steps 1 - 3), so data were retained in the model.
 
 
-```{r aldisthistaut, echo = FALSE, fig.width = 9, fig.height= 6, fig.cap = 'Greater silver smelt in 5.a and 14. Comparison of autumn survey age-length distribution fits between models that included the autumn survey index (aut) or not.'}
-fit_no_igfs$catchdist.fleets %>% 
+```{r aldisthistaut, echo = FALSE, fig.cap = 'Greater silver smelt in 5.a and 14. Comparison of autumn survey age-length distribution fits between model fits (black) and data (grey). Labels indicate the year and step of data sampled and model comparison.'}
+fit$catchdist.fleets %>% 
   filter(name=='aldist.aut') %>% 
   dplyr::group_by(year, step, age) %>% 
   dplyr::summarise(predicted = sum(predicted), 
@@ -1009,7 +1013,7 @@ fit_no_igfs$catchdist.fleets %>%
              drop = FALSE, ncol = max(2 * 1, 
                                       4)) + 
   geom_line() + 
-  geom_text(data = fit_no_igfs$catchdist.fleets %>% 
+  geom_text(data = fit$catchdist.fleets %>% 
               filter(name=='aldist.aut') %>% 
               dplyr::ungroup() %>% dplyr::mutate(age = as.numeric(gsub("age", 
                                                                        "", age))) %>% 
@@ -1029,13 +1033,13 @@ fit_no_igfs$catchdist.fleets %>%
 
 ```
 
-```{r ldisthistaut, echo = FALSE, fig.width = 9, fig.height= 6, fig.cap = 'Greater silver smelt in 5.a and 14. Comparison of autumn survey length distribution fits between model predictions and input data.'}
-tmp_fit_no_igfs$ldist.aut 
+```{r ldisthistaut, echo = FALSE,  fig.cap = 'Greater silver smelt in 5.a and 14. Comparison of autumn survey length distribution fits between model fits (black) and data (grey). Labels indicate the year and step of data sampled and model comparison.'}
+tmp_fit$ldist.aut 
 ```
 
-```{r aldisthistcomm, echo=FALSE, fig.width = 9, fig.height= 6,fig.cap = 'Greater silver smelt in 5.a and 14. Comparison of commercial sample age-length distribution fits between model predictions and data.'}
+```{r aldisthistcomm, echo=FALSE, fig.cap = 'Greater silver smelt in 5.a and 14. Comparison of commercial sample age-length distribution fits between model fits (black) and data (grey). Labels indicate the year and step of data sampled and model comparison.'}
 
-fit_no_igfs$catchdist.fleets %>% 
+fit$catchdist.fleets %>% 
   filter(name=='aldist.comm') %>% 
   dplyr::group_by(year, step, age) %>% 
   dplyr::summarise(predicted = sum(predicted), 
@@ -1047,10 +1051,10 @@ fit_no_igfs$catchdist.fleets %>%
              predicted)) + 
   geom_line(aes(age, observed), color = 'grey') + 
   facet_wrap(~year + step, 
-             drop = FALSE, ncol = max(2 * length(unique(fit_no_igfs$catchdist.fleets$step )), 
+             drop = FALSE, ncol = max(2 * length(unique(fit$catchdist.fleets$step )), 
                                       4)) + 
   geom_line() + 
-  geom_text(data = fit_no_igfs$catchdist.fleets %>% 
+  geom_text(data = fit$catchdist.fleets %>% 
               filter(name=='aldist.comm') %>% 
               dplyr::ungroup() %>% dplyr::mutate(age = as.numeric(gsub("age", 
                                                                        "", age))) %>% 
@@ -1071,15 +1075,15 @@ fit_no_igfs$catchdist.fleets %>%
 
 ```
 
-```{r ldisthistcomm, echo=FALSE, fig.width = 9, fig.height= 6, fig.cap = 'Greater silver smelt in 5.a and 14. Comparison of commercial sample length distribution fits between model predictions and data.'}
-tmp_fit_no_igfs$ldist.comm 
+```{r ldisthistcomm, echo=FALSE, fig.cap = 'Greater silver smelt in 5.a and 14. Comparison of commercial sample length distribution fits between model fits (black) and data (grey). Labels indicate the year and step of data sampled and model comparison.'}
+tmp_fit$ldist.comm 
 ```
 
 
-Bubble plots generally show the same trends in fits to the data, with an underestimation of the smallest fish (roughly < 25 cm, ages 1 - 2), overestimation of the next sizes greater (roughly 25 - 35 cm, ages 4 - 5), good estimation of the sizes contributing most to the exploitable fishery (roughly 35 - 55 cm, ages 6 - 17), and very slight overestimation of the largest fishes (> 55 cm and > age 17). Because inter-age and inter-length correlations are not included in Gadget, some blocks of similar residuals can be seen, and are more pronounced in the length bubble plot because of its finer resolution. Commercial data residuals appear more random; however, this is likely due to poorer data quality.
+Bubble plots generally show the same trends in fits to the data, with an underestimation of the smallest fish (roughly < 25 cm, ages 1 - 2), overestimation of the next sizes greater (roughly 25 - 35 cm, ages 4 - 5), good estimation of the sizes contributing most to the exploitable fishery (roughly 35 - 55 cm, ages 6 - 17), and very slight overestimation of the largest fishes (> 55 cm and > age 17) (Figures 8 & 9). Because inter-age and inter-length correlations are not included in Gadget, some blocks of similar residuals can be seen, and are more pronounced in the length bubble plot because of its finer resolution. Commercial data residuals appear more random; however, this is likely due to poorer data quality.
 
-```{r aldistbub, echo=FALSE, fig.width = 9, fig.height= 6, fig.cap = 'Greater silver smelt in 5.a and 14. Bubble plots illustrating age-length distribution residuals between model predictions nad data. Red bubbles indicate positive residuals (underestimation); blue bubbles indicate negative residuals (overestimation).'}
-tmp_no_igfs_bub <- plot(fit_no_igfs,data='catchdist.fleets', type = 'bubble')
+```{r aldistbub, echo=FALSE, fig.width = 7, fig.height= 3, fig.cap = 'Greater silver smelt in 5.a and 14. Bubble plots illustrating age-length distribution residuals between model predictions and data. Red bubbles indicate positive residuals (underestimation); blue bubbles indicate negative residuals (overestimation).'}
+tmp_no_igfs_bub <- plot(fit,data='catchdist.fleets', type = 'bubble')
 
   tmp_no_igfs_bub$aldist+ 
   xlab('Year')+
@@ -1087,21 +1091,51 @@ tmp_no_igfs_bub <- plot(fit_no_igfs,data='catchdist.fleets', type = 'bubble')
 
 ```
 
-```{r ldistbub, echo=FALSE, fig.width = 9, fig.height= 6, fig.cap = 'Greater silver smelt in 5.a and 14. Bubble plots illustrating length distribution residuals between model predictions and data. Red bubbles indicate positive residuals (underestimation); blue bubbles indicate negative residuals (overestimation).'}
-tmp_no_igfs_bub <- plot(fit_no_igfs,data='catchdist.fleets', type = 'bubble')
+```{r ldistbub, echo=FALSE, fig.width = 7, fig.height= 5, fig.cap = 'Greater silver smelt in 5.a and 14. Bubble plots illustrating length distribution residuals between model predictions and data. Red bubbles indicate positive residuals (underestimation); blue bubbles indicate negative residuals (overestimation).'}
+tmp_no_igfs_bub <- plot(fit,data='catchdist.fleets', type = 'bubble')
   tmp_no_igfs_bub$ldist+ 
     xlab('Year')+
     ylab('Length (cm)')  
 ```
 
 
-Preliminary analyses indicate that these relatively minor mis-fits to the data do not appear to be the result of obvious sampling bias nor a consistent spatial aggregations by certain length groups (see Figure __, WKGSS2020 main document). Therefore, the peak in small fish is presumably due to a consistently higher catchability in a few hauls, which varies among years. The catchability of this length range is estimated separately (first slice ranges < 25 cm) to reduce the effects of this peak from influencing biomass estimates (Figure 3). However, selectivity, rather than catchability, is used to preduce length distribution predictions. Therefore, without implementing a very unusual selectivity shape or multiple stock components with different size ranges and selectivity, it will likely be difficult for the model to capture this pattern. 
+In addition, catchability appears to be well-estimated with a log-linear relationship with the slope fixed to 1, as regressions of the observed survey indices against predicted survey indices are informative (Figure 10).
 
-The last two years of age and length data also show a concerning trend on the right-hand slope of the distribution: age distributions are underestimated while length distributions are slightly overestimated in this region. This could signal a recent change in growth patterns (slightly slower growth, also seen in Figure __, WKGSS2020 main document), although changes in ageing should also be ruled out. If this pattern continues and ageing error is ruled out, then time-variable growth should be considered in the next benchmark, as incorrect growth patterns can cause bias in the assessment (cite "get the growth right").
+
+```{r BSSIpred, echo=FALSE, fig.width = 7, fig.height= 4, fig.cap = "Predicted survey index as a function of the observed values on the log-scale. The panels indicate the index length group, the dashed line denotes a line with slope 1 and the labels denote the year. "}
+
+fit$sidat %>%
+  ggplot(aes(log(predict),log(observed))) +
+  geom_line(aes(log(observed),log(observed)),lty=2) +
+  geom_line(aes(log(predict),log(predict)),lty=2) +
+  facet_wrap(~name, scale='free') +
+  geom_text(aes(label=year),size=3) +
+  #scale_x_log10() +
+  #scale_y_log10() +
+  theme_light() +
+  labs(y='log(Observed)',x='log(Predicted)')+
+  geom_label(data=fit$sidat %>%
+               select(name,slope,sse) %>%
+               distinct() %>%
+               mutate(label=paste(name,paste0('sse:',sse),paste0("slope:",slope),sep='\n')),
+             aes(label=label),x=Inf,y=-Inf,size=3, vjust = -0.1,hjust=1.1) +
+  theme(strip.background = element_blank(),strip.text=element_blank())
+
+
+```
+
+`r pagebreak()`
 
 #### Retrospective plots
 
-```{r retrosigfs, echo=FALSE, fig.width = 8, fig.height= 8, fig.cap = "Greater silver smelt in 5.a and 14. Retrospective plots illustrating stability in model estimates over a 5-year 'peel' in data for the model that did not include the spring survey index (IGFS). Results of spawning stock biomass, fishing mortality F, and recruitment (age 5) are shown."}
+In figure Figure 11, the results of an analytical retrospective
+analysis are presented.  The analysis indicates that there was an upward revision of biomass over the first 3 years of the 5-year peel followed by a
+downward revision of biomass (SSB) over the last 2 years, and
+and subsequently an downward then upward revision of $F$.  Estimates of
+recruitment are decently stable except for the apparent peak in 2017 - 2018. As explained in reference to the survey indices, this is likely the influence of highly variable survey indices that, for the smallest sizes in the most recent years, have no repeated observations at larger sizes with which this influence can be tempered. Therefore, it is expected that these recruitment peaks may simply be the result of uncertainty in survey indices and are likely to disappear in the coming assessment years.
+
+
+```{r retrosigfs, echo=FALSE, fig.width = 8, fig.height= 6, fig.cap = "Greater silver smelt in 5.a and 14. Retrospective plots illustrating stability in model estimates over a 5-year 'peel' in data. Results of spawning stock biomass, fishing mortality F, and recruitment (age 5) are shown."}
 retro_igfs_bio <-
   retro.igfs$res.by.year %>% 
   mutate(model = ifelse(is.na(model), 'original', model)) %>% 
@@ -1129,7 +1163,7 @@ retro_igfs_rec <-
   retro.igfs$res.by.year %>% 
   mutate(model = ifelse(is.na(model), 'original', model)) %>% 
   filter(stock=='gssimm', year > 1999) %>% 
-  mutate(`Recruitment in millions (age 5)` = recruitment, Year = year) %>% 
+  mutate(`Recruitment in millions (age 5)` = recruitment/1000000, Year = year) %>% 
   ggplot()+
   geom_line(aes(x = Year, y = `Recruitment in millions (age 5)`, color = model)) + 
   #ylim(0,2.1) +
@@ -1139,21 +1173,17 @@ retro_igfs_rec <-
 gridExtra::grid.arrange(retro_igfs_bio, retro_igfs_F, retro_igfs_rec, nrow = 3)
 ```
 
-In Figure 10 the results of an analytical retrospective
-analysis are presented.  The analysis indicates that there was an upward revision of biomass over the first 3 years of the 5-year peel followed by a
-downward revision of biomass (SSB) over the last 2 years, and
-and subsequently an downward then upward revision of $F$.  Estimates of
-recruitment are decently stable except for the apparent peak in 2017 - 2018. As explained in reference to the survey indices, this is likely the influence of highly variable survey indices that, for the smallest sizes in the most recent years, have no repeated observations at larger sizes with which this influence can be tempered. Therefore, it is expected that these recruitment peaks may simply be the result of uncertainty in survey indices and are likely to disappear in the coming assessment years.
+`r pagebreak()`
 
-#### Model derived quantities
+#### Base model derived quantities
 
-Estimated suitability from each fleet cna be seen in Figure 11. As expected, the autumn survey selects more small fish than commercial fleets.
+Estimated suitability from each fleet can be seen in Figure 12. As expected, the autumn survey selects more small fish than commercial fleets.
 
-Catchabilities show a roughly exponential increase with length (Figure 12). In preliminary analyses, the largest slice (length 40+ cm), was divided into 2 or 3 slices, but the catchability estimate of the final slice was more stable when combined into a 40+ cm group. 
+Catchabilities show a roughly exponential increase with length before beginning to level off at the highest length slice. A higher catchabiltiy was not estimated from the smallest length slice, despite the small 'bump' observed in length distributions (Figure 13). 
 
-```{r suitabplot, echo=FALSE, fig.width = 9, fig.height= 6, fig.cap = 'Greater silver smelt in 5.a and 14. Selectivity estimates by fleet (commercial versus autumn survey) from the Gadget model.'}
+```{r suitabplot, echo=FALSE, fig.width = 5, fig.height= 3, fig.cap = 'Greater silver smelt in 5.a and 14. Selectivity estimates by fleet (commercial versus autumn survey) from the Gadget model.'}
 suitab_plot <-
-  fit_no_igfs$suitability %>% 
+  fit$suitability %>% 
   filter(stock=='gssmat',(fleet %in% c('aut', 'comm') & year == 2016 & step == 4) ) %>% #| (fleet=='igfs' & year==2016 & step==2)) %>%
   mutate(suit = ifelse(length > 57 & fleet=='aut',1,suit)) %>% 
   ggplot(aes(length, suit, color = fleet)) +
@@ -1164,9 +1194,9 @@ suitab_plot <-
 suitab_plot
 ```
 
-```{r catchabplot, echo=FALSE, fig.width = 9, fig.height= 6, fig.cap = 'Greater silver smelt in 5.a and 14. Catchability estimates by the autumn survey fleet from the Gadget model.Lengths plotted are the minimum lengths included in the corresponding survey index slice.'}
+```{r catchabplot, echo=FALSE, fig.width = 5, fig.height= 3, fig.cap = 'Greater silver smelt in 5.a and 14. Catchability estimates by the autumn survey fleet from the Gadget model.Lengths plotted are the minimum lengths included in the corresponding survey index slice.'}
 catchab_plot <-
-  fit_no_igfs$sidat %>% 
+  fit$sidat %>% 
   filter(year == 2016) %>% 
   ungroup %>% 
   select(name, label, intercept, slope) %>% 
@@ -1181,19 +1211,19 @@ catchab_plot <-
 print(catchab_plot)
 ```
 
-Growth patterns predicted by the model follow closely to the data, both in mean predictions and variability through the full range of ages, although minor deviations can be seen from year to year as growth is not estimated annually (Figure 13). 
+Growth patterns predicted by the model follow closely to the data, both in mean predictions and variability through the full range of ages, although minor deviations can be seen from year to year as growth is not estimated annually (Figure 14). 
 
-As noted in the WKGSS 2020 (main document), $l_{50,y}$ of the maturity ogive was found to change considerably over the time period in preliminary analyses, so time-variable maturity was included in the model. Results indicate that $l_{50,y}$ mostly fit the maturity data reasonably well.
+As noted in the WKGSS 2020 (main document), $l_{50,y}$ of the maturity ogive was found to change considerably over the time period in preliminary analyses, so time-variable maturity was included in the model. Results indicate that $l_{50,y}$ fit the maturity data reasonably well (Figure 15).
 
-```{r tmpgro, echo=FALSE, fig.width = 9, fig.height= 11, fig.cap = 'Greater silver smelt in 5.a and 14. Growth estimations by fleet from the Gadget model. Yellow bands and the black line show where the mean and 95% confidence intervals of the of model predictions, whereas the points and error bars show the mean and 95% confidence intervals of the data.'}
-tmp <- fit_no_igfs$catchdist.fleets %>% dplyr::ungroup() %>% 
+```{r tmpgro, echo=FALSE, fig.width = 8, fig.height= 8, fig.cap = 'Greater silver smelt in 5.a and 14. Growth estimations by fleet from the Gadget model. Yellow bands and the black line show where the mean and 95% confidence intervals of the of model predictions, whereas the points and error bars show the mean and 95% confidence intervals of the data.'}
+tmp <- fit$catchdist.fleets %>% dplyr::ungroup() %>% 
   tidyr::nest(-name) %>% 
   dplyr::mutate(plots = purrr::map(data, 
                                        function(x) {
                                      if (length(unique(x$age)) > 1) 
                                        x %>% group_by(year, step, age) %>% mutate(o = observed/sum(observed, 
                                                                                                    na.rm = TRUE), p = predicted/max(sum(predicted), 
-                                                                                                                                    1e-12)) %>% select(year, step, age, length = avg.length, 
+                                                                                                                                    1e-14)) %>% select(year, step, age, length = avg.length, 
                                                                                                                                                        observed, o, predicted, p) %>% ungroup() %>% 
                                        mutate(age = as.numeric(gsub("age", "", 
                                                                     age))) %>% group_by(year, step, age) %>% 
@@ -1226,10 +1256,10 @@ tmp_no_igfs_gro <- tmp$plots %>% purrr::set_names(., tmp$name)
 
 ```
 
-```{r matplot, echo=FALSE, fig.width = 9, fig.height= 6, fig.cap = 'Greater silver smelt in 5.a and 14. Annual maturity estimates (lines) compared to data (points) from the models that included the spring survey index (IGFS) or did not.'}
+```{r matplot, echo=FALSE, fig.width = 8, fig.height= 8, fig.cap = 'Greater silver smelt in 5.a and 14. Annual maturity estimates (lines) compared to data (points). Note that $L_{50y} is estimated annually, except in year 2000 and prior are estimated as the same value, and the value in 2011 was fixed to that estimated 2012.'}
 matplot <- 
 #  all$stockdist %>%
-  fit_no_igfs$stockdist %>%
+  fit$stockdist %>%
   filter(stock=='gssmat',name == 'matp.aut', !is.na(obs.ratio), year > 1999) %>% 
   ggplot(aes(length,obs.ratio)) + 
 #  ggplot(aes(length,obs.ratio, color = model, lty = L50t)) + 
@@ -1241,29 +1271,29 @@ matplot <-
 print(matplot)
 ```
 
+`r pagebreak()`
+
+#### Base model results
+
+The model predicts that both mature and immature stock components ('gssmat' and 'gssimm' respectively in Figure 16) have increased substantially over the last 10 years. For both stock components, but especially the mature one (which is also indicative spawning stock biomass), this is likely due to a steady decrease in fishing pressure, which last peaked in 2010 (Figure 17). Recruitment patterns show a slower increase from 2000 - 2015, after which a large spike can be observed in 2017 - 2018. However, as discussed earlier, this spike is highly uncertain and will likely disappear as more data become available with which to estimate it more precisely. 
 
 
-#### Model results
-
-Model results are only shown from 2000, as survey data are only available from 2000 onwards. Catch data are available 1996, but the period 1990-1996 is only used as a kind of "burn-in" period to allow more flexibility in fitting the data best in the earliest years with survey data. The model predicts that both mature and immature stock components ('gssmat' and 'gssimm' respectively in Figure 15) have increased substantially over the last 10 years. For, both stock components, but especially mature one (also called spawning stock biomass), this is likely due to a steady decrease in fishing pressure, which last peaked in 2010 (Figure 16). Recruitment patterns show a slower increase from 2000 - 2015, after which a large spike can be observed in 2017 - 2018. However, as discussed earlier, this spike is highly uncertain and will likely disappear as more data become available with which to estimate it more precisely.
-
-
-```{r totbioplot, echo=FALSE, fig.width = 9, fig.height= 6, fig.cap = "Greater silver smelt in 5.a and 14. Estimates of total biomass by by stock from the Gadget model. The stock 'gssmat' reflects the mature portion (spawning stock biomass), whereas 'gssimm' reflects the immature portion of the stock."}
+```{r totbioplot, echo=FALSE, fig.width = 7, fig.height= 6, fig.cap = "Greater silver smelt in 5.a and 14. Estimates of total biomass by by stock from the Gadget model. The stock 'gssmat' reflects the mature portion (spawning stock biomass), whereas 'gssimm' reflects the immature portion of the stock."}
 tot_bio_plot <-
-  plot(fit_no_igfs, data='res.by.year',type='total') + theme_bw() + xlim(2000, 2020)
+  plot(fit, data='res.by.year',type='total') + theme_bw() + xlim(2000, 2020)
 print(tot_bio_plot)
 ```
 
-```{r Fplot, echo=FALSE, fig.width = 9, fig.height= 6, fig.cap = "Greater silver smelt in 5.a and 14. Estimates of fishing mortality F of fully selected ages from the models that included the spring survey index (IGFS) or did not."}
+```{r Fplot, echo=FALSE, fig.width = 7, fig.height= 6, fig.cap = "Greater silver smelt in 5.a and 14. Estimates of fishing mortality F of fully selected ages."}
 F_plot <-
-  plot(fit_no_igfs, data='res.by.year',type='F') + theme_bw() +
+  plot(fit, data='res.by.year',type='F') + theme_bw() +
   ylab('Fbar (ages 6 - 14)')+ xlim(2000, 2020)
 print(F_plot)
 ```
 
-```{r recplot, echo=FALSE, fig.width = 9, fig.height= 6, fig.cap = "Greater silver smelt in 5.a and 14. Estimates of recruitment by by stock from the models that included the spring survey index (IGFS) or did not."}
+```{r recplot, echo=FALSE, fig.width = 7, fig.height= 6, fig.cap = "Greater silver smelt in 5.a and 14. Estimates of recruitment by by stock."}
 rec_plot <-
-  fit_no_igfs$res.by.year %>% 
+  fit$res.by.year %>% 
   filter(stock=='gssimm', year > 1999) %>% 
   ggplot()+ 
   geom_line(aes(year, recruitment/1000000, color = stock)) +
@@ -1275,18 +1305,18 @@ print(rec_plot)
 ```
 
 
-Here, the relationship between spawning stock and recruitment at age 1 is shown. Age 1 is shown here to maximize the number of data points plotted, and show that later analyses of spawning stock biomass with recruitment at age 5 result in the same minimum spawning stock biomass in 2003 (Figure 18).
+Here, the relationship between spawning stock and recruitment at age 1 is shown, with a minimum spawning stock biomass in 2003 (Figure 18). Spawning stock biomass has generally increased since the mid 2000s but with little influence on recruitment, excluding the highly uncertain most recent estimates.
 
-```{r SRplot, echo=FALSE, fig.width = 9, fig.height= 9, fig.cap = "Greater silver smelt in 5.a and 14. Plots of the estimated recruitment age age 1 versus spawning stock biomass (lagged by 1 year) from the models that included the spring survey index (IGFS) or did not. Vertical lines indicate the minimum observed spawning stock biomass value."}
+```{r SRplot, echo=FALSE, fig.width = 7, fig.height= 6, fig.cap = "Greater silver smelt in 5.a and 14. Plots of the estimated recruitment age age 1 versus spawning stock biomass (lagged by 1 year). Vertical lines indicate the minimum observed spawning stock biomass value."}
 #ssb - rec
 SR_plot <-
-  fit_no_igfs_age1$res.by.year %>% 
+  fit$res.by.year %>% 
   ungroup() %>% 
   filter(stock=='gssmat') %>%
   select(year, total.biomass) %>% 
   filter(year > 1999) %>% 
   mutate(`Spawning stock biomass (1000s tonnes)` = lag(total.biomass/1000000)) %>% 
-  left_join(fit_no_igfs_age1$res.by.year %>% 
+  left_join(fit$res.by.year %>% 
               ungroup() %>% 
               filter(stock=='gssimm') %>%
               select(year, recruitment) %>% 
@@ -1296,7 +1326,7 @@ SR_plot <-
   #geom_point(aes(x = `Spawning stock biomass (1000s tonnes)`, y = `Recruitment (millions)`, color = model)) +
   geom_text(aes(x = `Spawning stock biomass (1000s tonnes)`, y = `Recruitment in millions (age 1)`, label = year)) +
   geom_path(aes(x = `Spawning stock biomass (1000s tonnes)`, y = `Recruitment in millions (age 1)`), alpha = 0.3) +
-  geom_vline(aes(xintercept = minssb), lty = 2, data = fit_no_igfs_age1$res.by.year %>% 
+  geom_vline(aes(xintercept = minssb), lty = 2, data = fit$res.by.year %>% 
                ungroup() %>% 
                filter(stock=='gssmat') %>%
                select(year, total.biomass) %>% 
@@ -1304,14 +1334,14 @@ SR_plot <-
                mutate(`Spawning stock biomass (1000s tonnes)` = lag(total.biomass/1000000)) %>%
                summarize(minssb = min(`Spawning stock biomass (1000s tonnes)`, na.rm = T))) + 
   geom_text(aes(x = x, y = y, label = label), data = 
-              fit_no_igfs_age1$res.by.year %>% 
+              fit$res.by.year %>% 
               ungroup() %>% 
               filter(stock=='gssmat') %>%
               select(year, total.biomass) %>%
               filter(year > 1999) %>% 
               mutate(`Spawning stock biomass (1000s tonnes)` = lag(total.biomass/1000000)) %>%
               summarize(minssb = min(`Spawning stock biomass (1000s tonnes)`, na.rm = T)) %>%
-              left_join(fit_no_igfs_age1$res.by.year %>% 
+              left_join(fit$res.by.year %>% 
                           ungroup() %>% 
                           filter(stock=='gssmat') %>%
                           select(year, total.biomass) %>% 
@@ -1325,10 +1355,6 @@ print(SR_plot)
 
 ```
 
-
-## Annex
-### Optimization settings
-
-Optimizations were performed simulated annealing followed by a Hooke and Jeeves algorithm. Simulated annealing was run using 2 000 000 maximum simulated annealing iterations with 1e-03 as the minimum epsilon (halt criteria), 30 000 000 as the initial temperature 0.85 as the temperature reduction factor, 2 loops before temperature adjusted, 5 loops before step length adjusted, 1  as the initial value for the maximum step length, 2 as the step length adjustment factor, 0.3   and 0.7 as the lower and upper limits for ratio when adjusting step length respectively,  and 4  temperature loop checks.The Hooke and Jeeves algorithm was run with 100 000 maximum iterations, 1e-07 as the minimum epsilon (halt criteria), 0.5 as the resizing multiplier and 0 as the initial value for the step length. In practice, most of the optimization was completed by simulated annealing and both steps always converged. The BFGS algorithm was attempted as a third step in the optimization routine but was did not improve the fit appreciably so was removed.
+`r pagebreak()`
 
 ## References
