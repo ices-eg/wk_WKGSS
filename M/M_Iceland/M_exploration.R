@@ -1,6 +1,7 @@
 library(mar)
 mar <- connect_mar()
 
+setwd('../M_Iceland')
 
 lesa_kvarnir(mar) %>% 
   filter(tegund==19, !is.na(aldur)) %>% 
@@ -126,16 +127,16 @@ Zs <-
   bind_rows(.,.id='Year')%>% 
   filter(!grepl('_30', Year))
 
-png(paste0('R/biol_figs_output/Zs.png'), height = 300, width = 300)
-  hist(Zs$Age , main = '', xlab = 'Z')
+png(paste0('Zs.png'), height = 300, width = 300)
+  hist(-1*Zs$Age , main = '', xlab = 'Z')
 dev.off()
 
-png(paste0('R/biol_figs_output/CCs.png'), height = 650, width = 650)
+png(paste0('CCs.png'), height = 650, width = 650)
 print(CCs)
 dev.off()
 
   
-write.csv(Zs, 'R/biol_figs_output/Zs.csv')
+write.csv(Zs, 'Zs.csv')
 
 
 lesa_kvarnir(mar) %>% 

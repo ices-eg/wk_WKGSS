@@ -5,6 +5,7 @@
 ##
 ## Before: cn.dat
 ## After:  catch_curves.pdf
+setwd('M/gss_5b6a')
 
 
 library(stockassessment)

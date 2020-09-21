@@ -7,6 +7,8 @@
 library(stockassessment)
 library(icesTAF)
 
+setwd('M/gss_5b6a')
+
 ## 1  Read catch-at-age data
 
 cn <- read.ices("data/cn.dat")

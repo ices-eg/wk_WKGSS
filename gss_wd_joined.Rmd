@@ -4,10 +4,10 @@ title: A Gadget assessment of Greater silver smelt *Argentina silus*
 author: "Pamela J. Woods and Bjarki Þ. Elvarsson"
 date: "Marine and Freshwater Research Institute, Reykjavík, Iceland, 11. March 2020"
 output:
-  pdf_document: default
+  word_document: default
   html_document:
     df_print: paged
-  word_document: default
+  pdf_document: default
 bibliography: library.bib
 ---
 
@@ -17,7 +17,7 @@ knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 library(tidyverse)
 library(mfdb)
 library(kableExtra)
-mdb<-mfdb('Iceland',db_params=list(host='hafgeimur.hafro.is'))
+mdb<-mfdb('Iceland',db_params=list(host='mfdb.hafro.is'))
 library(Rgadget)
 
 theme_set(theme_bw())
@@ -2085,8 +2085,8 @@ Category 6 pattern, is presented for comparison.
 
 Assuming that the spawning stock relationship most resembles a Category 6 pattern, according to the ICES
 technical guidelines, $B_{lim}$ can not be estimated from these data and that the lowest observed SSB during that
-period (i.e. B loss = SSB(2003) = 18.3 kt), which is the lowest observed biomass from the base--line model (Figure 28), and an appropriate value at which to set either as $B_{pa}$ or $B_{lim}$, depending on the the perception of the historical fishing mortality. Bootstrap variation in $B_{loss}$ can be seen in Figure 28. The fishing mortality is perceived to have since 2000 varied between 0.05 and 0.6 on fully recruited ages, the equivalent $F_{6−14,y}$
-of 0.05 to 0.4, with a mean of 0.142. Unfortunately this cannot be compared with $F_{msy}$ until after $F_{msy}$ is
+period (i.e. B loss = SSB(2003) = 18.3 kt), which is the lowest observed biomass from the base--line model (Figure 28), and an appropriate value at which to set either as $B_{pa}$ or $B_{lim}$, depending on the the perception of the historical fishing mortality. Bootstrap variation in $B_{loss}$ can be seen in Figure 28. The fishing mortality is perceived to have since 2000 varied between 0.05 and 0.6 on fully recruited ages, the equivalent $F_{a,y}$
+of 0.05 to 0.4 for the mean of ages 6 - 14, with a mean of 0.142. Unfortunately this cannot be compared with $F_{msy}$ until after $F_{msy}$ is
 estimated below. As both periods of high fishing mortality are quite short compared to the lifespan of Greater
 silver smelt, it could be that overall fishing was at a rate less than $F_{msy}$ . This idea would be supported by
 the $F_{msy}$ estimation found when $B_{loss}$ = $B_{pa}$ (see below). However, the mean F of 0.142 is similar to the
@@ -2352,7 +2352,7 @@ $F_{lim}$ is set as the $F$ that, in equilibrium (last 50 of the simulated 100-y
 From this $F_{lim}$ is set as the equilibrium fishing mortality when $H_{lim}$ is applied. $H_{pa}$ is then set as the harvest rate that would lead to the equilibrium fishing mortality of $F_{pa}$. $F_{pa}$ is defined as the $F_{lim}/e^{1.645*\sigma}$ where $\sigma$ is the CV of the estimated fishing mortality in the assessment year. 
 
 
-The results from the long-term simulations are shown in Figure 30.  $F_{lim}$, resulting in 50% long-term probability of SSB $>B_{lim}$, was estimated as `r round(f.lim,2)`. As the CV of $F$ in 2019 is 0.25, $F_{pa}$ is estimated as `r round(f.lim,2)`$/1.508$ = `r round(f.pa,2)`. 
+The results from the long-term simulations are shown in Figure 30.  $F_{lim}$, resulting in 50% long-term probability of SSB $>B_{lim}$, was estimated as `r round(f.lim,2)`. As the CV of $F$ in 2019 is 0.25, $F_{pa}$ is estimated as `r round(f.lim,2)`$/1.508$ = `r round(f.pa,3)`. 
 
 
 ### Estimating $F_{msy}$
@@ -2360,7 +2360,7 @@ An additional simulation experiment where, in addition to recruitment and bootst
 
 Figure 31 shows the evolution of catches, SSB and fishing mortality for select values of $F$. The equilibrium yield curve is shown in figure
 30, where the maximum average yield, under the recruitment
-assumptions, is roughly 9 thousand tonnes with a 90% confidence interval of for the yield ranging 0 to almost 17 thousand tons. $F_{msy}$ was estimated to be `r round(f.msy,2)`, corresponding with $H_{msy}$ of `r round(hr_msy,2)`. 
+assumptions, is roughly 9 thousand tonnes with a 90% confidence interval of for the yield ranging 0 to almost 17 thousand tons. $F_{msy}$ was estimated to be `r round(f.msy,3)`, corresponding with $H_{msy}$ of `r round(hr_msy,3)`. 
 
 ### Estimating MSY $B_{trigger}$
 
@@ -2503,7 +2503,7 @@ ICES technical guidelines suggest that $F_{msy}$ is also set such that the annua
 ```{r exampleFs, echo=FALSE, fig.width = 10, fig.height= 6, fig.cap = "Greater silver smelt in 5a and 14. Projected catches, spawning stock biomass, fishing mortality (mean ages 6 - 14), and recruitment (age 1, millions) for select target harvest rates. Red dashed horizontal lines represent Fpa and Bpa, whereas red solid horizontal lines represent Flim and Blim. The blue horizontal solid line in the plot of F shows Fmsy used in the ICES advice rule (Fp05) and the blue dashed lines show the 5th - 95th percentile range."}
 
 rates <- round(c(hr_target, hr_target + 0.02, hr_target + 0.04, hr_target + 0.06, hr_target + 0.08),2)
-hrs <- round(seq(0.01, 1, 0.01),2)
+hrs <- round(seq(0.01, 1, 0.01),3)
 wh <- which(hrs %in% rates)
 
 
@@ -2853,7 +2853,7 @@ f_progn.plot <-
   geom_vline(xintercept = 2019,lty=2) +
   geom_hline(yintercept = f.lim, color = 'red', lty = 1) +
   geom_hline(yintercept = f.pa,  color = 'red', lty = 2) +
-  geom_hline(yintercept = f.05_lims[1], color = 'deepskyblue') +
+  geom_hline(yintercept = f.05, color = 'deepskyblue') +
   geom_hline(yintercept = f.05_lims[2], color = 'deepskyblue', lty = 2) +
   geom_hline(yintercept = f.05_lims[3], color = 'deepskyblue', lty = 2) +
   facet_wrap(~F,ncol=1) +
@@ -3094,7 +3094,7 @@ In addition, short term forward projections illustrated in Figure 31 indicate th
 harvest rates will have adapted (on average) to their equilibrium catch levels within 4 decades from now. 
 <!-- Second, the harvest rates have a non-zero chance of exceeding the harvest rate and biomass reference points (as illustrated in fig. \ref{fig:ssbfor} and listed in table \ref{tbl:refpoint}) even at $H_{msy}$, where the probability of SSB going below $B_{lim}$ at any time during the forecast was 0.74, while $H=0.18$ has a probability of 0.05.     -->
 
-The proposed target harvest rate, of `r round(ftarget,2)` illustrated in fig. Figure 31, is considered consistent with the ICES MSY approach. The expected 5% and 95% percentiles of true fishing mortality values, when setting catches according `r round(f.05_lims[1],2)`, are `r round(f.05_lims[2],2)` and `r round(f.05_lims[3],2)` respectively, as illustrated by Figure 31.
+The proposed target harvest rate, of `r round(ftarget,2)` illustrated in fig. Figure 31, is considered consistent with the ICES MSY approach. The expected 5% and 95% percentiles of true fishing mortality values, when setting catches according `r round(f.05,3)`, are `r round(f.05_lims[2],3)` and `r round(f.05_lims[3],3)` respectively, as illustrated by Figure 31.
 
 `r pagebreak()`
 **Table 4. Greater silver smelt in 5a and 14. Summary of reference points proposed. The fishing mortality is relative to the mean for ages 6-14.**
@@ -3103,15 +3103,15 @@ The proposed target harvest rate, of `r round(ftarget,2)` illustrated in fig. Fi
 Framework | Reference point| Value | Technical basis
 ---------|---------------|---|-----------------
 MSY approach| MSY $B_{trigger}$| `r round(btrigger,2)` kt | $B_{pa}$
--   | $F_{msy}$ | `r round(f.msy, 2)`| Median $F$ that maximises the median long-term catch in stochastic simulations with 7-year block-bootstrapped recruitment, scaled according to a hockey stick recruitment function with the breakpoint set to $B_{lim}$.
--   | $F_{p.05}$ | `r round(f.05,2)`| The fishing mortality that has an annual 5% probability of  of SSB < $B_{lim}$.
+-   | $F_{msy}$ | `r round(f.msy, 3)`| Median $F$ that maximises the median long-term catch in stochastic simulations with 7-year block-bootstrapped recruitment, scaled according to a hockey stick recruitment function with the breakpoint set to $B_{lim}$.
+-   | $F_{p.05}$ | `r round(f.05,3)`| The fishing mortality that has an annual 5% probability of  of SSB < $B_{lim}$.
 ------|-------|------|----------------
 Precautionary approach | $B_{lim}$| `r round(blim,2)` kt| SSB(2003), corresponding to $B_{loss}$ as the fishing level in relation to $F_{msy}$ is unclear and model uncertainty high
--   | $B_{pa}$  |`r round(bpa,2)` kt | $B_{lim}*e^{1.645*\sigma}$ where $\sigma=0.2$
+-   | $B_{pa}$  |`r round(bpa,3)` kt | $B_{lim}*e^{1.645*\sigma}$ where $\sigma=0.2$
 -   | $F_{lim}$ |`r round(f.lim,2)`| $F$ corresponding to 50% long-term probability of SSB > $B_{lim}$ 
--    | $F_{pa}$ |`r round(f.pa,2)`| $F_{lim}/e^{1.645*\sigma}$ where $\sigma=0.25$
+-    | $F_{pa}$ |`r round(f.pa,3)`| $F_{lim}/e^{1.645*\sigma}$ where $\sigma=0.25$
 -------|------|----|----------------
-MSY advice rule | $F_{msy}$ |  `r round(ftarget,2)`| $F$ such that $F\leq F_{msy}$, $F\leq F_{pa}$, and $F\leq F_{0.05}$, long-term yield is consistent with MSY while leading to high stock biomass 
+MSY advice rule | $F_{msy}$ |  `r round(ftarget,3)`| $F$ such that $F\leq F_{msy}$, $F\leq F_{pa}$, and $F\leq F_{0.05}$, long-term yield is consistent with MSY while leading to high stock biomass 
 -  | MSY $B_{trigger}$| `r round(btrigger,2)`| Set as $B_{pa}$ 
 
 `r pagebreak()`
@@ -3158,40 +3158,41 @@ load(paste0(base_dir,'/ref_points.Rdata'))
 Framework | Reference point| Value | Technical basis
 ---------|---------------|---|-----------------
 MSY approach| MSY $B_{trigger}$| `r round(btrigger,2)` kt | $B_{pa}$
--   | $F_{msy}$ | `r round(f.msy, 2)`| Median $F$ that maximises the median long-term catch in stochastic simulations with 7-year block-bootstrapped recruitment, scaled according to a hockey stick recruitment function with the breakpoint set to $B_{lim}$.
--   | $F_{p.05}$ | `r round(f.05,2)`| The fishing mortality that has an annual 5% probability of  of SSB < $B_{lim}$.
+-   | $F_{msy}$ | `r round(f.msy, 3)`| Median $F$ that maximises the median long-term catch in stochastic simulations with 7-year block-bootstrapped recruitment, scaled according to a hockey stick recruitment function with the breakpoint set to $B_{lim}$.
+-   | $F_{p.05}$ | `r round(f.05,3)`| The fishing mortality that has an annual 5% probability of  of SSB < $B_{lim}$.
 ------|-------|------|----------------
 Precautionary approach | $B_{lim}$| `r round(blim,2)` kt| $B_{pa}/e^{1.645*\sigma}$ where $\sigma=0.2$
 -   | $B_{pa}$  |`r round(bpa,2)` kt | SSB(2003), corresponding to $B_{loss}$ as historical fishing in relation to $F_{msy}$ is considered low
 -   | $F_{lim}$ |`r round(f.lim,2)`| $F$ corresponding to 50% long-term probability of SSB > $B_{lim}$ 
--    | $F_{pa}$ |`r round(f.pa,2)`| $F_{lim}/e^{1.645*\sigma}$ where $\sigma=0.25$
+-    | $F_{pa}$ |`r round(f.pa,3)`| $F_{lim}/e^{1.645*\sigma}$ where $\sigma=0.25$
 -------|------|----|----------------
-MSY advice rule | $F_{msy}$ |  `r round(ftarget,2)`| $F$ such that $F\leq F_{msy}$, $F\leq F_{pa}$, and $F\leq F_{0.05}$, long-term yield is consistent with MSY while leading to high stock biomass 
+MSY advice rule | $F_{msy}$ |  `r round(ftarget,3)`| $F$ such that $F\leq F_{msy}$, $F\leq F_{pa}$, and $F\leq F_{0.05}$, long-term yield is consistent with MSY while leading to high stock biomass 
 -  | MSY $B_{trigger}$| `r round(btrigger,2)`| Set as $B_{pa}$ 
 
 `r pagebreak()`
 
 ## Application of reference points in the advice rule
 
-The decision which allocates catches to the fleets requires 1) an expected quanitity of catch to be removed that will complete total catch removals for the current fishing season (not implemented currently, but will be for assessment purposes, 2) a 1-year projection to determine the amount of biomass avaible to fish, and 3) application of projected fishing effort according to $F_{msy}$ to determine the expected catch from fishing at this level. The expected catch is then obtained by rearranging the fishing mortality equation and summing over all ages $a$, stocks $s$ and time steps $t$ to form the annual advised TAC:
-
-$$
-F_{target, asyt} = \frac{-\log(1.0 - \frac{C_{asyt}}{N_{asyt}})}{\Delta t}
-$$
-$$
-TAC_y = \sum_{ast} C_{y} = \sum_{ast} (e^{(F_{target, asyt}\Delta t} +1) N_{asyt}  = C_{asyt}
-$$
-while $SSB_y > B_{pa}$,  
-$$
-TAC_y = C_{asyt}\frac{SSB_y}{B_{trigger}}
-$$
-while $B_{trigger} \leqslant SSB_y < B_{lim}$, and 
-$$
-TAC_y = 0
-$$
-while $B_{lim} \leqslant SSB_y$
-
-Because age 1 recruitment estimates are highly uncertain from the the most recent three years, it is proposed to use the geometric mean of the three years previous to these values (e.g., for 2020, this would be the geometric mean of age 1 recruitment estimates from years 2014 - 2016). It will also be assumed that the catches used in short-term projections to fill in the catches expected to be observed for the rest of the current fishing season will be evenly distributed over the last two quarters and be set such that the TAC for the current fishing year is filled. In advice sheets, it is planned that short-term projection scenarios will include fishing at $F_{msy}$ as implemented in the ICES advice rule, $F_{pa}$, $F_{lim}$, and $F=0$.
+  The decision which allocates catches to the fleets requires 1) an expected quanitity of catch to be removed that will complete total catch removals for the current fishing season (not implemented currently, but will be for assessment purposes, 2) a 1-year projection to determine the amount of biomass avaible to fish, and 3) application of projected fishing effort according to $F_{msy}$ to determine the expected catch from fishing at this level. The expected catch is then obtained by rearranging the fishing mortality equation and summing over all ages $a$, stocks $s$ and time steps $t$ to form the annual advised TAC:
+  
+  $$
+  F_{target, asyt} = \frac{-\log(1.0 - \frac{C_{asyt}}{N_{asyt}})}{\Delta t}
+  $$
+  $$
+  TAC_y = \sum_{ast} C_{y} = \sum_{ast} (e^{(F_{target, asyt}\Delta t} +1) N_{asyt}  = C_{asyt}
+  $$
+  while $SSB_y > B_{pa}$,  
+  $$
+  TAC_y = C_{asyt}\frac{SSB_y}{B_{trigger}}
+  $$
+  while $B_{lim} \leqslant SSB_y < B_{trigger}$, and
+  
+  $$
+  TAC_y = 0
+  $$
+  while $SSB_y \leqslant B_{lim}$.
+  
+  Because age 1 recruitment estimates are highly uncertain from the the most recent three years, it is proposed to use the geometric mean of the three years previous to these values (e.g., for 2020, this would be the geometric mean of age 1 recruitment estimates from years 2014 - 2016). It will also be assumed that the catches used in short-term projections to fill in the catches expected to be observed for the rest of the current fishing season will be evenly distributed over the last two quarters and be set such that the TAC for the current fishing year is filled. In advice sheets, it is planned that short-term projection scenarios will include fishing at $F_{msy}$ as implemented in the ICES advice rule, $F_{pa}$, $F_{lim}$, and $F=0$.
 
 ## Conclusions
 The gadget model presented here captures the overall trends in the data, and in spite of minor misfits the
@@ -3218,7 +3219,7 @@ due to environmental changes as several other species have exhibited similar tre
 ling, etc.). However, this increase and high recruitment uncertainty in recent years should be taken into
 account when projecting the stock for annual advice: overly optimistic mean recruitment should be avoided. In addition, $F_{p05}$ was found to be less than the estimated $F_{msy}$, suggesting that there is a less likely, but still possible, situation that the stock is not actually increasing, which can lead to a high probability of the estimated $F_{msy}$, when applied, reducing SSB below $B_{lim}$. Therefore, the upward trend in biomass and recruitment found in the final 6 years of the model should be taken with caution, as it may be corrected downwards in the next few assessment cycles. 
 
-However, as a result of this uncertainty, precautionary reference points control the proposed ICES MSY advice rule: $F_{p05}$ controls $F_{msy}$ and MSY $B_{trigger}$ was set using $B_{lim}$. Therefore the proposed MSY advice rule takes into account this large amount of uncertainty, and is deemed precautionary and an improvement from the category 3 assessment currently used. Should methods be found to reduce the uncertainty in the model during the next benchmark (e.g., methods for smoothing input survey index data, etc.), and biomass and recruitment appear to continue in an upward trends, then reference point definitions could be revisited.
+However, as a result of this uncertainty, precautionary reference points control the proposed ICES MSY advice rule: $F_{p05}$ controls $F_{msy}$ and MSY $B_{trigger}$ was set using $B_{pa}$. Therefore the proposed MSY advice rule takes into account this large amount of uncertainty, and is deemed precautionary and an improvement from the category 3 assessment currently used. Should methods be found to reduce the uncertainty in the model during the next benchmark (e.g., methods for smoothing input survey index data, etc.), and biomass and recruitment appear to continue in an upward trends, then reference point definitions could be revisited.
 
 
 
