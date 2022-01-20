@@ -17,11 +17,11 @@ T2 <- data.frame(NULL, stringsAsFactors = FALSE)
 
 zf <- zipfiles[1]
 fn <- unzip(file.path(datapath, zf), list = TRUE)$Name[4]
-unzip(file.path(datapath, files=zf), files="canum.txt" )
-res <- readLines(unz(file.path(datapath, zf), "canum.txt"))
+
+# unzip(file.path(datapath, files=zf), files="canum.txt" )
+res <- read.table(unz(file.path(datapath, zf), "canum.txt"), header=FALSE, fill=TRUE)
 res <- res[-7]
-res <- gsub(",","", res)
-res2 <- unlist(stringr::str_replace_all(res, ",", ""))
+res2 <- stringr::str_replace_all(res, ",", "")
 writeLines(res2, "canum.txt")
 t <- FLCore::readVPAFile("canum.txt")
 

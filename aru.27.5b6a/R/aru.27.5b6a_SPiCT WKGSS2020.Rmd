@@ -11,7 +11,7 @@ editor_options:
 
 ## Options about the creation of the pdf file
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, error = FALSE, cache = FALSE, 
-                      fig.width = 10, fig.asp=1.2)
+                      fig.width = 10, fig.asp=1.1)
 knitr::opts_knit$set(root.dir = normalizePath(".."))
 
 # output: 
@@ -47,16 +47,34 @@ runretro <- FALSE
 
 **Descriptions of scenarios**
 
-Four scenarios
+Scenarios with long catch time series
 
 * Scenario 1: long time-series of catch (1988-2018), including the Faroe DW survey (2014-2018), Faroe Summer survey (1996-2018), Scottish DW survey (1998-2018) and CPUE Faroer fleet (1995-2018). Priors: default
 * Scenario 2: long time-series of catch (1988-2018), including the Faroe DW survey (2014-2018), and CPUE Faroer fleet (1995-2018). Priors: default  
+
+Scenarios with shorter catch time series
+
 * Scenario 3: shorter time-series of catch (1995-2018), including the Faroe DW survey (2014-2018), Faroe Summer survey (1996-2018) and CPUE Faroer fleet (1995-2018). Priors: default
 * Scenario 4: shorter time-series of catch (1995-2018), including the Faroe DW survey (2014-2018) and CPUE Faroer fleet (1995-2018). Priors: default
 
+Scenarios similar to the SAM assessment
+
+* Scenario 5: shorter time-series of catch (1995-2018), including the Faroe DW survey (2014-2018), Faroe Summer survey (1996-2018) and CPUE combined fleet (2005-2018). Priors: default
+* Scenario 6: shorter time-series of catch (1995-2018), including the Faroe DW survey (2014-2018), Faroe Summer survey, Scottish DW survey and CPUE Faroer fleet (1995-2018). Priors: default. This run uses the same data as the SAM assessment. 
+
 **Main results**
 
-[ Main results here ]
+Results for each of the scenarios are presented in four pages: input data, estimated model parameters, stock summaries and model diagnostics. Overall results are compared in trends of (log) B over average biomass and F over average fishing mortality. 
+
+The Spict fits appear to be very sensitive to the length of the catch time series and to the data series used. Scenarios 1 and 2 (using the long catch time series) have the drawbacks that the initial catches are not accompanied by survey or CPUE observations. That gives rise to very low estimates of biomass at the beginning of the time series. 
+
+Scenarios 3 and 4 are based on a shorter catch time series (starting in 1995) and using the Faroer CPUE series in combination with the Faroerse surveys. They generally give a somewhat similar biomass trajectory as the SAM assessment. 
+
+Scenarios 5 and 6 are closest to the SAM assessment because using the combined CPUE information (2005 onwards) rather than the longer CPUE series from the Faroes. In these runs only the Faroese summer survey has information that goes back to the beginning of the catch time series. This results in a more smooth pattern in both biomass and fishing mortality. 
+
+The comparison between the spict scenarios and the SAM assessment is shown in the final plot. Biomass seems to be somewhat comparable between spict scenarios 3-64 and the SAM assessment. The fishing mortality estimated by SAM is generally much more variable than the Spict runs. 
+
+The Spict runs are rather sensitive to the length of the time series and the type of biomass information used. The Spict runs are only used in a qualitative way and do not really contradict the results from the SAM assessment.   
 
 ##### page break
 
@@ -387,8 +405,175 @@ if (converged) {
 
 ## If runretro is TRUE, run and plot the retrospective analysis
 if (runretro & converged) {
-  fit <- retro(fit3)
-  plotspict.retro(fit3)
+  fit <- retro(fit4)
+  plotspict.retro(fit4)
+}
+
+```
+
+##### page break
+
+**Scenario 5**
+
+  + Total catch, shorter time-series (1995-2018) 
+  + Faroe DW survey (2014-2018)
+  + Faroe summer survey (1995-2018)
+  + CPUE combined fleet (2005-2018)
+  + priors: default
+
+```{r fit_scenario5}
+
+dat2 <- dplyr::filter(dat, year >= 1995)
+
+## Make the input list
+inp5 <- list(timeC = dat2$year,                                       ## Timing of catch
+               obsC  = dat2$catch,                                    ## Observed catches
+               timeI = list(dat2$year + dat2$FO_DW_month / 12,        ## Timing of FO_DW survey index
+                            dat2$year + dat2$FO_SS_month / 12,          
+                            dat2$year),
+               obsI = list(dat2$FO_DW,                                ## Observed indices
+                           dat2$FO_SS,
+                           dat2$CPUE_comb),
+               optimiser.control = list(iter.max = 1e5,               ## Optimiser options 
+                                        eval.max = 1e5),              ## sometimes help converge
+               priors = list(                                         ## List of priors (empty, i.e. default priors)
+                                                                      ## see possible priors with
+                                                                      ## list.possible.priors()
+                 ))
+## Check input time series, remove missing and zero observations
+inp5 <- suppressWarnings(check.inp(inp5))
+
+## Plot input dat2a
+plotspict.data(inp5)
+
+```
+
+##### page break
+
+```{r}
+
+## Fit spict
+fit5<- fit.spict(inp5)
+
+## Summary of the fit - in the vignette there is a line-by-line description of that summary
+fit5
+
+```
+
+##### page break
+
+```{r}
+## If the model converged, it reports convergence as 0
+## Continue with plotting and diagnostics only if convergence was reached
+converged <- fit4$opt$convergence == 0
+
+if (converged) {
+  ## Calculate the One Step Ahead (osa) residuals  
+  fit5 <- calc.osa.resid((fit5))
+  
+  ## Make a plot showing relative F, relative B, Kobe plot catch 
+  par(mfrow = c(2,2),  ## 2x2 subplots
+      mar = c(4.1, 4.1, 0.5, 0.5)) ## Change default margins for the plots 
+  
+  plotspict.catch(fit5)
+  plotspict.ffmsy(fit5)
+  plotspict.bbmsy(fit5)
+  plotspict.fb(fit5)
+}
+
+if (converged) {
+  plotspict.diagnostic(fit5)
+}
+
+## If runretro is TRUE, run and plot the retrospective analysis
+if (runretro & converged) {
+  fit <- retro(fit5)
+  plotspict.retro(fit5)
+}
+
+```
+
+##### page break
+
+**Scenario 6**
+
+  + Total catch, shorter time-series (1995-2018) 
+  + Faroe DW survey (2014-2018)
+  + Faroe summer survey (1995-2018)
+  + Scottish DW survey (1998-2018)
+  + CPUE combined fleet (2005-2018)
+  + priors: default
+
+```{r fit_scenario6}
+
+dat2 <- dplyr::filter(dat, year >= 1995)
+
+## Make the input list
+inp6 <- list(timeC = dat2$year,                                       ## Timing of catch
+               obsC  = dat2$catch,                                    ## Observed catches
+               timeI = list(dat2$year + dat2$FO_DW_month / 12,        ## Timing of FO_DW survey index
+                            dat2$year + dat2$FO_SS_month / 12,          
+                            dat2$year + dat2$SC_DW_month / 12,          
+                            dat2$year),
+               obsI = list(dat2$FO_DW,                                ## Observed indices
+                           dat2$FO_SS,
+                           dat2$SC_DW, 
+                           dat2$CPUE_comb),
+               optimiser.control = list(iter.max = 1e5,               ## Optimiser options 
+                                        eval.max = 1e5),              ## sometimes help converge
+               priors = list(                                         ## List of priors (empty, i.e. default priors)
+                                                                      ## see possible priors with
+                                                                      ## list.possible.priors()
+                 ))
+## Check input time series, remove missing and zero observations
+inp6 <- suppressWarnings(check.inp(inp6))
+
+## Plot input dat2a
+plotspict.data(inp6)
+
+```
+
+##### page break
+
+```{r}
+
+## Fit spict
+fit6<- fit.spict(inp6)
+
+## Summary of the fit - in the vignette there is a line-by-line description of that summary
+fit6
+
+```
+
+##### page break
+
+```{r}
+## If the model converged, it reports convergence as 0
+## Continue with plotting and diagnostics only if convergence was reached
+converged <- fit4$opt$convergence == 0
+
+if (converged) {
+  ## Calculate the One Step Ahead (osa) residuals  
+  fit6 <- calc.osa.resid((fit6))
+  
+  ## Make a plot showing relative F, relative B, Kobe plot catch 
+  par(mfrow = c(2,2),  ## 2x2 subplots
+      mar = c(4.1, 4.1, 0.5, 0.5)) ## Change default margins for the plots 
+  
+  plotspict.catch(fit6)
+  plotspict.ffmsy(fit6)
+  plotspict.bbmsy(fit6)
+  plotspict.fb(fit6)
+}
+
+if (converged) {
+  plotspict.diagnostic(fit6)
+}
+
+## If runretro is TRUE, run and plot the retrospective analysis
+if (runretro & converged) {
+  fit <- retro(fit6)
+  plotspict.retro(fit6)
 }
 
 ```
@@ -403,7 +588,7 @@ c1 <-
   data.frame(get.par('logB', fit1)) %>% 
   rownames_to_column(var="year") %>% 
   mutate(year = as.numeric(year)) %>% 
-  filter(year >= 1995) %>% 
+  filter(year >= 1995, year <= 2018) %>% 
   filter((year%%1) == 0) %>% 
   mutate(var="logB", fit = "fit1") %>% 
   mutate(B_Bmsy = est / as.numeric(get.par('logBmsy', fit1)[,"est"])) %>% 
@@ -413,7 +598,7 @@ c2 <-
   data.frame(get.par('logB', fit2)) %>% 
   rownames_to_column(var="year") %>% 
   mutate(year = as.numeric(year)) %>% 
-  filter(year >= 1995) %>% 
+  filter(year >= 1995, year <= 2018) %>% 
   filter((year%%1) == 0) %>% 
   mutate(var="logB", fit = "fit2") %>% 
   mutate(B_Bmsy = est / as.numeric(get.par('logBmsy', fit2)[,"est"])) %>% 
@@ -423,7 +608,7 @@ c3 <-
   data.frame(get.par('logB', fit3)) %>% 
   rownames_to_column(var="year") %>% 
   mutate(year = as.numeric(year)) %>% 
-  filter(year >= 1995) %>% 
+  filter(year >= 1995, year <= 2018) %>% 
   filter((year%%1) == 0) %>% 
   mutate(var="logB", fit = "fit3") %>% 
   mutate(B_Bmsy = est / as.numeric(get.par('logBmsy', fit3)[,"est"])) %>% 
@@ -433,14 +618,34 @@ c4 <-
   data.frame(get.par('logB', fit4)) %>% 
   rownames_to_column(var="year") %>% 
   mutate(year = as.numeric(year)) %>% 
-  filter(year >= 1995) %>% 
+  filter(year >= 1995, year <= 2018) %>% 
   filter((year%%1) == 0) %>% 
   mutate(var="logB", fit = "fit4") %>% 
   mutate(B_Bmsy = est / as.numeric(get.par('logBmsy', fit4)[,"est"])) %>% 
   mutate(B_Bavg = est / mean(est, na.rm=TRUE)) 
 
 c5 <-
-  data.frame(stockassessment::ssbtable(stockassessment::fitfromweb("GLL_2019_antest7"))) %>% 
+  data.frame(get.par('logB', fit5)) %>% 
+  rownames_to_column(var="year") %>% 
+  mutate(year = as.numeric(year)) %>% 
+  filter(year >= 1995, year <= 2018) %>% 
+  filter((year%%1) == 0) %>% 
+  mutate(var="logB", fit = "fit5") %>% 
+  mutate(B_Bmsy = est / as.numeric(get.par('logBmsy', fit5)[,"est"])) %>% 
+  mutate(B_Bavg = est / mean(est, na.rm=TRUE)) 
+
+c6 <-
+  data.frame(get.par('logB', fit6)) %>% 
+  rownames_to_column(var="year") %>% 
+  mutate(year = as.numeric(year)) %>% 
+  filter(year >= 1995, year <= 2018) %>% 
+  filter((year%%1) == 0) %>% 
+  mutate(var="logB", fit = "fit6") %>% 
+  mutate(B_Bmsy = est / as.numeric(get.par('logBmsy', fit6)[,"est"])) %>% 
+  mutate(B_Bavg = est / mean(est, na.rm=TRUE)) 
+
+cs <-
+  data.frame(stockassessment::tsbtable(stockassessment::fitfromweb("GLL_2019_antest7"))) %>% 
   rownames_to_column(var="year") %>% 
   mutate(year = as.numeric(year)) %>% 
   filter(year >= 1995) %>% 
@@ -449,7 +654,7 @@ c5 <-
 
 
 p1 <-
-  bind_rows(c1, c2, c3, c4, c5) %>% 
+  bind_rows(c1, c2, c3, c4, c5, c6, cs) %>% 
   # View()
   ggplot(aes(x=year,y=B_Bavg)) +
   theme_bw() +
@@ -463,52 +668,81 @@ f1 <-
   data.frame(get.par('logF', fit1)) %>% 
   rownames_to_column(var="year") %>% 
   mutate(year = as.numeric(year)) %>% 
-  filter(year >= 1995) %>% 
+  filter(year >= 1995, year <= 2018) %>% 
   filter((year%%1) == 0) %>% 
-  mutate(var="logF", fit = "fit1") %>% 
-  mutate(F_Fmsy = est / as.numeric(get.par('logFmsy', fit1)[,"est"])) %>% 
+  mutate(var="F", fit = "fit1") %>% 
+  mutate(est = exp(est)) %>% 
+  mutate(F_Fmsy = est / exp(as.numeric(get.par('logFmsy', fit1)[,"est"]))) %>% 
   mutate(F_Favg = est / mean(est, na.rm=TRUE)) 
+
+# plotspict.f(fit3)
+
 
 f2 <- 
   data.frame(get.par('logF', fit2)) %>% 
   rownames_to_column(var="year") %>% 
   mutate(year = as.numeric(year)) %>% 
-  filter(year >= 1995) %>% 
+  filter(year >= 1995, year <= 2018) %>% 
   filter((year%%1) == 0) %>% 
-  mutate(var="logF", fit = "fit2") %>% 
-  mutate(F_Fmsy = est / as.numeric(get.par('logFmsy', fit2)[,"est"])) %>% 
+  mutate(var="F", fit = "fit2") %>% 
+  mutate(est = exp(est)) %>% 
+  mutate(F_Fmsy = est / exp(as.numeric(get.par('logFmsy', fit2)[,"est"]))) %>% 
   mutate(F_Favg = est / mean(est, na.rm=TRUE)) 
 
 f3 <- 
   data.frame(get.par('logF', fit3)) %>% 
   rownames_to_column(var="year") %>% 
   mutate(year = as.numeric(year)) %>% 
-  filter(year >= 1995) %>% 
+  filter(year >= 1995, year <= 2018) %>% 
   filter((year%%1) == 0) %>% 
-  mutate(var="logF", fit = "fit3") %>% 
-  mutate(F_Fmsy = est / as.numeric(get.par('logFmsy', fit3)[,"est"])) %>% 
+  mutate(var="F", fit = "fit3") %>% 
+  mutate(est = exp(est)) %>% 
+  mutate(F_Fmsy = est / exp(as.numeric(get.par('logFmsy', fit3)[,"est"]))) %>% 
   mutate(F_Favg = est / mean(est, na.rm=TRUE)) 
 
 f4 <- 
   data.frame(get.par('logF', fit4)) %>% 
   rownames_to_column(var="year") %>% 
   mutate(year = as.numeric(year)) %>% 
-  filter(year >= 1995) %>% 
+  filter(year >= 1995, year <= 2018) %>% 
   filter((year%%1) == 0) %>% 
-  mutate(var="logF", fit = "fit4") %>% 
-  mutate(F_Fmsy = est / as.numeric(get.par('logFmsy', fit4)[,"est"])) %>% 
+  mutate(var="F", fit = "fit4") %>% 
+  mutate(est = exp(est)) %>% 
+  mutate(F_Fmsy = est / exp(as.numeric(get.par('logFmsy', fit4)[,"est"]))) %>% 
   mutate(F_Favg = est / mean(est, na.rm=TRUE)) 
 
-f5 <-
+f5 <- 
+  data.frame(get.par('logF', fit5)) %>% 
+  rownames_to_column(var="year") %>% 
+  mutate(year = as.numeric(year)) %>% 
+  filter(year >= 1995, year <= 2018) %>% 
+  filter((year%%1) == 0) %>% 
+  mutate(var="F", fit = "fit5") %>% 
+  mutate(est = exp(est)) %>% 
+  mutate(F_Fmsy = est / exp(as.numeric(get.par('logFmsy', fit5)[,"est"]))) %>% 
+  mutate(F_Favg = est / mean(est, na.rm=TRUE)) 
+
+f6 <- 
+  data.frame(get.par('logF', fit6)) %>% 
+  rownames_to_column(var="year") %>% 
+  mutate(year = as.numeric(year)) %>% 
+  filter(year >= 1995, year <= 2018) %>% 
+  filter((year%%1) == 0) %>% 
+  mutate(var="F", fit = "fit6") %>% 
+  mutate(est = exp(est)) %>% 
+  mutate(F_Fmsy = est / exp(as.numeric(get.par('logFmsy', fit6)[,"est"]))) %>% 
+  mutate(F_Favg = est / mean(est, na.rm=TRUE)) 
+
+fs <-
   data.frame(stockassessment::fbartable(stockassessment::fitfromweb("GLL_2019_antest7"))) %>% 
   rownames_to_column(var="year") %>% 
   mutate(year = as.numeric(year)) %>% 
-  filter(year >= 1995) %>% 
-  mutate(var="logF", fit = "sam") %>% 
-  mutate(F_Favg = log(Estimate) / mean(log(Estimate), na.rm=TRUE)) 
+  filter(year >= 1995, year <= 2018) %>% 
+  mutate(var="F", fit = "sam") %>% 
+  mutate(F_Favg = Estimate / mean(Estimate, na.rm=TRUE)) 
 
 p2 <- 
-  bind_rows(f1, f2, f3, f4, f5) %>% 
+  bind_rows(f1, f2, f3, f4, f5, f6, fs) %>% 
   # View()
   ggplot(aes(x=year,y=F_Favg)) +
   theme_bw() +

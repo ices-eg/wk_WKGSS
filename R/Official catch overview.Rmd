@@ -1,0 +1,108 @@
+---
+output: 
+  word_document:
+    reference_docx: ../report_template_v1.5.dotx
+---
+
+```{r setup, echo=FALSE, fig.asp=1.0, fig.align="center", message=FALSE, warning=FALSE}
+
+# =======================================================================================
+# Official catch overview.Rmd
+# 
+# Generate overviews of of catch by country and area
+#
+# 13/11/2019 First coding
+# 07/02/2019 Adapted from ARU Catch overview.Rmd
+# =======================================================================================
+
+require("knitr")
+knitr::opts_chunk$set(echo = FALSE,	message = FALSE,	warning = FALSE,	comment = "",	crop = TRUE )
+knitr::opts_chunk$set(fig.width=10) 
+
+rm(list=ls())
+
+# library(devtools)
+library(tidyverse)    # tidying packages
+library(readxl)       # read excel
+library(scales)       # 
+library(RColorBrewer)
+library(viridis)
+library(pander)
+
+# lowcase function
+lowcase <- function(df) {
+  names(df) <- tolower(names(df)) %>% gsub("\\?|\\s+|\\.+|_+|\\(|\\)","",.) 
+  df
+}
+
+# Data path
+datapath <- "D:/zzz"
+# datapath <- "//community.ices.dk/ExpertGroups/benchmarks/2020/wkdeep/2014 Meeting docs/06. Data/combined"
+# datapath  <- "//community.ices.dk@SSL/DavWWWRoot/ExpertGroups/benchmarks/2020/wkdeep/2014 Meeting docs/06. Data/combined"
+
+# list the available files
+fn <- 'ICES 2006-2019 Official plus preliminary Catch Dataset.xlsx'
+
+# read the files
+catch <- data.frame()
+
+t <- 
+  read_excel(file.path(datapath, fn), col_names=TRUE, col_types="text") %>% 
+  lowcase() %>% 
+  mutate(area = gsub("_",".",area)) %>% 
+  mutate(count = gsub("[[:alpha:]]","", area)) %>% 
+  mutate(count = gsub("[[:digit:]]","", count)) %>% 
+  mutate(count = nchar(count)) %>% 
+  mutate(areatype = case_when(
+    count == 0 ~ "area",
+    count == 1 ~ "subarea",
+    count == 2 ~ "division",
+    count == 3 ~ "subdivision",
+    count == 4 ~ "unit",
+    TRUE       ~ "other"
+  )) %>% 
+  mutate(catch = as.numeric(catch)) %>% 
+  mutate(year = as.integer(year))
+
+```
+
+**ICES official and preliminary catch overviews**
+
+Martin Pastoors, `r format(Sys.time(), '%d/%m/%Y %H:%M')`
+
+
+```{r, echo=FALSE, fig.asp=1.4, fig.align="center", message=FALSE, warning=FALSE}
+
+t %>% 
+  filter(fao %in% c("ARY","ARU","ARG")) %>% 
+  group_by(fao, country, areatype, year) %>% 
+  summarize(catch = sum(catch, na.rm=TRUE)) %>%
+  reshape2::dcast(fao+country+areatype~year, value.var="catch", sum, margins = c("country")) %>% 
+
+  pandoc.table(.,
+             style = "simple",
+             split.tables=400, 
+             justify = "left",
+             missing=".",
+             round=c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0))
+
+```
+
+##### page break 
+
+```{r, echo=FALSE, fig.asp=0.8, fig.align="center", message=FALSE, warning=FALSE}
+
+t %>% 
+  filter(fao %in% c("ARY","ARU","ARG")) %>% 
+  group_by(fao, country, areatype, year) %>% 
+  summarize(catch = sum(catch, na.rm=TRUE)) %>%
+
+  ggplot(aes(x=year, y=catch, group=country)) +
+  theme_bw() +
+  geom_bar(aes(fill=country), stat="identity") +
+  facet_grid(areatype ~ fao)
+
+
+```
+
+
